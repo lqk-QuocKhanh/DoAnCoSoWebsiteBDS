@@ -44,7 +44,8 @@ public static class DependencyInjection
                     connectionString,
                     npgsqlOptions =>
                     {
-                        npgsqlOptions.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
+                        npgsqlOptions.MigrationsAssembly(
+                            typeof(ApplicationDbContext).Assembly.GetName().Name);
                         npgsqlOptions.EnableRetryOnFailure(
                             maxRetryCount: 5,
                             maxRetryDelay: TimeSpan.FromSeconds(10),
