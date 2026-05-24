@@ -22,15 +22,10 @@ public class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
         builder.Property(a => a.EntityId)
             .HasMaxLength(450);
 
-        // JSON columns — store as nvarchar(max) / text
-        builder.Property(a => a.OldValues)
-            .HasColumnType("nvarchar(max)");
-
-        builder.Property(a => a.NewValues)
-            .HasColumnType("nvarchar(max)");
-
-        builder.Property(a => a.AffectedColumns)
-            .HasColumnType("nvarchar(max)");
+        // JSON columns — unbounded text (PostgreSQL)
+        builder.Property(a => a.OldValues);
+        builder.Property(a => a.NewValues);
+        builder.Property(a => a.AffectedColumns);
 
         builder.Property(a => a.IpAddress)
             .HasMaxLength(45);

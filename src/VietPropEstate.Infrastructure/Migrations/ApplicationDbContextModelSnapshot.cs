@@ -244,7 +244,7 @@ namespace VietPropEstate.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("AffectedColumns")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("EntityId")
                         .HasMaxLength(450)
@@ -260,10 +260,10 @@ namespace VietPropEstate.Infrastructure.Migrations
                         .HasColumnType("character varying(45)");
 
                     b.Property<string>("NewValues")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("OldValues")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("timestamp with time zone");
@@ -667,7 +667,7 @@ namespace VietPropEstate.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("GatewayResponse")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("IpAddress")
                         .HasMaxLength(45)

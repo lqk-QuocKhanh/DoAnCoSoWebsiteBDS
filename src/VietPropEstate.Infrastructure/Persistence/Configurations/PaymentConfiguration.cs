@@ -38,8 +38,7 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(p => p.IpAddress)
             .HasMaxLength(45);
 
-        builder.Property(p => p.GatewayResponse)
-            .HasColumnType("nvarchar(max)");
+        builder.Property(p => p.GatewayResponse);
 
         builder.Property(p => p.Notes)
             .HasMaxLength(2000);
