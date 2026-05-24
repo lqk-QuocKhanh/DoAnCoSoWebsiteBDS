@@ -1,0 +1,27 @@
+# Render Blueprint — VietPropEstate Web API
+# Docs: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: vietpropestate-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /swagger/index.html
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: EnableSwagger
+        value: "true"
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      - key: ConnectionStrings__Redis
+        sync: false
+      - key: JwtSettings__Secret
+        generateValue: true
+      - key: JwtSettings__Issuer
+        value: VietPropEstate.WebAPI
+      - key: JwtSettings__Audience
+        value: VietPropEstate.BlazorUI
+      - key: Cors__AllowedOrigins__0
+        sync: false
