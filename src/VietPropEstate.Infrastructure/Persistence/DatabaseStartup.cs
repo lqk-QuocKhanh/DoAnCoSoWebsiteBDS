@@ -8,6 +8,8 @@ namespace VietPropEstate.Infrastructure.Persistence;
 
 public static class DatabaseStartup
 {
+    private const string IdentityUsersTable = "AspNetUsers";
+
     public static async Task InitializeAsync(
         IServiceProvider services,
         IHostEnvironment environment,
@@ -48,17 +50,42 @@ public static class DatabaseStartup
             await using var scope = services.CreateAsyncScope();
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
+            if (!await db.Database.CanConnectAsync(cancellationToken))
+            {
+                logger.LogError("Cannot connect to PostgreSQL. Check ConnectionStrings__DefaultConnection or DATABASE_URL.");
+                return false;
+            }
+
+            var applied = (await db.Database.GetAppliedMigrationsAsync(cancellationToken)).ToList();
             var pending = (await db.Database.GetPendingMigrationsAsync(cancellationToken)).ToList();
+
+            logger.LogInformation(
+                "Migration state — applied: {AppliedCount}, pending: {PendingCount}",
+                applied.Count,
+                pending.Count);
+
             if (pending.Count > 0)
                 logger.LogInformation("Pending migrations: {Migrations}", string.Join(", ", pending));
-            else
-                logger.LogInformation("No pending migrations detected.");
 
-            var strategy = db.Database.CreateExecutionStrategy();
-            await strategy.ExecuteAsync(async () =>
+            await db.Database.MigrateAsync(cancellationToken);
+
+            if (!await IdentityTablesExistAsync(db, cancellationToken))
             {
+                logger.LogWarning(
+                    "Identity tables missing after migrate. Resetting migration history and re-applying.");
+
+                await db.Database.ExecuteSqlRawAsync(
+                    "DROP TABLE IF EXISTS \"__EFMigrationsHistory\" CASCADE;",
+                    cancellationToken);
+
                 await db.Database.MigrateAsync(cancellationToken);
-            });
+            }
+
+            if (!await IdentityTablesExistAsync(db, cancellationToken))
+            {
+                logger.LogError("AspNetUsers still missing after migration recovery.");
+                return false;
+            }
 
             logger.LogInformation("Database migrated successfully");
             return true;
@@ -68,6 +95,38 @@ public static class DatabaseStartup
             logger.LogError(ex, "Database migration failed");
             Console.WriteLine(ex.ToString());
             return false;
+        }
+    }
+
+    private static async Task<bool> IdentityTablesExistAsync(
+        ApplicationDbContext db,
+        CancellationToken cancellationToken)
+    {
+        var connection = db.Database.GetDbConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = """
+                SELECT EXISTS (
+                    SELECT 1
+                    FROM information_schema.tables
+                    WHERE table_schema = 'public'
+                      AND table_name = @tableName);
+                """;
+
+            var parameter = command.CreateParameter();
+            parameter.ParameterName = "@tableName";
+            parameter.Value = IdentityUsersTable;
+            command.Parameters.Add(parameter);
+
+            var result = await command.ExecuteScalarAsync(cancellationToken);
+            return result is bool exists && exists;
+        }
+        finally
+        {
+            await connection.CloseAsync();
         }
     }
 
