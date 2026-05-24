@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace VietPropEstate.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialPostgres : Migration
+    public partial class InitialPostgresIdentity : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -1188,7 +1188,7 @@ namespace VietPropEstate.Infrastructure.Migrations
                 table: "UserBlocks",
                 columns: new[] { "BlockerId", "BlockedUserId" },
                 unique: true,
-                filter: "[IsDeleted] = 0");
+                filter: "\"IsDeleted\" = false");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserConversationSettings_ConversationId",
@@ -1200,7 +1200,7 @@ namespace VietPropEstate.Infrastructure.Migrations
                 table: "UserConversationSettings",
                 columns: new[] { "UserId", "ConversationId" },
                 unique: true,
-                filter: "[IsDeleted] = 0");
+                filter: "\"IsDeleted\" = false");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserConversationSettings_UserId_IsPinned",

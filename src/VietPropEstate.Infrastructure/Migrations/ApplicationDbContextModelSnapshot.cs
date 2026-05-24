@@ -1438,7 +1438,7 @@ namespace VietPropEstate.Infrastructure.Migrations
 
                     b.HasIndex("BlockerId", "BlockedUserId")
                         .IsUnique()
-                        .HasFilter("[IsDeleted] = 0");
+                        .HasFilter("\"IsDeleted\" = false");
 
                     b.ToTable("UserBlocks", (string)null);
                 });
@@ -1500,7 +1500,7 @@ namespace VietPropEstate.Infrastructure.Migrations
 
                     b.HasIndex("UserId", "ConversationId")
                         .IsUnique()
-                        .HasFilter("[IsDeleted] = 0");
+                        .HasFilter("\"IsDeleted\" = false");
 
                     b.HasIndex("UserId", "IsPinned");
 

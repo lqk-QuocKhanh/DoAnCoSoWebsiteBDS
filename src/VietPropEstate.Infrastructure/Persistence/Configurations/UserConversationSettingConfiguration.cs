@@ -26,7 +26,7 @@ public class UserConversationSettingConfiguration : IEntityTypeConfiguration<Use
 
         builder.HasIndex(s => new { s.UserId, s.ConversationId })
             .IsUnique()
-            .HasFilter("[IsDeleted] = 0");
+            .HasFilter(PostgresIndexFilters.NotDeleted);
         builder.HasIndex(s => new { s.UserId, s.IsPinned });
 
         builder.HasQueryFilter(s => !s.IsDeleted);

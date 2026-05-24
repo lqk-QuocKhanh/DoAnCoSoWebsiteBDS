@@ -12,8 +12,8 @@ using VietPropEstate.Infrastructure.Persistence;
 namespace VietPropEstate.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260524092813_InitialPostgres")]
-    partial class InitialPostgres
+    [Migration("20260524210825_InitialPostgresIdentity")]
+    partial class InitialPostgresIdentity
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1441,7 +1441,7 @@ namespace VietPropEstate.Infrastructure.Migrations
 
                     b.HasIndex("BlockerId", "BlockedUserId")
                         .IsUnique()
-                        .HasFilter("[IsDeleted] = 0");
+                        .HasFilter("\"IsDeleted\" = false");
 
                     b.ToTable("UserBlocks", (string)null);
                 });
@@ -1503,7 +1503,7 @@ namespace VietPropEstate.Infrastructure.Migrations
 
                     b.HasIndex("UserId", "ConversationId")
                         .IsUnique()
-                        .HasFilter("[IsDeleted] = 0");
+                        .HasFilter("\"IsDeleted\" = false");
 
                     b.HasIndex("UserId", "IsPinned");
 

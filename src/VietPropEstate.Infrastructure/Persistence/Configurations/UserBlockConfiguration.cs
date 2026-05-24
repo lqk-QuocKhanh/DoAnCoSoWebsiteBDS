@@ -25,7 +25,7 @@ public class UserBlockConfiguration : IEntityTypeConfiguration<UserBlock>
 
         builder.HasIndex(b => new { b.BlockerId, b.BlockedUserId })
             .IsUnique()
-            .HasFilter("[IsDeleted] = 0");
+            .HasFilter(PostgresIndexFilters.NotDeleted);
         builder.HasIndex(b => b.BlockedUserId);
 
         builder.HasQueryFilter(b => !b.IsDeleted);
