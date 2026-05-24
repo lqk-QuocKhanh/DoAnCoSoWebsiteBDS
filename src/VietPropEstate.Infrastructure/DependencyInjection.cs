@@ -32,17 +32,22 @@ public static class DependencyInjection
         }
         else
         {
+            var connectionString = DatabaseConnectionResolver.Resolve(configuration);
+            if (string.IsNullOrWhiteSpace(connectionString))
+                throw new InvalidOperationException(
+                    "PostgreSQL connection string is missing. Set ConnectionStrings__DefaultConnection or DATABASE_URL.");
+
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(
-                    configuration.GetConnectionString("DefaultConnection"),
-                    sqlOptions =>
+                options.UseNpgsql(
+                    connectionString,
+                    npgsqlOptions =>
                     {
-                        sqlOptions.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
-                        sqlOptions.EnableRetryOnFailure(
+                        npgsqlOptions.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
+                        npgsqlOptions.EnableRetryOnFailure(
                             maxRetryCount: 5,
                             maxRetryDelay: TimeSpan.FromSeconds(10),
-                            errorNumbersToAdd: null);
-                        sqlOptions.CommandTimeout(60);
+                            errorCodesToAdd: null);
+                        npgsqlOptions.CommandTimeout(60);
                     }));
         }
 

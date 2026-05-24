@@ -10,7 +10,7 @@ namespace VietPropEstate.Infrastructure.Services;
 /// <summary>
 /// Seeds Vietnam province and ward data into the database on first startup.
 /// Idempotent: will not import data if the Provinces table already has records.
-/// Uses CreateExecutionStrategy to work correctly with SqlServerRetryingExecutionStrategy.
+/// Uses CreateExecutionStrategy to work correctly with EF retry execution strategy.
 /// </summary>
 public sealed class AddressDataSeeder
 {
@@ -40,7 +40,7 @@ public sealed class AddressDataSeeder
 
         _logger.LogInformation("Starting Vietnam address data seeding...");
 
-        // SqlServerRetryingExecutionStrategy requires all operations inside CreateExecutionStrategy
+        // EF retry execution strategy requires all operations inside CreateExecutionStrategy
         var strategy = context.Database.CreateExecutionStrategy();
 
         await strategy.ExecuteAsync(async () =>

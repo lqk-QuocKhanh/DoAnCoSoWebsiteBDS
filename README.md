@@ -30,7 +30,7 @@ Vietnam real estate platform built with **.NET 9**, **Clean Architecture**, **EF
 ## Prerequisites
 
 - [.NET 9 SDK](https://dotnet.microsoft.com/download)
-- SQL Server (LocalDB, Express, or Docker)
+- PostgreSQL 16+ (local install or Docker)
 - Redis (optional — falls back to in-memory cache)
 - Node/npm not required (Blazor WASM)
 
@@ -51,7 +51,7 @@ Edit `src/VietPropEstate.WebAPI/appsettings.Development.json`:
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=VietPropEstateDb_Dev;Trusted_Connection=True;MultipleActiveResultSets=true",
+    "DefaultConnection": "Host=localhost;Port=5432;Database=vietpropestate_dev;Username=postgres;Password=postgres",
     "Redis": "localhost:6379"
   }
 }
@@ -67,7 +67,7 @@ Migrations run automatically on API startup, or apply manually:
 dotnet ef database update --project src/VietPropEstate.Infrastructure --startup-project src/VietPropEstate.WebAPI
 ```
 
-Optional manual DB creation: run `scripts/sql/01-create-database.sql` in SQL Server Management Studio.
+Optional: start PostgreSQL via Docker Compose (`docker compose up -d postgres`).
 
 ### 4. Run the Web API
 
@@ -110,7 +110,7 @@ The Blazor app reads the API URL from `wwwroot/appsettings.json`:
 
 ## Docker
 
-Start SQL Server, Redis, and the API with Docker Compose:
+Start PostgreSQL, Redis, and the API with Docker Compose:
 
 ```bash
 docker compose up -d
@@ -119,7 +119,7 @@ docker compose up -d
 | Service | URL / Port |
 |---------|------------|
 | API | `http://localhost:8080` |
-| SQL Server | `localhost:1433` (SA password in `docker-compose.yml`) |
+| PostgreSQL | `localhost:5432` (credentials in `docker-compose.yml`) |
 | Redis | `localhost:6379` |
 
 Build the API image only:
