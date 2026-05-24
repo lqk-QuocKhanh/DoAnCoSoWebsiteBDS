@@ -1,36 +1,32 @@
-# ── Stage 1: Build ─────────────────────────────────────────────────────────────
+# ── Stage 1: Build Blazor WebAssembly ─────────────────────────────────────────
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
 COPY VietPropEstate.sln ./
-COPY src/ src/
-COPY tests/ tests/
+COPY src/VietPropEstate.Domain/      src/VietPropEstate.Domain/
+COPY src/VietPropEstate.Application/ src/VietPropEstate.Application/
+COPY src/VietPropEstate.BlazorUI/    src/VietPropEstate.BlazorUI/
 
-RUN dotnet restore VietPropEstate.sln
+RUN dotnet restore src/VietPropEstate.BlazorUI/VietPropEstate.BlazorUI.csproj
 
-RUN dotnet publish src/VietPropEstate.WebAPI/VietPropEstate.WebAPI.csproj \
+RUN dotnet publish src/VietPropEstate.BlazorUI/VietPropEstate.BlazorUI.csproj \
     -c Release \
     -o /app/publish \
-    --no-restore \
-    /p:UseAppHost=false
+    --no-restore
 
-# ── Stage 2: Runtime ───────────────────────────────────────────────────────────
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
-WORKDIR /app
+# ── Stage 2: Serve Blazor static files (nginx) ────────────────────────────────
+FROM nginx:1.27-alpine AS runtime
 
-RUN mkdir -p logs && \
-    adduser --disabled-password --gecos "" appuser && \
-    chown -R appuser:appuser /app
+COPY docker/blazorui/nginx.conf.template /etc/nginx/conf.d/default.conf.template
+COPY docker/entrypoint.sh /entrypoint.sh
+COPY --from=build /app/publish/wwwroot /usr/share/nginx/html
 
-COPY --from=build --chown=appuser:appuser /app/publish .
-COPY --chown=appuser:appuser docker/entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /entrypoint.sh && \
+    rm -f /etc/nginx/conf.d/default.conf
 
-RUN chmod +x /app/entrypoint.sh
+ENV PORT=10000
+ENV ASPNETCORE_URLS=http://0.0.0.0:10000
 
-USER appuser
+EXPOSE 10000
 
-ENV ASPNETCORE_ENVIRONMENT=Production
-
-EXPOSE 8080
-
-ENTRYPOINT ["/app/entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh"]

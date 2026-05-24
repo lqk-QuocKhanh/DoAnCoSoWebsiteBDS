@@ -2,9 +2,20 @@
 # Docs: https://render.com/docs/blueprint-spec
 services:
   - type: web
-    name: vietpropestate-api
+    name: vietpropestate-ui
     runtime: docker
     dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: API_BASE_URL
+        sync: false
+
+  - type: web
+    name: vietpropestate-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile.api
     dockerContext: .
     plan: free
     healthCheckPath: /swagger/index.html
@@ -26,15 +37,4 @@ services:
       - key: JwtSettings__Audience
         value: VietPropEstate.BlazorUI
       - key: Cors__AllowedOrigins__0
-        sync: false
-
-  - type: web
-    name: vietpropestate-ui
-    runtime: docker
-    dockerfilePath: ./Dockerfile.blazorui
-    dockerContext: .
-    plan: free
-    healthCheckPath: /
-    envVars:
-      - key: API_BASE_URL
         sync: false
