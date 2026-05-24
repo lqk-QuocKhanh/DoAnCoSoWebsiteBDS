@@ -1,0 +1,127 @@
+@page "/payment/vnpay-return"
+@layout PublicLayout
+@inject HttpClient Http
+@inject NavigationManager Nav
+
+<PageTitle>Kết quả thanh toán - VietPropEstate</PageTitle>
+
+<div style="max-width:480px; margin:80px auto; padding:0 24px; text-align:center;">
+    @if (_loading)
+    {
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" Style="margin:40px auto;" />
+        <MudText>Đang xác thực kết quả thanh toán...</MudText>
+    }
+    else if (_isSuccess)
+    {
+        <MudCard Elevation="2" Style="border-radius:24px; overflow:hidden;">
+            <div style="background:linear-gradient(135deg,#16A34A,#22C55E); padding:32px;">
+                <div style="width:72px;height:72px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                    <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Style="color:#fff; font-size:44px;" />
+                </div>
+                <MudText Typo="Typo.h5" Style="color:#fff; font-weight:700;">Thanh toán thành công!</MudText>
+            </div>
+            <MudCardContent Style="padding:28px;">
+                @if (!string.IsNullOrEmpty(_bankCode))
+                {
+                    <div class="d-flex justify-content-between mb-2">
+                        <MudText Typo="Typo.body2" Style="color:#64748B;">Ngân hàng</MudText>
+                        <MudText Typo="Typo.body2" Style="font-weight:600;">@_bankCode</MudText>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(_transactionId))
+                {
+                    <div class="d-flex justify-content-between mb-3">
+                        <MudText Typo="Typo.body2" Style="color:#64748B;">Mã giao dịch</MudText>
+                        <MudText Typo="Typo.body2" Style="font-weight:600; font-family:monospace;">@_transactionId</MudText>
+                    </div>
+                }
+                <MudText Style="color:#64748B; font-size:14px; line-height:1.6; margin-bottom:24px;">
+                    Gói VIP của bạn đã được kích hoạt. Bạn có thể đăng tin ngay bây giờ!
+                </MudText>
+                <MudButton Href="/dashboard/tin-dang/them-moi" Variant="Variant.Filled" Color="Color.Primary"
+                           FullWidth="true" Size="Size.Large" StartIcon="@Icons.Material.Filled.Add"
+                           Style="border-radius:12px; font-weight:700;">
+                    Đăng tin ngay
+                </MudButton>
+                <MudButton Href="/dashboard/thanh-toan" Variant="Variant.Text" Color="Color.Default"
+                           FullWidth="true" Class="mt-2">
+                    Xem lịch sử thanh toán
+                </MudButton>
+            </MudCardContent>
+        </MudCard>
+    }
+    else
+    {
+        <MudCard Elevation="2" Style="border-radius:24px; overflow:hidden;">
+            <div style="background:linear-gradient(135deg,#B91C1C,#DC2626); padding:32px;">
+                <div style="width:72px;height:72px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                    <MudIcon Icon="@Icons.Material.Filled.Error" Style="color:#fff; font-size:44px;" />
+                </div>
+                <MudText Typo="Typo.h5" Style="color:#fff; font-weight:700;">Thanh toán thất bại</MudText>
+            </div>
+            <MudCardContent Style="padding:28px;">
+                <MudText Style="color:#64748B; font-size:14px; line-height:1.6; margin-bottom:24px;">
+                    @(_errorMessage ?? "Giao dịch không thành công. Vui lòng thử lại hoặc chọn phương thức thanh toán khác.")
+                </MudText>
+                <MudButton Href="/dashboard/goi-vip" Variant="Variant.Filled" Color="Color.Primary"
+                           FullWidth="true" Size="Size.Large" StartIcon="@Icons.Material.Filled.ArrowBack"
+                           Style="border-radius:12px; font-weight:700;">
+                    Quay lại chọn gói
+                </MudButton>
+                <MudButton Href="/dashboard/goi-vip" Variant="Variant.Outlined" Color="Color.Primary"
+                           FullWidth="true" Size="Size.Large" Class="mt-2"
+                           Style="border-radius:12px; font-weight:600;">
+                    Thử lại thanh toán
+                </MudButton>
+                <MudButton Href="/" Variant="Variant.Text" Color="Color.Default"
+                           FullWidth="true" Class="mt-2">
+                    Về trang chủ
+                </MudButton>
+            </MudCardContent>
+        </MudCard>
+    }
+</div>
+
+@code {
+    private bool _loading = true;
+    private bool _isSuccess;
+    private string? _bankCode;
+    private string? _transactionId;
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var uri = new Uri(Nav.Uri);
+            var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+            var vnpUrl = $"api/payments/vnpay-return{uri.Query}";
+            var result = await Http.GetFromJsonAsync<VnPayReturnResponse>(vnpUrl);
+
+            _isSuccess = result?.IsSuccess ?? false;
+            _bankCode = result?.BankCode;
+            _transactionId = result?.TransactionId;
+            if (!_isSuccess) _errorMessage = result?.Message;
+        }
+        catch
+        {
+            // If API isn't running, check query params directly
+            var uri = new Uri(Nav.Uri);
+            var qs = System.Web.HttpUtility.ParseQueryString(uri.Query);
+            _isSuccess = qs["vnp_ResponseCode"] == "00" && qs["vnp_TransactionStatus"] == "00";
+            _bankCode = qs["vnp_BankCode"];
+            _transactionId = qs["vnp_TransactionNo"];
+        }
+
+        _loading = false;
+    }
+
+    private sealed class VnPayReturnResponse
+    {
+        public bool IsSuccess { get; init; }
+        public string? Message { get; init; }
+        public string? BankCode { get; init; }
+        public string? TransactionId { get; init; }
+        public string? ResponseCode { get; init; }
+    }
+}

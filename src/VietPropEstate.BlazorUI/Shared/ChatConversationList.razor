@@ -1,0 +1,134 @@
+<div style="height:100%; overflow-y:auto; border-right:1px solid #E2E8F0;">
+    <!-- Header -->
+    <div style="padding:16px; border-bottom:1px solid #E2E8F0; position:sticky; top:0; background:#fff; z-index:1;">
+        <MudText Typo="Typo.h6" Style="font-weight:700; margin-bottom:12px;">Tin nhắn</MudText>
+        <MudTextField Placeholder="Tìm kiếm cuộc trò chuyện..."
+                      Variant="Variant.Outlined"
+                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                      Margin="Margin.Dense" Immediate="true" @bind-Value="_search" />
+    </div>
+
+    @if (Conversations == null || !Conversations.Any())
+    {
+        <EmptyState Icon="@Icons.Material.Outlined.Chat"
+                    Title="Chưa có tin nhắn"
+                    Subtitle="Liên hệ với người bán để bắt đầu cuộc trò chuyện." />
+    }
+    else
+    {
+        @foreach (var conv in FilteredConversations)
+        {
+            <div style="padding:14px 16px; cursor:pointer; transition:background 0.15s; border-bottom:1px solid #F8FAFC; @(conv.Id == ActiveConversationId ? "background:#FEF2F2;" : "")"
+                 @onclick="@(() => OnConversationSelected.InvokeAsync(conv))"
+                 onmouseover="@(conv.Id == ActiveConversationId ? "" : "this.style.background='#F8FAFC'")"
+                 onmouseout="@(conv.Id == ActiveConversationId ? "" : "this.style.background='#fff'")">
+                <div class="d-flex" style="gap:12px;">
+                    <!-- Avatar -->
+                    <div style="position:relative; flex-shrink:0;" @onclick:stopPropagation="true">
+                        @if (!string.IsNullOrEmpty(conv.OtherParticipantId))
+                        {
+                            <MudLink Href="@($"/nguoi-dang/{conv.OtherParticipantId}")" Style="text-decoration:none;">
+                                <UserAvatar AvatarUrl="@conv.OtherParticipantAvatarUrl"
+                                            Name="@conv.OtherParticipantName"
+                                            Initials="@GetInitials(conv.OtherParticipantName)"
+                                            Size="44" />
+                            </MudLink>
+                        }
+                        else
+                        {
+                            <UserAvatar AvatarUrl="@conv.OtherParticipantAvatarUrl"
+                                        Name="@conv.OtherParticipantName"
+                                        Initials="@GetInitials(conv.OtherParticipantName)"
+                                        Size="44" />
+                        }
+                        @if (conv.OtherParticipantOnline)
+                        {
+                            <div style="position:absolute; bottom:0; right:0; width:12px; height:12px; background:#16A34A; border-radius:50%; border:2px solid #fff;"></div>
+                        }
+                    </div>
+
+                    <!-- Info -->
+                    <div style="flex:1; min-width:0;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center" style="gap:6px; min-width:0; flex:1;">
+                                @if (conv.IsPinned)
+                                {
+                                    <MudIcon Icon="@Icons.Material.Filled.PushPin" Size="Size.Small" Style="color:#B91C1C; flex-shrink:0;" />
+                                }
+                                <MudText Typo="Typo.body2" Style="font-weight:600; font-size:14px;" Class="line-clamp-1">
+                                    @if (!string.IsNullOrEmpty(conv.OtherParticipantId))
+                                    {
+                                        <MudLink Href="@($"/nguoi-dang/{conv.OtherParticipantId}")"
+                                                 Style="text-decoration:none; color:inherit;"
+                                                 @onclick:stopPropagation="true">
+                                            @(conv.OtherParticipantName ?? "Người dùng")
+                                        </MudLink>
+                                    }
+                                    else
+                                    {
+                                        @(conv.OtherParticipantName ?? "Người dùng")
+                                    }
+                                </MudText>
+                                @if (conv.IsMuted)
+                                {
+                                    <MudIcon Icon="@Icons.Material.Outlined.NotificationsOff" Size="Size.Small" Style="color:#94A3B8; flex-shrink:0;" />
+                                }
+                            </div>
+                            @if (conv.LastMessageAt.HasValue)
+                            {
+                                <MudText Typo="Typo.caption" Style="color:#94A3B8; flex-shrink:0; margin-left:8px; font-size:11px;">
+                                    @FormatTime(conv.LastMessageAt.Value)
+                                </MudText>
+                            }
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-1">
+                            <MudText Typo="Typo.caption" Class="line-clamp-1" Style="color:#64748B; font-size:13px; flex:1; min-width:0;">
+                                @(conv.LastMessagePreview ?? conv.PropertyTitle ?? "Chưa có tin nhắn")
+                            </MudText>
+                            <div class="d-flex align-items-center" style="gap:4px; flex-shrink:0; margin-left:8px;">
+                                @if (conv.UnreadCount > 0)
+                                {
+                                    <MudBadge Content="@conv.UnreadCount" Color="Color.Error" />
+                                }
+                                <ChatConversationActions Conversation="@conv" OnAction="@(action => OnConversationAction.InvokeAsync((conv, action)))" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public IReadOnlyList<ConversationDto>? Conversations { get; set; }
+    [Parameter] public Guid? ActiveConversationId { get; set; }
+    [Parameter] public EventCallback<ConversationDto> OnConversationSelected { get; set; }
+    [Parameter] public EventCallback<(ConversationDto Conversation, string Action)> OnConversationAction { get; set; }
+
+    private string _search = "";
+
+    private IEnumerable<ConversationDto> FilteredConversations =>
+        Conversations?.Where(c =>
+            string.IsNullOrEmpty(_search) ||
+            (c.OtherParticipantName?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false) ||
+            (c.PropertyTitle?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false))
+        ?? [];
+
+    private static string GetInitials(string? name)
+    {
+        if (string.IsNullOrEmpty(name)) return "?";
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length >= 2 ? $"{parts[0][0]}{parts[^1][0]}" : name[..1].ToUpper();
+    }
+
+    private static string FormatTime(DateTime dt)
+    {
+        var diff = DateTime.UtcNow - dt;
+        if (diff.TotalMinutes < 1) return "Vừa xong";
+        if (diff.TotalHours < 1) return $"{(int)diff.TotalMinutes} phút";
+        if (diff.TotalDays < 1) return $"{(int)diff.TotalHours}g";
+        if (diff.TotalDays < 7) return $"{(int)diff.TotalDays} ngày";
+        return dt.ToString("dd/MM");
+    }
+}

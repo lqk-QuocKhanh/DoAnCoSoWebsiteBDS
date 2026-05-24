@@ -1,0 +1,28 @@
+@page "/dashboard/goi-vip"
+@layout DashboardLayout
+@inject AuthState AuthState
+@inject NavigationManager Nav
+
+<PageTitle>Gói VIP - VietPropEstate</PageTitle>
+
+@if (!AuthState.CanBuyVipPackage)
+{
+    <MudAlert Severity="Severity.Info" Class="mb-4">
+        Gói VIP dành cho tài khoản <strong>Môi giới / Chủ BĐS</strong>.
+        Khách hàng có thể lưu tin, liên hệ và đăng tin sau khi xác thực số điện thoại.
+    </MudAlert>
+    <MudButton Href="/dashboard" Variant="Variant.Filled" Color="Color.Primary" Style="border-radius:10px;">
+        Về tổng quan
+    </MudButton>
+}
+else
+{
+    <div class="mb-6">
+        <MudText Typo="Typo.h5" Style="font-weight:700;">Gói VIP</MudText>
+        <MudText Typo="Typo.body2" Style="color:#64748B;">
+            Mua gói để đăng tin, tăng hiển thị và tiếp cận nhiều khách hàng hơn
+        </MudText>
+    </div>
+
+    <VipPackagesContent />
+}

@@ -1,0 +1,12 @@
+@page "/admin/nguoi-dung"
+@inject NavigationManager Nav
+@inject AuthState AuthState
+
+@code {
+    protected override void OnInitialized()
+    {
+        Nav.NavigateTo(
+            AuthState.CanManageSystem ? "/sysadmin/nguoi-dung" : "/admin",
+            replace: true);
+    }
+}

@@ -1,0 +1,223 @@
+﻿@page "/"
+@layout PublicLayout
+@inject IPropertyApiService PropertyService
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<PageTitle>VietPropEstate — Mua. Bán. Thuê. Tin cậy.</PageTitle>
+
+<div class="home-page home-page--urbn">
+
+<!-- Hero -->
+<section class="urbn-hero">
+    <div class="urbn-hero-bg" style="background-image:url('/images/hero-saigon-skyline.png')"></div>
+    <div class="urbn-hero-overlay"></div>
+    <div class="urbn-hero-content">
+        <h1 class="urbn-hero-title">Mua. Bán. Thuê.<br />Tin cậy.</h1>
+        <HeroSearchBox Layout="compact" />
+    </div>
+</section>
+
+<!-- Services / Promotions -->
+<section class="urbn-section urbn-section-white">
+    <div class="urbn-container">
+        <h2 class="urbn-section-heading">Dịch vụ nổi bật</h2>
+        <div class="urbn-promo-grid">
+            @foreach (var promo in _promos)
+            {
+                <div class="urbn-promo-card" @onclick="@(() => Nav.NavigateTo(promo.Href))">
+                    <div class="urbn-promo-top">
+                        <span class="urbn-promo-category">@promo.Category</span>
+                        <p class="urbn-promo-desc">@promo.Description</p>
+                    </div>
+                    <div class="urbn-promo-bottom">
+                        <span class="urbn-promo-value">@promo.Value</span>
+                        <span class="urbn-promo-brand">@promo.Brand</span>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- Popular searches gallery -->
+<section class="urbn-section">
+    <div class="urbn-container">
+        <div class="urbn-section-row">
+            <h2 class="urbn-section-heading mb-0">Tìm kiếm phổ biến</h2>
+            <div class="urbn-gallery-nav">
+                <button type="button" class="urbn-gallery-arrow" @onclick="@(() => ScrollGallery(-1))" aria-label="Trước">
+                    <MudIcon Icon="@Icons.Material.Filled.ChevronLeft" />
+                </button>
+                <button type="button" class="urbn-gallery-arrow" @onclick="@(() => ScrollGallery(1))" aria-label="Sau">
+                    <MudIcon Icon="@Icons.Material.Filled.ChevronRight" />
+                </button>
+            </div>
+        </div>
+
+        @if (_loadingGallery)
+        {
+            <div class="urbn-gallery-track">
+                @for (int i = 0; i < 4; i++)
+                {
+                    <div class="urbn-gallery-item"><MudSkeleton Width="100%" Height="280px" /></div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="urbn-gallery-track" @ref="_galleryRef">
+                @foreach (var property in _galleryProperties)
+                {
+                    <div class="urbn-gallery-item">
+                        <HomeGalleryTile Property="@property" />
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</section>
+
+<!-- Featured grid -->
+@if (_featuredProperties.Count > 0)
+{
+    <section class="urbn-section urbn-section-white">
+        <div class="urbn-container">
+            <div class="urbn-section-row">
+                <h2 class="urbn-section-heading mb-0">Bất động sản nổi bật</h2>
+                <MudButton Href="/bat-dong-san?isFeatured=true" Variant="Variant.Text"
+                           Class="urbn-link-btn" EndIcon="@Icons.Material.Filled.ArrowForward">
+                    Xem tất cả
+                </MudButton>
+            </div>
+            <MudGrid Class="mt-6">
+                @foreach (var property in _featuredProperties)
+                {
+                    <MudItem xs="12" sm="6" md="4">
+                        <PropertyCard Property="@property" Layout="urbn" />
+                    </MudItem>
+                }
+            </MudGrid>
+        </div>
+    </section>
+}
+
+<!-- Province chips -->
+<section class="urbn-section">
+    <div class="urbn-container">
+        <h2 class="urbn-section-heading">Khu vực phổ biến</h2>
+        <ProvinceQuickFilter OnProvinceSelected="@OnProvinceSelected" />
+    </div>
+</section>
+
+<!-- Latest -->
+<section class="urbn-section urbn-section-white">
+    <div class="urbn-container">
+        <div class="urbn-section-row">
+            <h2 class="urbn-section-heading mb-0">Tin đăng mới nhất</h2>
+            <MudButton Href="/bat-dong-san" Variant="Variant.Text"
+                       Class="urbn-link-btn" EndIcon="@Icons.Material.Filled.ArrowForward">
+                Xem tất cả
+            </MudButton>
+        </div>
+        @if (_loadingLatest)
+        {
+            <MudGrid Class="mt-6"><LoadingSkeleton Count="3" Type="card" Xs="12" Sm="6" Md="4" /></MudGrid>
+        }
+        else if (_latestProperties.Count > 0)
+        {
+            <MudGrid Class="mt-6">
+                @foreach (var property in _latestProperties.Take(6))
+                {
+                    <MudItem xs="12" sm="6" md="4">
+                        <PropertyCard Property="@property" Layout="urbn" />
+                    </MudItem>
+                }
+            </MudGrid>
+        }
+    </div>
+</section>
+
+<!-- Why us - minimal -->
+<section class="urbn-section urbn-trust">
+    <div class="urbn-container">
+        <div class="urbn-trust-grid">
+            @foreach (var feature in _features)
+            {
+                <div class="urbn-trust-item">
+                    <MudIcon Icon="@feature.Icon" Class="urbn-trust-icon" />
+                    <h3>@feature.Title</h3>
+                    <p>@feature.Description</p>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="urbn-cta">
+    <div class="urbn-container urbn-cta-inner">
+        <h2>Đăng tin bán hoặc cho thuê</h2>
+        <p>Tiếp cận hàng nghìn khách hàng — miễn phí cho thành viên mới</p>
+        <MudButton Href="/dashboard/tin-dang/them-moi" Class="urbn-cta-btn" StartIcon="@Icons.Material.Filled.AddHome">
+            Đăng tin ngay
+        </MudButton>
+    </div>
+</section>
+
+</div>
+
+@code {
+    private ElementReference _galleryRef;
+    private bool _loadingGallery = true;
+    private bool _loadingLatest = true;
+    private List<PropertyDto> _galleryProperties = [];
+    private List<PropertyDto> _featuredProperties = [];
+    private List<PropertyDto> _latestProperties = [];
+
+    private readonly (string Category, string Description, string Value, string Brand, string Href)[] _promos =
+    [
+        ("Gói VIP", "Tăng hiển thị tin đăng lên top tìm kiếm", "Từ 99K", "VietProp", "/dashboard/goi-vip"),
+        ("Tin xác thực", "100% tin đăng được kiểm duyệt thủ công", "Miễn phí", "Verified", "/bat-dong-san"),
+        ("Thanh toán", "Giao dịch an toàn qua cổng VNPay", "Bảo mật", "VNPay", "/dashboard/thanh-toan"),
+        ("Hỗ trợ", "Tư vấn mua bán BĐS 24/7", "Liên hệ", "Support", "/dashboard/tin-nhan"),
+    ];
+
+    private readonly (string Icon, string Title, string Description)[] _features =
+    [
+        (Icons.Material.Filled.Verified, "Tin xác thực", "Kiểm duyệt bởi chuyên gia"),
+        (Icons.Material.Filled.Speed, "Tìm nhanh", "Bộ lọc thông minh theo khu vực & giá"),
+        (Icons.Material.Filled.SupportAgent, "Hỗ trợ 24/7", "Chat trực tiếp với môi giới"),
+        (Icons.Material.Filled.Security, "An toàn", "Thanh toán chuẩn VNPay"),
+    ];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var featuredTask = PropertyService.GetPropertiesAsync(pageSize: 3, isFeatured: true, sortBy: "CreatedAt", sortOrder: "Desc");
+        var latestTask = PropertyService.GetPropertiesAsync(pageSize: 8, sortBy: "CreatedAt", sortOrder: "Desc");
+
+        var featuredResult = await featuredTask;
+        _featuredProperties = featuredResult?.Items.ToList() ?? [];
+
+        var latestResult = await latestTask;
+        _latestProperties = latestResult?.Items.ToList() ?? [];
+        _galleryProperties = _latestProperties.Count > 0 ? _latestProperties : _featuredProperties;
+        _loadingGallery = false;
+        _loadingLatest = false;
+    }
+
+    private async Task ScrollGallery(int direction)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("urbnScrollGallery", _galleryRef, direction * 340);
+        }
+        catch { /* ignore if JS not ready */ }
+    }
+
+    private void OnProvinceSelected((int? Code, string? Name) province)
+    {
+        if (province.Code.HasValue)
+            Nav.NavigateTo($"/bat-dong-san?provinceCode={province.Code}");
+    }
+}

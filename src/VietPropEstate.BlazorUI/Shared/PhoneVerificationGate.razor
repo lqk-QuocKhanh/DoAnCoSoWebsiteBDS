@@ -1,0 +1,150 @@
+@inject IAuthApiClient AuthClient
+@inject ISnackbar Snackbar
+
+<MudPaper Elevation="0" Style="border:1px solid #E2E8F0; border-radius:20px; padding:32px; max-width:520px; margin:0 auto;">
+    <div style="text-align:center; margin-bottom:24px;">
+        <div style="width:64px;height:64px;background:#FEF3C7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+            <MudIcon Icon="@Icons.Material.Filled.PhoneAndroid" Style="color:#D97706; font-size:32px;" />
+        </div>
+        <MudText Typo="Typo.h6" Style="font-weight:700;">Xác thực số điện thoại</MudText>
+        <MudText Typo="Typo.body2" Style="color:#64748B; margin-top:8px;">
+            Để đăng tin bất động sản, bạn cần xác thực số điện thoại trước.
+        </MudText>
+    </div>
+
+    @if (!_codeSent)
+    {
+        <MudTextField @bind-Value="_phoneNumber" Label="Số điện thoại *" Variant="Variant.Outlined"
+                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Phone"
+                      Placeholder="0912 345 678" Disabled="@_loading" Class="mb-4" />
+
+        @if (!string.IsNullOrEmpty(_errorMessage))
+        {
+            <MudAlert Severity="Severity.Error" Dense="true" Class="mb-3">@_errorMessage</MudAlert>
+        }
+
+        @if (!string.IsNullOrEmpty(_devCode))
+        {
+            <MudAlert Severity="Severity.Info" Dense="true" Class="mb-3">
+                Môi trường dev — mã OTP: <strong>@_devCode</strong>
+            </MudAlert>
+        }
+
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
+                   Disabled="@_loading" OnClick="@SendCodeAsync"
+                   Style="border-radius:12px; font-weight:700; height:48px;">
+            @if (_loading)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Color="Color.Inherit" />
+            }
+            else
+            {
+                <span>Gửi mã xác thực</span>
+            }
+        </MudButton>
+    }
+    else
+    {
+        <MudText Typo="Typo.body2" Style="color:#64748B; margin-bottom:16px;">
+            Mã xác thực đã gửi đến <strong>@_phoneNumber</strong>
+        </MudText>
+
+        <MudTextField @bind-Value="_code" Label="Mã OTP (6 chữ số) *" Variant="Variant.Outlined"
+                      MaxLength="6" Disabled="@_loading" Class="mb-4" />
+
+        @if (!string.IsNullOrEmpty(_errorMessage))
+        {
+            <MudAlert Severity="Severity.Error" Dense="true" Class="mb-3">@_errorMessage</MudAlert>
+        }
+
+        @if (!string.IsNullOrEmpty(_devCode))
+        {
+            <MudAlert Severity="Severity.Info" Dense="true" Class="mb-3">
+                Môi trường dev — mã OTP: <strong>@_devCode</strong>
+            </MudAlert>
+        }
+
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
+                   Disabled="@_loading" OnClick="@VerifyCodeAsync"
+                   Style="border-radius:12px; font-weight:700; height:48px; margin-bottom:12px;">
+            @if (_loading)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Color="Color.Inherit" />
+            }
+            else
+            {
+                <span>Xác thực</span>
+            }
+        </MudButton>
+
+        <MudButton Variant="Variant.Text" Color="Color.Default" FullWidth="true"
+                   Disabled="@_loading" OnClick="@ResetFlow">
+            Đổi số điện thoại
+        </MudButton>
+    }
+</MudPaper>
+
+@code {
+    [Parameter] public EventCallback OnVerified { get; set; }
+
+    private string _phoneNumber = string.Empty;
+    private string _code = string.Empty;
+    private string? _devCode;
+    private string? _errorMessage;
+    private bool _loading;
+    private bool _codeSent;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var profile = await AuthClient.GetProfileAsync();
+        if (!string.IsNullOrWhiteSpace(profile?.PhoneNumber))
+            _phoneNumber = profile.PhoneNumber;
+    }
+
+    private async Task SendCodeAsync()
+    {
+        _loading = true;
+        _errorMessage = null;
+
+        var (success, message, devCode) = await AuthClient.SendPhoneVerificationCodeAsync(_phoneNumber);
+        if (success)
+        {
+            _codeSent = true;
+            _devCode = devCode;
+            Snackbar.Add(message ?? "Đã gửi mã xác thực.", Severity.Success);
+        }
+        else
+        {
+            _errorMessage = message ?? "Không thể gửi mã xác thực.";
+        }
+
+        _loading = false;
+    }
+
+    private async Task VerifyCodeAsync()
+    {
+        _loading = true;
+        _errorMessage = null;
+
+        var (success, message, _) = await AuthClient.VerifyPhoneNumberAsync(_phoneNumber, _code);
+        if (success)
+        {
+            Snackbar.Add(message ?? "Xác thực số điện thoại thành công!", Severity.Success);
+            await OnVerified.InvokeAsync();
+        }
+        else
+        {
+            _errorMessage = message ?? "Mã xác thực không đúng.";
+        }
+
+        _loading = false;
+    }
+
+    private void ResetFlow()
+    {
+        _codeSent = false;
+        _code = string.Empty;
+        _devCode = null;
+        _errorMessage = null;
+    }
+}

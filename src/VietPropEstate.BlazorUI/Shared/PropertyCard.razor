@@ -1,0 +1,217 @@
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+@inject AuthState AuthState
+@inject IFavoritesApiClient FavoritesClient
+
+@if (Layout == "urbn")
+{
+    <div class="urbn-property-card" @onclick="NavigateToDetails">
+        <div class="urbn-property-card-image">
+            <PropertyImage Url="@Property.PrimaryImageUrl" Alt="@Property.Title" />
+            <button type="button" class="urbn-property-card-fav" @onclick:stopPropagation="true"
+                    @onclick="@(async () => await ToggleFavorite())">
+                <MudIcon Icon="@(_isFavorited ? Icons.Material.Filled.Favorite : Icons.Material.Outlined.FavoriteBorder)"
+                         Size="Size.Small" Style="@(_isFavorited ? "color:#0F172A;" : "color:#64748B;")" />
+            </button>
+        </div>
+        <div class="urbn-property-card-row">
+            <span class="urbn-property-card-price">@FormatPrice(Property.PriceAmount, Property.PriceCurrency)</span>
+        </div>
+        <div class="urbn-property-card-stats">@GetStatsLine()</div>
+        <div class="urbn-property-card-title">@Property.Title</div>
+    </div>
+}
+else
+{
+<MudCard Elevation="2" Class="card-hover" Style="border-radius:20px; overflow:hidden; cursor:pointer;" @onclick="NavigateToDetails">
+    <!-- Image -->
+    <div class="property-card-image" style="height:220px; position:relative; overflow:hidden;">
+        <PropertyImage Url="@Property.PrimaryImageUrl" Alt="@Property.Title"
+                       Style="width:100%; height:100%; object-fit:cover; transition:transform 0.3s ease;" />
+        <!-- Gradient overlay -->
+        <div style="position:absolute;bottom:0;left:0;right:0;height:50%;background:linear-gradient(to top,rgba(0,0,0,0.5),transparent);pointer-events:none;"></div>
+
+        <!-- Badges -->
+        <div class="property-card-badges">
+            <MudChip T="string" Size="Size.Small" Style="@GetListingTypeBadgeStyle()" Class="vip-badge">
+                @GetListingTypeLabel()
+            </MudChip>
+            @if (Property.IsFeatured)
+            {
+                <span class="vip-badge">⭐ Nổi bật</span>
+            }
+        </div>
+
+        <!-- Favorite button -->
+        <div class="property-card-favorite" @onclick:stopPropagation="true">
+            <MudIconButton Icon="@(_isFavorited ? Icons.Material.Filled.Favorite : Icons.Material.Outlined.FavoriteBorder)"
+                           Style="@(_isFavorited ? "color:#B91C1C;" : "color:#fff;")"
+                           Size="Size.Small"
+                           OnClick="@ToggleFavorite" />
+        </div>
+
+        <!-- Price overlay on image -->
+        <div style="position:absolute; bottom:12px; left:12px; z-index:1;">
+            <div class="price-text" style="color:#fff; text-shadow:0 2px 8px rgba(0,0,0,0.5); font-size:20px; font-weight:700;">
+                @FormatPrice(Property.PriceAmount, Property.PriceCurrency)
+            </div>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <MudCardContent Style="padding:16px 20px 12px;">
+        <!-- Property type -->
+        @if (!string.IsNullOrEmpty(Property.PropertyTypeName))
+        {
+            <MudText Typo="Typo.caption" Style="color:#B91C1C; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; font-size:11px;">
+                @Property.PropertyTypeName
+            </MudText>
+        }
+
+        <!-- Title -->
+        <MudText Typo="Typo.subtitle1" Class="line-clamp-2 mt-1"
+                 Style="font-weight:600; color:#0F172A; line-height:1.4; font-size:15px; min-height:40px;">
+            @Property.Title
+        </MudText>
+
+        <!-- Price per m² -->
+        @if (Property.Area > 0 && Property.PriceAmount > 0)
+        {
+            <MudText Typo="Typo.caption" Style="color:#64748B; margin-top:4px;">
+                @FormatPricePerM2(Property.PriceAmount, Property.Area) / m²
+            </MudText>
+        }
+
+        <!-- Address -->
+        <div class="d-flex align-items-start mt-2" style="gap:4px;">
+            <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small"
+                     Style="color:#B91C1C; margin-top:1px; flex-shrink:0;" />
+            <MudText Typo="Typo.body2" Class="line-clamp-1" Style="color:#64748B; font-size:13px;">
+                @(Property.FullAddress ?? $"{Property.WardName}, {Property.ProvinceName}")
+            </MudText>
+        </div>
+    </MudCardContent>
+
+    <!-- Meta info bar -->
+    <MudCardActions Style="padding:8px 16px 14px; border-top:1px solid #F1F5F9;">
+        @if (Property.Area > 0)
+        {
+            <div class="d-flex align-items-center" style="gap:4px; margin-right:12px;">
+                <MudIcon Icon="@Icons.Material.Outlined.SquareFoot" Size="Size.Small" Style="color:#94A3B8;" />
+                <MudText Typo="Typo.caption" Style="color:#64748B; font-weight:500;">@Property.Area m²</MudText>
+            </div>
+        }
+        @if (Property.NumberOfBedrooms.HasValue)
+        {
+            <div class="d-flex align-items-center" style="gap:4px; margin-right:12px;">
+                <MudIcon Icon="@Icons.Material.Outlined.Hotel" Size="Size.Small" Style="color:#94A3B8;" />
+                <MudText Typo="Typo.caption" Style="color:#64748B; font-weight:500;">@Property.NumberOfBedrooms PN</MudText>
+            </div>
+        }
+        @if (Property.NumberOfBathrooms.HasValue)
+        {
+            <div class="d-flex align-items-center" style="gap:4px; margin-right:12px;">
+                <MudIcon Icon="@Icons.Material.Outlined.Bathtub" Size="Size.Small" Style="color:#94A3B8;" />
+                <MudText Typo="Typo.caption" Style="color:#64748B; font-weight:500;">@Property.NumberOfBathrooms VS</MudText>
+            </div>
+        }
+        <MudSpacer />
+        <MudText Typo="Typo.caption" Style="color:#94A3B8; font-size:11px;">
+            @FormatDate(Property.CreatedAt)
+        </MudText>
+    </MudCardActions>
+</MudCard>
+}
+
+@code {
+    [Parameter, EditorRequired] public PropertyDto Property { get; set; } = default!;
+    [Parameter] public string Layout { get; set; } = "default";
+    [Parameter] public bool IsFavorited { get; set; }
+    [Parameter] public EventCallback<Guid> OnFavoriteToggled { get; set; }
+
+    private bool _isFavorited;
+
+    protected override void OnParametersSet() => _isFavorited = IsFavorited;
+
+    private void NavigateToDetails()
+    {
+        if (!string.IsNullOrEmpty(Property.Slug))
+            Nav.NavigateTo($"/bat-dong-san/{Property.Slug}");
+        else
+            Nav.NavigateTo($"/bat-dong-san/{Property.Id}");
+    }
+
+    private async Task ToggleFavorite()
+    {
+        if (!AuthState.IsAuthenticated)
+        {
+            Snackbar.Add("Vui lòng đăng nhập để lưu tin yêu thích", Severity.Warning);
+            Nav.NavigateTo("/dang-nhap");
+            return;
+        }
+
+        var added = await FavoritesClient.ToggleFavoriteAsync(Property.Id);
+        _isFavorited = added;
+        Snackbar.Add(_isFavorited ? "Đã lưu vào danh sách yêu thích" : "Đã xóa khỏi danh sách yêu thích",
+            _isFavorited ? Severity.Success : Severity.Normal);
+
+        if (OnFavoriteToggled.HasDelegate)
+            await OnFavoriteToggled.InvokeAsync(Property.Id);
+    }
+
+
+    private string GetListingTypeBadgeStyle() => Property.ListingType switch
+    {
+        ListingType.ForSale => "background:#B91C1C; color:#fff;",
+        ListingType.ForRent => "background:#2563EB; color:#fff;",
+        _ => "background:#16A34A; color:#fff;"
+    };
+
+    private string GetListingTypeLabel() => Property.ListingType switch
+    {
+        ListingType.ForSale => "Bán",
+        ListingType.ForRent => "Cho thuê",
+        ListingType.ForLease => "Thuê dài hạn",
+        _ => "BĐS"
+    };
+
+    private static string FormatPrice(decimal amount, string currency)
+    {
+        if (currency == "VND")
+        {
+            if (amount >= 1_000_000_000)
+                return $"{amount / 1_000_000_000:N1} tỷ";
+            if (amount >= 1_000_000)
+                return $"{amount / 1_000_000:N0} triệu";
+            return $"{amount:N0} đ";
+        }
+        return $"{amount:N0} {currency}";
+    }
+
+    private static string FormatPricePerM2(decimal price, decimal area)
+    {
+        if (area <= 0) return "";
+        var perM2 = price / area;
+        if (perM2 >= 1_000_000)
+            return $"{perM2 / 1_000_000:N1} triệu";
+        return $"{perM2:N0} đ";
+    }
+
+    private static string FormatDate(DateTime date)
+    {
+        var diff = DateTime.UtcNow - date;
+        if (diff.TotalDays < 1) return "Hôm nay";
+        if (diff.TotalDays < 7) return $"{(int)diff.TotalDays} ngày trước";
+        if (diff.TotalDays < 30) return $"{(int)(diff.TotalDays / 7)} tuần trước";
+        return date.ToString("dd/MM/yyyy");
+    }
+
+    private string GetStatsLine()
+    {
+        var parts = new List<string>();
+        if (Property.NumberOfBedrooms.HasValue) parts.Add($"{Property.NumberOfBedrooms} PN");
+        if (Property.NumberOfBathrooms.HasValue) parts.Add($"{Property.NumberOfBathrooms} WC");
+        if (Property.Area > 0) parts.Add($"{Property.Area} m²");
+        return parts.Count > 0 ? string.Join(" · ", parts) : Property.ProvinceName ?? "";
+    }
+}

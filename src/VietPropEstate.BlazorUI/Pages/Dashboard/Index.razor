@@ -1,0 +1,264 @@
+@page "/dashboard"
+@layout DashboardLayout
+@inject IDashboardApiClient DashboardClient
+@inject AuthState AuthState
+
+<PageTitle>Tổng quan - VietPropEstate</PageTitle>
+
+<div class="dash-page">
+    <header class="dash-page-header">
+        <div class="dash-page-header-text">
+            <p class="dash-page-eyebrow">@GetGreeting(), @(AuthState.CurrentUser?.FirstName ?? "bạn")</p>
+            <h1 class="dash-page-title">Tổng quan bảng điều khiển</h1>
+            <p class="dash-page-meta">
+                <MudIcon Icon="@Icons.Material.Outlined.CalendarToday" Size="Size.Small" />
+                @DateTime.Now.ToString("dddd, dd/MM/yyyy", new System.Globalization.CultureInfo("vi-VN"))
+            </p>
+        </div>
+        @if (AuthState.CanPostListings)
+        {
+            <MudButton Href="/dashboard/tin-dang/them-moi" Variant="Variant.Filled"
+                       Class="dash-page-cta" StartIcon="@Icons.Material.Outlined.Add">
+                Đăng tin mới
+            </MudButton>
+        }
+        else
+        {
+            <a href="/bat-dong-san" class="dash-btn dash-btn--outline">Khám phá BĐS</a>
+        }
+    </header>
+
+    @if (_loading)
+    {
+        <div class="dash-stats-grid">
+            @for (var i = 0; i < 4; i++)
+            {
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="132px" Class="dash-skeleton-stat" />
+            }
+        </div>
+    }
+    else if (_stats != null)
+    {
+        <div class="dash-stats-grid">
+            @if (AuthState.CanPostListings)
+            {
+                <StatsCard Title="Tổng tin đăng" Value="@_stats.TotalListings.ToString()"
+                           Icon="@Icons.Material.Outlined.Apartment" Variant="slate"
+                           Change="+2 tháng này" ChangePositive="true"
+                           Href="/dashboard/tin-dang" />
+                <StatsCard Title="Tin đang hoạt động" Value="@_stats.ActiveListings.ToString()"
+                           Icon="@Icons.Material.Outlined.CheckCircle" Variant="green"
+                           Href="/dashboard/tin-dang?status=Active" />
+                <StatsCard Title="Tổng lượt xem" Value="@FormatNumber(_stats.TotalViews)"
+                           Icon="@Icons.Material.Outlined.Visibility" Variant="blue"
+                           Change="+12% tuần này" ChangePositive="true"
+                           Href="/dashboard/tin-dang" />
+            }
+            <StatsCard Title="Tin yêu thích" Value="@_stats.TotalFavorites.ToString()"
+                       Icon="@Icons.Material.Outlined.FavoriteBorder" Variant="gold"
+                       Href="/dashboard/yeu-thich" />
+            @if (!AuthState.CanPostListings)
+            {
+                <StatsCard Title="Tin nhắn" Value="@_stats.UnreadMessages.ToString()"
+                           Icon="@Icons.Material.Outlined.Chat" Variant="slate"
+                           Href="/dashboard/tin-nhan" />
+                <StatsCard Title="Thông báo" Value="@_stats.UnreadNotifications.ToString()"
+                           Icon="@Icons.Material.Outlined.Notifications" Variant="blue"
+                           Href="/dashboard/thong-bao" />
+            }
+        </div>
+    }
+
+    <section class="dash-section">
+        <div class="dash-section-head">
+            <h2 class="dash-section-title">Thao tác nhanh</h2>
+            <p class="dash-section-desc">Truy cập nhanh các tính năng thường dùng</p>
+        </div>
+        <div class="dash-actions-grid">
+            @foreach (var action in _quickActions)
+            {
+                <a href="@action.Href" class="dash-action-card">
+                    <span class="dash-action-icon">
+                        <MudIcon Icon="@action.Icon" Size="Size.Small" />
+                    </span>
+                    <span class="dash-action-body">
+                        <span class="dash-action-title">@action.Title</span>
+                        <span class="dash-action-desc">@action.Description</span>
+                    </span>
+                    <MudIcon Icon="@Icons.Material.Outlined.ArrowForward" Size="Size.Small" Class="dash-action-arrow" />
+                </a>
+            }
+        </div>
+    </section>
+
+    <section class="dash-section">
+        <div class="dash-section-head dash-section-head--row">
+            <div>
+                <h2 class="dash-section-title">Tin đăng gần đây</h2>
+                <p class="dash-section-desc">@(AuthState.CanPostListings ? "5 tin mới nhất của bạn" : "Hoạt động tin đăng gần đây")</p>
+            </div>
+            @if (_listings.Count > 0 && AuthState.CanPostListings)
+            {
+                <MudButton Href="/dashboard/tin-dang" Variant="Variant.Text" Class="dash-link-btn"
+                           EndIcon="@Icons.Material.Outlined.ArrowForward">
+                    Xem tất cả
+                </MudButton>
+            }
+        </div>
+
+        @if (_loading)
+        {
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="280px" Class="dash-skeleton-panel" />
+        }
+        else if (_listings.Count > 0)
+        {
+            <div class="dash-listings-panel">
+                @foreach (var listing in _listings)
+                {
+                    <div class="dash-listing-row">
+                        <div class="dash-listing-thumb">
+                            <PropertyImage Url="@listing.PrimaryImageUrl" Alt="@listing.Title" />
+                        </div>
+                        <div class="dash-listing-info">
+                            <span class="dash-listing-title">@listing.Title</span>
+                            <span class="dash-listing-meta">@listing.CreatedAt.ToString("dd/MM/yyyy")</span>
+                        </div>
+                        <div class="dash-listing-price">@FormatPrice(listing.PriceAmount)</div>
+                        <span class="dash-listing-status @GetStatusClass(listing.Status)">
+                            @GetStatusLabel(listing.Status)
+                        </span>
+                        <span class="dash-listing-views">
+                            <MudIcon Icon="@Icons.Material.Outlined.Visibility" Size="Size.Small" />
+                            @listing.ViewCount
+                        </span>
+                        @if (AuthState.CanPostListings)
+                        {
+                            <MudIconButton Icon="@Icons.Material.Outlined.Edit" Size="Size.Small"
+                                           Class="dash-listing-edit"
+                                           Href="@($"/dashboard/tin-dang/{listing.Id}/chinh-sua")" />
+                        }
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="dash-empty-panel">
+                <div class="dash-empty-illustration" aria-hidden="true">
+                    <svg viewBox="0 0 160 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="20" y="50" width="50" height="55" rx="6" fill="#EFF6FF" stroke="#BFDBFE" stroke-width="1.5"/>
+                        <rect x="28" y="62" width="14" height="14" rx="2" fill="#DBEAFE"/>
+                        <rect x="48" y="62" width="14" height="14" rx="2" fill="#DBEAFE"/>
+                        <rect x="28" y="82" width="14" height="14" rx="2" fill="#DBEAFE"/>
+                        <rect x="48" y="82" width="14" height="14" rx="2" fill="#DBEAFE"/>
+                        <rect x="78" y="30" width="62" height="75" rx="6" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.5"/>
+                        <rect x="88" y="44" width="18" height="18" rx="2" fill="#E2E8F0"/>
+                        <rect x="112" y="44" width="18" height="18" rx="2" fill="#E2E8F0"/>
+                        <rect x="88" y="68" width="18" height="18" rx="2" fill="#E2E8F0"/>
+                        <rect x="112" y="68" width="18" height="18" rx="2" fill="#2563EB" fill-opacity="0.15"/>
+                        <path d="M10 105h140" stroke="#E2E8F0" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="130" cy="22" r="14" fill="#2563EB" fill-opacity="0.1"/>
+                        <path d="M124 22l4 4 8-8" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h3 class="dash-empty-title">Chưa có tin đăng nào</h3>
+                <p class="dash-empty-desc">
+                    @(AuthState.CanPostListings
+                        ? "Bắt đầu đăng tin BĐS đầu tiên để tiếp cận hàng ngàn khách hàng tiềm năng."
+                        : "Lưu các tin BĐS yêu thích để theo dõi và so sánh dễ dàng hơn.")
+                </p>
+                @if (AuthState.CanPostListings)
+                {
+                    <a href="/dashboard/tin-dang/them-moi" class="dash-btn dash-btn--primary">
+                        <MudIcon Icon="@Icons.Material.Outlined.Add" Size="Size.Small" />
+                        Đăng tin đầu tiên
+                    </a>
+                }
+                else
+                {
+                    <a href="/bat-dong-san" class="dash-btn dash-btn--primary">
+                        <MudIcon Icon="@Icons.Material.Outlined.Search" Size="Size.Small" />
+                        Tìm bất động sản
+                    </a>
+                }
+            </div>
+        }
+    </section>
+</div>
+
+@code {
+    private DashboardStats? _stats;
+    private List<PropertyDto> _listings = [];
+    private bool _loading = true;
+
+    private (string Icon, string Title, string Description, string Href)[] _quickActions = [];
+
+    private (string Icon, string Title, string Description, string Href)[] BuildQuickActions()
+    {
+        var actions = new List<(string, string, string, string)>();
+
+        if (AuthState.CanPostListings)
+        {
+            actions.Add((Icons.Material.Outlined.AddHome, "Đăng tin mới", "Tạo tin rao BĐS mới", "/dashboard/tin-dang/them-moi"));
+            actions.Add((Icons.Material.Outlined.Apartment, "Quản lý tin", "Xem và chỉnh sửa tin đăng", "/dashboard/tin-dang"));
+        }
+
+        actions.Add((Icons.Material.Outlined.FavoriteBorder, "Tin yêu thích", "BĐS bạn đã lưu", "/dashboard/yeu-thich"));
+        actions.Add((Icons.Material.Outlined.Chat, "Tin nhắn", "Trao đổi với khách hàng", "/dashboard/tin-nhan"));
+
+        if (AuthState.CanBuyVipPackage)
+            actions.Add((Icons.Material.Outlined.Star, "Gói VIP", "Nâng cấp hiển thị tin", "/dashboard/goi-vip"));
+
+        return actions.ToArray();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _quickActions = BuildQuickActions();
+        var statsTask = DashboardClient.GetStatsAsync();
+        var listingsTask = DashboardClient.GetMyListingsAsync(1);
+
+        _stats = await statsTask;
+        var result = await listingsTask;
+        _listings = result?.Items.Take(5).ToList() ?? [];
+        _loading = false;
+    }
+
+    private static string GetGreeting()
+    {
+        var hour = DateTime.Now.Hour;
+        if (hour < 12) return "Chào buổi sáng";
+        if (hour < 18) return "Chào buổi chiều";
+        return "Chào buổi tối";
+    }
+
+    private static string FormatNumber(long n) =>
+        n >= 1_000_000 ? $"{n / 1_000_000.0:N1}M" :
+        n >= 1_000 ? $"{n / 1_000.0:N1}K" : n.ToString("N0");
+
+    private static string FormatPrice(decimal amount) =>
+        amount >= 1_000_000_000 ? $"{amount / 1_000_000_000:N1} tỷ" :
+        amount >= 1_000_000 ? $"{amount / 1_000_000:N0} tr" : $"{amount:N0} đ";
+
+    private static string GetStatusLabel(PropertyStatus s) => s switch
+    {
+        PropertyStatus.Active => "Đang hoạt động",
+        PropertyStatus.PendingApproval => "Chờ duyệt",
+        PropertyStatus.Draft => "Bản nháp",
+        PropertyStatus.Withdrawn => "Đã ẩn",
+        PropertyStatus.Sold => "Đã bán",
+        PropertyStatus.Rented => "Đã thuê",
+        PropertyStatus.UnderOffer => "Đang thương lượng",
+        _ => s.ToString()
+    };
+
+    private static string GetStatusClass(PropertyStatus s) => s switch
+    {
+        PropertyStatus.Active => "dash-listing-status--active",
+        PropertyStatus.PendingApproval => "dash-listing-status--pending",
+        PropertyStatus.Draft => "dash-listing-status--draft",
+        PropertyStatus.Sold => "dash-listing-status--sold",
+        PropertyStatus.Rented => "dash-listing-status--rented",
+        _ => "dash-listing-status--draft"
+    };
+}

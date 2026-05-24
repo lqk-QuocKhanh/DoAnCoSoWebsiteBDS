@@ -1,0 +1,395 @@
+[2026-05-22 17:14:09.258 +07:00 WRN] Entity 'Property' has a global query filter defined and is the required end of a relationship with the entity 'PropertyView'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+[2026-05-22 17:14:09.773 +07:00 INF] Executed DbCommand (15ms) [Parameters=[], CommandType='"Text"', CommandTimeout='60']
+SELECT 1
+[2026-05-22 17:14:09.801 +07:00 INF] Executed DbCommand (15ms) [Parameters=[], CommandType='"Text"', CommandTimeout='60']
+DECLARE @result int;
+EXEC @result = sp_getapplock @Resource = '__EFMigrationsLock', @LockOwner = 'Session', @LockMode = 'Exclusive';
+SELECT @result
+[2026-05-22 17:14:09.857 +07:00 INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='60']
+IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
+BEGIN
+    CREATE TABLE [__EFMigrationsHistory] (
+        [MigrationId] nvarchar(150) NOT NULL,
+        [ProductVersion] nvarchar(32) NOT NULL,
+        CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY ([MigrationId])
+    );
+END;
+[2026-05-22 17:14:09.870 +07:00 INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='60']
+SELECT 1
+[2026-05-22 17:14:09.872 +07:00 INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='60']
+SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+[2026-05-22 17:14:09.877 +07:00 INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='60']
+SELECT [MigrationId], [ProductVersion]
+FROM [__EFMigrationsHistory]
+ORDER BY [MigrationId];
+[2026-05-22 17:14:09.889 +07:00 INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='60']
+DECLARE @result int;
+EXEC @result = sp_releaseapplock @Resource = '__EFMigrationsLock', @LockOwner = 'Session';
+SELECT @result
+[2026-05-22 17:14:09.907 +07:00 INF] User profile is available. Using 'C:\Users\Le Quoc Khanh\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+[2026-05-22 17:14:10.096 +07:00 INF] Executed DbCommand (8ms) [Parameters=[@__normalizedName_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='60']
+SELECT TOP(1) [a].[Id], [a].[ConcurrencyStamp], [a].[Name], [a].[NormalizedName]
+FROM [AspNetRoles] AS [a]
+WHERE [a].[NormalizedName] = @__normalizedName_0
+[2026-05-22 17:14:10.129 +07:00 INF] Executed DbCommand (0ms) [Parameters=[@__normalizedName_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='60']
+SELECT TOP(1) [a].[Id], [a].[ConcurrencyStamp], [a].[Name], [a].[NormalizedName]
+FROM [AspNetRoles] AS [a]
+WHERE [a].[NormalizedName] = @__normalizedName_0
+[2026-05-22 17:14:10.131 +07:00 INF] Executed DbCommand (0ms) [Parameters=[@__normalizedName_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='60']
+SELECT TOP(1) [a].[Id], [a].[ConcurrencyStamp], [a].[Name], [a].[NormalizedName]
+FROM [AspNetRoles] AS [a]
+WHERE [a].[NormalizedName] = @__normalizedName_0
+[2026-05-22 17:14:10.134 +07:00 INF] Executed DbCommand (0ms) [Parameters=[@__normalizedName_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='60']
+SELECT TOP(1) [a].[Id], [a].[ConcurrencyStamp], [a].[Name], [a].[NormalizedName]
+FROM [AspNetRoles] AS [a]
+WHERE [a].[NormalizedName] = @__normalizedName_0
+[2026-05-22 17:14:10.152 +07:00 INF] Executed DbCommand (2ms) [Parameters=[@__normalizedEmail_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='60']
+SELECT TOP(2) [a].[Id], [a].[AccessFailedCount], [a].[AvatarUrl], [a].[ConcurrencyStamp], [a].[CreatedAt], [a].[Email], [a].[EmailConfirmed], [a].[FirstName], [a].[IsActive], [a].[LastLoginAt], [a].[LastName], [a].[LockoutEnabled], [a].[LockoutEnd], [a].[NormalizedEmail], [a].[NormalizedUserName], [a].[PasswordHash], [a].[PhoneNumber], [a].[PhoneNumberConfirmed], [a].[SecurityStamp], [a].[TwoFactorEnabled], [a].[UserName]
+FROM [AspNetUsers] AS [a]
+WHERE [a].[NormalizedEmail] = @__normalizedEmail_0
+[2026-05-22 17:14:10.191 +07:00 INF] Executed DbCommand (1ms) [Parameters=[@__normalizedRoleName_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='60']
+SELECT TOP(2) [a].[Id], [a].[ConcurrencyStamp], [a].[Name], [a].[NormalizedName]
+FROM [AspNetRoles] AS [a]
+WHERE [a].[NormalizedName] = @__normalizedRoleName_0
+[2026-05-22 17:14:10.216 +07:00 INF] Executed DbCommand (1ms) [Parameters=[@__p_0='?' (Size = 450), @__p_1='?' (Size = 450)], CommandType='"Text"', CommandTimeout='60']
+SELECT TOP(1) [a].[UserId], [a].[RoleId]
+FROM [AspNetUserRoles] AS [a]
+WHERE [a].[UserId] = @__p_0 AND [a].[RoleId] = @__p_1
+[2026-05-22 17:14:10.274 +07:00 INF] Admin account verified: admin@vietpropestate.vn, confirmed=true, active=true.
+[2026-05-22 17:14:10.362 +07:00 INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='60']
+SELECT CASE
+    WHEN EXISTS (
+        SELECT 1
+        FROM [Provinces] AS [p]) THEN CAST(1 AS bit)
+    ELSE CAST(0 AS bit)
+END
+[2026-05-22 17:14:10.364 +07:00 INF] Vietnam address data already seeded. Skipping.
+[2026-05-22 17:14:10.377 +07:00 INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='60']
+SELECT CASE
+    WHEN EXISTS (
+        SELECT 1
+        FROM [Properties] AS [p]
+        WHERE [p].[IsDeleted] = CAST(0 AS bit) AND [p].[Title] = N'Căn hộ 2PN cao cấp Vinhomes Central Park') THEN CAST(1 AS bit)
+    ELSE CAST(0 AS bit)
+END
+[2026-05-22 17:14:10.379 +07:00 INF] Test data already present ('Căn hộ 2PN cao cấp Vinhomes Central Park'). Skipping.
+[2026-05-22 17:14:10.431 +07:00 ERR] Hosting failed to start
+System.IO.IOException: Failed to bind to address http://127.0.0.1:5198: address already in use.
+ ---> Microsoft.AspNetCore.Connections.AddressInUseException: Only one usage of each socket address (protocol/network address/port) is normally permitted.
+ ---> System.Net.Sockets.SocketException (10048): Only one usage of each socket address (protocol/network address/port) is normally permitted.
+   at System.Net.Sockets.Socket.UpdateStatusAfterSocketErrorAndThrowException(SocketError error, Boolean disconnectOnFailure, String callerName)
+   at System.Net.Sockets.Socket.DoBind(EndPoint endPointSnapshot, SocketAddress socketAddress)
+   at System.Net.Sockets.Socket.Bind(EndPoint localEP)
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketTransportOptions.CreateDefaultBoundListenSocket(EndPoint endpoint)
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketConnectionListener.Bind()
+   --- End of inner exception stack trace ---
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketConnectionListener.Bind()
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketTransportFactory.BindAsync(EndPoint endpoint, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure.TransportManager.BindAsync(EndPoint endPoint, ConnectionDelegate connectionDelegate, EndpointConfig endpointConfig, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.<>c__DisplayClass28_0`1.<<StartAsync>g__OnBind|0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindEndpointAsync(ListenOptions endpoint, AddressBindContext context, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindEndpointAsync(ListenOptions endpoint, AddressBindContext context, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.LocalhostListenOptions.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.AddressesStrategy.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.BindAsync(CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.StartAsync[TContext](IHttpApplication`1 application, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Hosting.GenericWebHostService.StartAsync(CancellationToken cancellationToken)
+   at Microsoft.Extensions.Hosting.Internal.Host.<StartAsync>b__14_1(IHostedService service, CancellationToken token)
+   at Microsoft.Extensions.Hosting.Internal.Host.ForeachService[T](IEnumerable`1 services, CancellationToken token, Boolean concurrent, Boolean abortOnFirstException, List`1 exceptions, Func`3 operation)
+[2026-05-22 17:14:10.448 +07:00 FTL] Application terminated unexpectedly.
+System.IO.IOException: Failed to bind to address http://127.0.0.1:5198: address already in use.
+ ---> Microsoft.AspNetCore.Connections.AddressInUseException: Only one usage of each socket address (protocol/network address/port) is normally permitted.
+ ---> System.Net.Sockets.SocketException (10048): Only one usage of each socket address (protocol/network address/port) is normally permitted.
+   at System.Net.Sockets.Socket.UpdateStatusAfterSocketErrorAndThrowException(SocketError error, Boolean disconnectOnFailure, String callerName)
+   at System.Net.Sockets.Socket.DoBind(EndPoint endPointSnapshot, SocketAddress socketAddress)
+   at System.Net.Sockets.Socket.Bind(EndPoint localEP)
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketTransportOptions.CreateDefaultBoundListenSocket(EndPoint endpoint)
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketConnectionListener.Bind()
+   --- End of inner exception stack trace ---
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketConnectionListener.Bind()
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketTransportFactory.BindAsync(EndPoint endpoint, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure.TransportManager.BindAsync(EndPoint endPoint, ConnectionDelegate connectionDelegate, EndpointConfig endpointConfig, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.<>c__DisplayClass28_0`1.<<StartAsync>g__OnBind|0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindEndpointAsync(ListenOptions endpoint, AddressBindContext context, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindEndpointAsync(ListenOptions endpoint, AddressBindContext context, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.LocalhostListenOptions.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.AddressesStrategy.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.BindAsync(CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.StartAsync[TContext](IHttpApplication`1 application, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Hosting.GenericWebHostService.StartAsync(CancellationToken cancellationToken)
+   at Microsoft.Extensions.Hosting.Internal.Host.<StartAsync>b__14_1(IHostedService service, CancellationToken token)
+   at Microsoft.Extensions.Hosting.Internal.Host.ForeachService[T](IEnumerable`1 services, CancellationToken token, Boolean concurrent, Boolean abortOnFirstException, List`1 exceptions, Func`3 operation)
+   at Microsoft.Extensions.Hosting.Internal.Host.StartAsync(CancellationToken cancellationToken)
+   at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.RunAsync(IHost host, CancellationToken token)
+   at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.RunAsync(IHost host, CancellationToken token)
+   at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.Run(IHost host)
+   at Program.<Main>$(String[] args) in c:\Dev\VietPropEstate\src\VietPropEstate.WebAPI\Program.cs:line 198
+[2026-05-22 17:15:19.364 +07:00 WRN] Entity 'Property' has a global query filter defined and is the required end of a relationship with the entity 'PropertyView'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+[2026-05-22 17:15:19.983 +07:00 INF] Executed DbCommand (17ms) [Parameters=[], CommandType='"Text"', CommandTimeout='60']
+SELECT 1
+[2026-05-22 17:15:20.011 +07:00 INF] Executed DbCommand (15ms) [Parameters=[], CommandType='"Text"', CommandTimeout='60']
+DECLARE @result int;
+EXEC @result = sp_getapplock @Resource = '__EFMigrationsLock', @LockOwner = 'Session', @LockMode = 'Exclusive';
+SELECT @result
+[2026-05-22 17:15:20.060 +07:00 INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='60']
+IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
+BEGIN
+    CREATE TABLE [__EFMigrationsHistory] (
+        [MigrationId] nvarchar(150) NOT NULL,
+        [ProductVersion] nvarchar(32) NOT NULL,
+        CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY ([MigrationId])
+    );
+END;
+[2026-05-22 17:15:20.072 +07:00 INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='60']
+SELECT 1
+[2026-05-22 17:15:20.073 +07:00 INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='60']
+SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+[2026-05-22 17:15:20.077 +07:00 INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='60']
+SELECT [MigrationId], [ProductVersion]
+FROM [__EFMigrationsHistory]
+ORDER BY [MigrationId];
+[2026-05-22 17:15:20.086 +07:00 INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='60']
+DECLARE @result int;
+EXEC @result = sp_releaseapplock @Resource = '__EFMigrationsLock', @LockOwner = 'Session';
+SELECT @result
+[2026-05-22 17:15:20.103 +07:00 INF] User profile is available. Using 'C:\Users\Le Quoc Khanh\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+[2026-05-22 17:15:20.322 +07:00 INF] Executed DbCommand (8ms) [Parameters=[@__normalizedName_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='60']
+SELECT TOP(1) [a].[Id], [a].[ConcurrencyStamp], [a].[Name], [a].[NormalizedName]
+FROM [AspNetRoles] AS [a]
+WHERE [a].[NormalizedName] = @__normalizedName_0
+[2026-05-22 17:15:20.357 +07:00 INF] Executed DbCommand (0ms) [Parameters=[@__normalizedName_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='60']
+SELECT TOP(1) [a].[Id], [a].[ConcurrencyStamp], [a].[Name], [a].[NormalizedName]
+FROM [AspNetRoles] AS [a]
+WHERE [a].[NormalizedName] = @__normalizedName_0
+[2026-05-22 17:15:20.358 +07:00 INF] Executed DbCommand (0ms) [Parameters=[@__normalizedName_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='60']
+SELECT TOP(1) [a].[Id], [a].[ConcurrencyStamp], [a].[Name], [a].[NormalizedName]
+FROM [AspNetRoles] AS [a]
+WHERE [a].[NormalizedName] = @__normalizedName_0
+[2026-05-22 17:15:20.359 +07:00 INF] Executed DbCommand (0ms) [Parameters=[@__normalizedName_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='60']
+SELECT TOP(1) [a].[Id], [a].[ConcurrencyStamp], [a].[Name], [a].[NormalizedName]
+FROM [AspNetRoles] AS [a]
+WHERE [a].[NormalizedName] = @__normalizedName_0
+[2026-05-22 17:15:20.377 +07:00 INF] Executed DbCommand (2ms) [Parameters=[@__normalizedEmail_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='60']
+SELECT TOP(2) [a].[Id], [a].[AccessFailedCount], [a].[AvatarUrl], [a].[ConcurrencyStamp], [a].[CreatedAt], [a].[Email], [a].[EmailConfirmed], [a].[FirstName], [a].[IsActive], [a].[LastLoginAt], [a].[LastName], [a].[LockoutEnabled], [a].[LockoutEnd], [a].[NormalizedEmail], [a].[NormalizedUserName], [a].[PasswordHash], [a].[PhoneNumber], [a].[PhoneNumberConfirmed], [a].[SecurityStamp], [a].[TwoFactorEnabled], [a].[UserName]
+FROM [AspNetUsers] AS [a]
+WHERE [a].[NormalizedEmail] = @__normalizedEmail_0
+[2026-05-22 17:15:20.416 +07:00 INF] Executed DbCommand (2ms) [Parameters=[@__normalizedRoleName_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='60']
+SELECT TOP(2) [a].[Id], [a].[ConcurrencyStamp], [a].[Name], [a].[NormalizedName]
+FROM [AspNetRoles] AS [a]
+WHERE [a].[NormalizedName] = @__normalizedRoleName_0
+[2026-05-22 17:15:20.439 +07:00 INF] Executed DbCommand (1ms) [Parameters=[@__p_0='?' (Size = 450), @__p_1='?' (Size = 450)], CommandType='"Text"', CommandTimeout='60']
+SELECT TOP(1) [a].[UserId], [a].[RoleId]
+FROM [AspNetUserRoles] AS [a]
+WHERE [a].[UserId] = @__p_0 AND [a].[RoleId] = @__p_1
+[2026-05-22 17:15:20.501 +07:00 INF] Admin account verified: admin@vietpropestate.vn, confirmed=true, active=true.
+[2026-05-22 17:15:20.594 +07:00 INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='60']
+SELECT CASE
+    WHEN EXISTS (
+        SELECT 1
+        FROM [Provinces] AS [p]) THEN CAST(1 AS bit)
+    ELSE CAST(0 AS bit)
+END
+[2026-05-22 17:15:20.596 +07:00 INF] Vietnam address data already seeded. Skipping.
+[2026-05-22 17:15:20.609 +07:00 INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='60']
+SELECT CASE
+    WHEN EXISTS (
+        SELECT 1
+        FROM [Properties] AS [p]
+        WHERE [p].[IsDeleted] = CAST(0 AS bit) AND [p].[Title] = N'Căn hộ 2PN cao cấp Vinhomes Central Park') THEN CAST(1 AS bit)
+    ELSE CAST(0 AS bit)
+END
+[2026-05-22 17:15:20.610 +07:00 INF] Test data already present ('Căn hộ 2PN cao cấp Vinhomes Central Park'). Skipping.
+[2026-05-22 17:15:20.656 +07:00 INF] Now listening on: http://localhost:5198
+[2026-05-22 17:15:20.656 +07:00 INF] Application started. Press Ctrl+C to shut down.
+[2026-05-22 17:15:20.656 +07:00 INF] Hosting environment: Development
+[2026-05-22 17:15:20.656 +07:00 INF] Content root path: c:\Dev\VietPropEstate\src\VietPropEstate.WebAPI
+[2026-05-22 17:15:49.684 +07:00 INF] Request starting HTTP/1.1 GET http://localhost:5198/ - null null
+[2026-05-22 17:15:49.714 +07:00 WRN] Failed to determine the https port for redirect.
+[2026-05-22 17:15:49.741 +07:00 INF] HTTP GET / responded 404 in 22.5932 ms
+[2026-05-22 17:15:49.745 +07:00 INF] Request finished HTTP/1.1 GET http://localhost:5198/ - 404 0 null 62.9197ms
+[2026-05-22 17:15:49.747 +07:00 INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET http://localhost:5198/, Response status code: 404
+[2026-05-22 17:15:54.492 +07:00 INF] Request starting HTTP/1.1 GET http://localhost:5198/api/properties?pageNumber=1&pageSize=3&isFeatured=True&status=1&sortBy=CreatedAt&sortOrder=Desc - null null
+[2026-05-22 17:15:54.493 +07:00 INF] Request starting HTTP/1.1 GET http://localhost:5198/api/addresses/provinces - null null
+[2026-05-22 17:15:54.494 +07:00 INF] Request starting HTTP/1.1 GET http://localhost:5198/api/properties?pageNumber=1&pageSize=6&status=1&sortBy=CreatedAt&sortOrder=Desc - null null
+[2026-05-22 17:15:54.495 +07:00 INF] CORS policy execution successful.
+[2026-05-22 17:15:54.495 +07:00 INF] CORS policy execution successful.
+[2026-05-22 17:15:54.495 +07:00 INF] CORS policy execution successful.
+[2026-05-22 17:15:54.498 +07:00 INF] Executing endpoint 'VietPropEstate.WebAPI.Controllers.AddressesController.GetProvinces (VietPropEstate.WebAPI)'
+[2026-05-22 17:15:54.499 +07:00 INF] Executing endpoint 'VietPropEstate.WebAPI.Controllers.PropertiesController.GetList (VietPropEstate.WebAPI)'
+[2026-05-22 17:15:54.499 +07:00 INF] Executing endpoint 'VietPropEstate.WebAPI.Controllers.PropertiesController.GetList (VietPropEstate.WebAPI)'
+[2026-05-22 17:15:54.509 +07:00 INF] Route matched with {action = "GetProvinces", controller = "Addresses"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetProvinces(System.Threading.CancellationToken) on controller VietPropEstate.WebAPI.Controllers.AddressesController (VietPropEstate.WebAPI).
+[2026-05-22 17:15:54.509 +07:00 INF] Route matched with {action = "GetList", controller = "Properties"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetList(Int32, Int32, System.String, System.Nullable`1[System.Guid], System.Nullable`1[System.Guid], System.Nullable`1[VietPropEstate.Domain.Enums.ListingType], System.Nullable`1[VietPropEstate.Domain.Enums.PropertyStatus], System.Nullable`1[System.Int32], System.Nullable`1[System.Int32], System.String, System.Nullable`1[System.Decimal], System.Nullable`1[System.Decimal], System.Nullable`1[System.Decimal], System.Nullable`1[System.Decimal], System.Nullable`1[System.Int32], System.Nullable`1[System.Int32], System.Nullable`1[System.Int32], System.Nullable`1[VietPropEstate.Domain.Enums.PropertyDirection], System.Nullable`1[System.Boolean], System.String, System.String, System.Threading.CancellationToken) on controller VietPropEstate.WebAPI.Controllers.PropertiesController (VietPropEstate.WebAPI).
+[2026-05-22 17:15:54.509 +07:00 INF] Route matched with {action = "GetList", controller = "Properties"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetList(Int32, Int32, System.String, System.Nullable`1[System.Guid], System.Nullable`1[System.Guid], System.Nullable`1[VietPropEstate.Domain.Enums.ListingType], System.Nullable`1[VietPropEstate.Domain.Enums.PropertyStatus], System.Nullable`1[System.Int32], System.Nullable`1[System.Int32], System.String, System.Nullable`1[System.Decimal], System.Nullable`1[System.Decimal], System.Nullable`1[System.Decimal], System.Nullable`1[System.Decimal], System.Nullable`1[System.Int32], System.Nullable`1[System.Int32], System.Nullable`1[System.Int32], System.Nullable`1[VietPropEstate.Domain.Enums.PropertyDirection], System.Nullable`1[System.Boolean], System.String, System.String, System.Threading.CancellationToken) on controller VietPropEstate.WebAPI.Controllers.PropertiesController (VietPropEstate.WebAPI).
+[2026-05-22 17:15:54.518 +07:00 INF] Handling GetProvincesQuery {"$type":"GetProvincesQuery"}
+[2026-05-22 17:15:54.541 +07:00 INF] Handling GetPropertiesListQuery {"PageNumber":1,"PageSize":6,"SearchTerm":null,"PropertyTypeId":null,"TransactionTypeId":null,"ListingType":null,"Status":"Active","ProvinceCode":null,"WardCode":null,"ProvinceName":null,"MinPrice":null,"MaxPrice":null,"MinArea":null,"MaxArea":null,"MinBedrooms":null,"MaxBedrooms":null,"Bathrooms":null,"Direction":null,"IsFeatured":null,"AllStatuses":false,"SortBy":"CreatedAt","SortOrder":"Desc","$type":"GetPropertiesListQuery"}
+[2026-05-22 17:15:54.542 +07:00 INF] Handling GetPropertiesListQuery {"PageNumber":1,"PageSize":3,"SearchTerm":null,"PropertyTypeId":null,"TransactionTypeId":null,"ListingType":null,"Status":"Active","ProvinceCode":null,"WardCode":null,"ProvinceName":null,"MinPrice":null,"MaxPrice":null,"MinArea":null,"MaxArea":null,"MinBedrooms":null,"MaxBedrooms":null,"Bathrooms":null,"Direction":null,"IsFeatured":true,"AllStatuses":false,"SortBy":"CreatedAt","SortOrder":"Desc","$type":"GetPropertiesListQuery"}
+[2026-05-22 17:15:54.548 +07:00 INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='60']
+SELECT [p].[Code], [p].[Name], [p].[Codename], [p].[DivisionType]
+FROM [Provinces] AS [p]
+WHERE [p].[IsActive] = CAST(1 AS bit)
+ORDER BY [p].[Name]
+[2026-05-22 17:15:54.576 +07:00 INF] Handled GetProvincesQuery in 58ms
+[2026-05-22 17:15:54.579 +07:00 INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[VietPropEstate.Application.Features.Addresses.DTOs.ProvinceLookupDto, VietPropEstate.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+[2026-05-22 17:15:54.595 +07:00 INF] Executed action VietPropEstate.WebAPI.Controllers.AddressesController.GetProvinces (VietPropEstate.WebAPI) in 84.0802ms
+[2026-05-22 17:15:54.596 +07:00 INF] Executed endpoint 'VietPropEstate.WebAPI.Controllers.AddressesController.GetProvinces (VietPropEstate.WebAPI)'
+[2026-05-22 17:15:54.597 +07:00 INF] HTTP GET /api/addresses/provinces responded 200 in 100.6586 ms
+[2026-05-22 17:15:54.599 +07:00 INF] Request finished HTTP/1.1 GET http://localhost:5198/api/addresses/provinces - 200 null application/json; charset=utf-8 105.2774ms
+[2026-05-22 17:15:54.653 +07:00 INF] Executed DbCommand (3ms) [Parameters=[@__status_Value_0='?' (DbType = Int32), @__isFeatured_Value_1='?' (DbType = Boolean)], CommandType='"Text"', CommandTimeout='60']
+SELECT COUNT(*)
+FROM [Properties] AS [p]
+WHERE [p].[IsDeleted] = CAST(0 AS bit) AND [p].[Status] = @__status_Value_0 AND [p].[IsFeatured] = @__isFeatured_Value_1
+[2026-05-22 17:15:54.655 +07:00 INF] Executed DbCommand (1ms) [Parameters=[@__status_Value_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='60']
+SELECT COUNT(*)
+FROM [Properties] AS [p]
+WHERE [p].[IsDeleted] = CAST(0 AS bit) AND [p].[Status] = @__status_Value_0
+[2026-05-22 17:15:54.784 +07:00 INF] Executed DbCommand (11ms) [Parameters=[@__status_Value_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32), @__p_2='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='60']
+SELECT [p1].[Id], [p1].[AgentId], [p1].[Area], [p1].[CreatedAt], [p1].[CreatedBy], [p1].[DeletedAt], [p1].[DeletedBy], [p1].[Description], [p1].[Direction], [p1].[ExpiresAt], [p1].[FullAddress], [p1].[IsDeleted], [p1].[IsFeatured], [p1].[LastModifiedAt], [p1].[LastModifiedBy], [p1].[Latitude], [p1].[ListingType], [p1].[Longitude], [p1].[NumberOfBathrooms], [p1].[NumberOfBedrooms], [p1].[NumberOfFloors], [p1].[PropertyTypeId], [p1].[ProvinceCode], [p1].[ProvinceName], [p1].[PublishedAt], [p1].[RowVersion], [p1].[Slug], [p1].[Status], [p1].[Title], [p1].[TransactionTypeId], [p1].[VideoUrl], [p1].[ViewCount], [p1].[WardCode], [p1].[WardName], [p1].[AddressCountry], [p1].[AddressDistrict], [p1].[AddressLatitude], [p1].[AddressLongitude], [p1].[AddressProvince], [p1].[Street], [p1].[AddressWard], [p1].[PriceAmount], [p1].[PriceCurrency], [p2].[Id], [p2].[CreatedAt], [p2].[CreatedBy], [p2].[DeletedAt], [p2].[DeletedBy], [p2].[Description], [p2].[IsActive], [p2].[IsDeleted], [p2].[LastModifiedAt], [p2].[LastModifiedBy], [p2].[Name], [p2].[RowVersion], [a0].[Id], [a0].[AgencyName], [a0].[AvatarUrl], [a0].[Bio], [a0].[CreatedAt], [a0].[CreatedBy], [a0].[DeletedAt], [a0].[DeletedBy], [a0].[Email], [a0].[FullName], [a0].[IsActive], [a0].[IsDeleted], [a0].[LastModifiedAt], [a0].[LastModifiedBy], [a0].[LicenseNumber], [a0].[PhoneNumber], [a0].[RowVersion], [a0].[UserId], [t0].[Id], [t0].[CreatedAt], [t0].[CreatedBy], [t0].[DeletedAt], [t0].[DeletedBy], [t0].[Description], [t0].[IsActive], [t0].[IsDeleted], [t0].[LastModifiedAt], [t0].[LastModifiedBy], [t0].[Name], [t0].[RowVersion], [p4].[Id], [p4].[Caption], [p4].[CreatedAt], [p4].[CreatedBy], [p4].[DeletedAt], [p4].[DeletedBy], [p4].[DisplayOrder], [p4].[IsDeleted], [p4].[IsPrimary], [p4].[LastModifiedAt], [p4].[LastModifiedBy], [p4].[PropertyId], [p4].[RowVersion], [p4].[Url]
+FROM (
+    SELECT [p].[Id], [p].[AgentId], [p].[Area], [p].[CreatedAt], [p].[CreatedBy], [p].[DeletedAt], [p].[DeletedBy], [p].[Description], [p].[Direction], [p].[ExpiresAt], [p].[FullAddress], [p].[IsDeleted], [p].[IsFeatured], [p].[LastModifiedAt], [p].[LastModifiedBy], [p].[Latitude], [p].[ListingType], [p].[Longitude], [p].[NumberOfBathrooms], [p].[NumberOfBedrooms], [p].[NumberOfFloors], [p].[PropertyTypeId], [p].[ProvinceCode], [p].[ProvinceName], [p].[PublishedAt], [p].[RowVersion], [p].[Slug], [p].[Status], [p].[Title], [p].[TransactionTypeId], [p].[VideoUrl], [p].[ViewCount], [p].[WardCode], [p].[WardName], [p].[AddressCountry], [p].[AddressDistrict], [p].[AddressLatitude], [p].[AddressLongitude], [p].[AddressProvince], [p].[Street], [p].[AddressWard], [p].[PriceAmount], [p].[PriceCurrency]
+    FROM [Properties] AS [p]
+    WHERE [p].[IsDeleted] = CAST(0 AS bit) AND [p].[Status] = @__status_Value_0
+    ORDER BY [p].[IsFeatured] DESC, [p].[CreatedAt] DESC
+    OFFSET @__p_1 ROWS FETCH NEXT @__p_2 ROWS ONLY
+) AS [p1]
+INNER JOIN (
+    SELECT [p0].[Id], [p0].[CreatedAt], [p0].[CreatedBy], [p0].[DeletedAt], [p0].[DeletedBy], [p0].[Description], [p0].[IsActive], [p0].[IsDeleted], [p0].[LastModifiedAt], [p0].[LastModifiedBy], [p0].[Name], [p0].[RowVersion]
+    FROM [PropertyTypes] AS [p0]
+    WHERE [p0].[IsDeleted] = CAST(0 AS bit)
+) AS [p2] ON [p1].[PropertyTypeId] = [p2].[Id]
+INNER JOIN (
+    SELECT [a].[Id], [a].[AgencyName], [a].[AvatarUrl], [a].[Bio], [a].[CreatedAt], [a].[CreatedBy], [a].[DeletedAt], [a].[DeletedBy], [a].[Email], [a].[FullName], [a].[IsActive], [a].[IsDeleted], [a].[LastModifiedAt], [a].[LastModifiedBy], [a].[LicenseNumber], [a].[PhoneNumber], [a].[RowVersion], [a].[UserId]
+    FROM [Agents] AS [a]
+    WHERE [a].[IsDeleted] = CAST(0 AS bit)
+) AS [a0] ON [p1].[AgentId] = [a0].[Id]
+LEFT JOIN (
+    SELECT [t].[Id], [t].[CreatedAt], [t].[CreatedBy], [t].[DeletedAt], [t].[DeletedBy], [t].[Description], [t].[IsActive], [t].[IsDeleted], [t].[LastModifiedAt], [t].[LastModifiedBy], [t].[Name], [t].[RowVersion]
+    FROM [TransactionTypes] AS [t]
+    WHERE [t].[IsDeleted] = CAST(0 AS bit)
+) AS [t0] ON [p1].[TransactionTypeId] = [t0].[Id]
+LEFT JOIN (
+    SELECT [p3].[Id], [p3].[Caption], [p3].[CreatedAt], [p3].[CreatedBy], [p3].[DeletedAt], [p3].[DeletedBy], [p3].[DisplayOrder], [p3].[IsDeleted], [p3].[IsPrimary], [p3].[LastModifiedAt], [p3].[LastModifiedBy], [p3].[PropertyId], [p3].[RowVersion], [p3].[Url]
+    FROM [PropertyImages] AS [p3]
+    WHERE [p3].[IsDeleted] = CAST(0 AS bit)
+) AS [p4] ON [p1].[Id] = [p4].[PropertyId]
+ORDER BY [p1].[IsFeatured] DESC, [p1].[CreatedAt] DESC, [p1].[Id], [p2].[Id], [a0].[Id], [t0].[Id]
+[2026-05-22 17:15:54.785 +07:00 INF] Executed DbCommand (11ms) [Parameters=[@__status_Value_0='?' (DbType = Int32), @__isFeatured_Value_1='?' (DbType = Boolean), @__p_2='?' (DbType = Int32), @__p_3='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='60']
+SELECT [p1].[Id], [p1].[AgentId], [p1].[Area], [p1].[CreatedAt], [p1].[CreatedBy], [p1].[DeletedAt], [p1].[DeletedBy], [p1].[Description], [p1].[Direction], [p1].[ExpiresAt], [p1].[FullAddress], [p1].[IsDeleted], [p1].[IsFeatured], [p1].[LastModifiedAt], [p1].[LastModifiedBy], [p1].[Latitude], [p1].[ListingType], [p1].[Longitude], [p1].[NumberOfBathrooms], [p1].[NumberOfBedrooms], [p1].[NumberOfFloors], [p1].[PropertyTypeId], [p1].[ProvinceCode], [p1].[ProvinceName], [p1].[PublishedAt], [p1].[RowVersion], [p1].[Slug], [p1].[Status], [p1].[Title], [p1].[TransactionTypeId], [p1].[VideoUrl], [p1].[ViewCount], [p1].[WardCode], [p1].[WardName], [p1].[AddressCountry], [p1].[AddressDistrict], [p1].[AddressLatitude], [p1].[AddressLongitude], [p1].[AddressProvince], [p1].[Street], [p1].[AddressWard], [p1].[PriceAmount], [p1].[PriceCurrency], [p2].[Id], [p2].[CreatedAt], [p2].[CreatedBy], [p2].[DeletedAt], [p2].[DeletedBy], [p2].[Description], [p2].[IsActive], [p2].[IsDeleted], [p2].[LastModifiedAt], [p2].[LastModifiedBy], [p2].[Name], [p2].[RowVersion], [a0].[Id], [a0].[AgencyName], [a0].[AvatarUrl], [a0].[Bio], [a0].[CreatedAt], [a0].[CreatedBy], [a0].[DeletedAt], [a0].[DeletedBy], [a0].[Email], [a0].[FullName], [a0].[IsActive], [a0].[IsDeleted], [a0].[LastModifiedAt], [a0].[LastModifiedBy], [a0].[LicenseNumber], [a0].[PhoneNumber], [a0].[RowVersion], [a0].[UserId], [t0].[Id], [t0].[CreatedAt], [t0].[CreatedBy], [t0].[DeletedAt], [t0].[DeletedBy], [t0].[Description], [t0].[IsActive], [t0].[IsDeleted], [t0].[LastModifiedAt], [t0].[LastModifiedBy], [t0].[Name], [t0].[RowVersion], [p4].[Id], [p4].[Caption], [p4].[CreatedAt], [p4].[CreatedBy], [p4].[DeletedAt], [p4].[DeletedBy], [p4].[DisplayOrder], [p4].[IsDeleted], [p4].[IsPrimary], [p4].[LastModifiedAt], [p4].[LastModifiedBy], [p4].[PropertyId], [p4].[RowVersion], [p4].[Url]
+FROM (
+    SELECT [p].[Id], [p].[AgentId], [p].[Area], [p].[CreatedAt], [p].[CreatedBy], [p].[DeletedAt], [p].[DeletedBy], [p].[Description], [p].[Direction], [p].[ExpiresAt], [p].[FullAddress], [p].[IsDeleted], [p].[IsFeatured], [p].[LastModifiedAt], [p].[LastModifiedBy], [p].[Latitude], [p].[ListingType], [p].[Longitude], [p].[NumberOfBathrooms], [p].[NumberOfBedrooms], [p].[NumberOfFloors], [p].[PropertyTypeId], [p].[ProvinceCode], [p].[ProvinceName], [p].[PublishedAt], [p].[RowVersion], [p].[Slug], [p].[Status], [p].[Title], [p].[TransactionTypeId], [p].[VideoUrl], [p].[ViewCount], [p].[WardCode], [p].[WardName], [p].[AddressCountry], [p].[AddressDistrict], [p].[AddressLatitude], [p].[AddressLongitude], [p].[AddressProvince], [p].[Street], [p].[AddressWard], [p].[PriceAmount], [p].[PriceCurrency]
+    FROM [Properties] AS [p]
+    WHERE [p].[IsDeleted] = CAST(0 AS bit) AND [p].[Status] = @__status_Value_0 AND [p].[IsFeatured] = @__isFeatured_Value_1
+    ORDER BY [p].[IsFeatured] DESC, [p].[CreatedAt] DESC
+    OFFSET @__p_2 ROWS FETCH NEXT @__p_3 ROWS ONLY
+) AS [p1]
+INNER JOIN (
+    SELECT [p0].[Id], [p0].[CreatedAt], [p0].[CreatedBy], [p0].[DeletedAt], [p0].[DeletedBy], [p0].[Description], [p0].[IsActive], [p0].[IsDeleted], [p0].[LastModifiedAt], [p0].[LastModifiedBy], [p0].[Name], [p0].[RowVersion]
+    FROM [PropertyTypes] AS [p0]
+    WHERE [p0].[IsDeleted] = CAST(0 AS bit)
+) AS [p2] ON [p1].[PropertyTypeId] = [p2].[Id]
+INNER JOIN (
+    SELECT [a].[Id], [a].[AgencyName], [a].[AvatarUrl], [a].[Bio], [a].[CreatedAt], [a].[CreatedBy], [a].[DeletedAt], [a].[DeletedBy], [a].[Email], [a].[FullName], [a].[IsActive], [a].[IsDeleted], [a].[LastModifiedAt], [a].[LastModifiedBy], [a].[LicenseNumber], [a].[PhoneNumber], [a].[RowVersion], [a].[UserId]
+    FROM [Agents] AS [a]
+    WHERE [a].[IsDeleted] = CAST(0 AS bit)
+) AS [a0] ON [p1].[AgentId] = [a0].[Id]
+LEFT JOIN (
+    SELECT [t].[Id], [t].[CreatedAt], [t].[CreatedBy], [t].[DeletedAt], [t].[DeletedBy], [t].[Description], [t].[IsActive], [t].[IsDeleted], [t].[LastModifiedAt], [t].[LastModifiedBy], [t].[Name], [t].[RowVersion]
+    FROM [TransactionTypes] AS [t]
+    WHERE [t].[IsDeleted] = CAST(0 AS bit)
+) AS [t0] ON [p1].[TransactionTypeId] = [t0].[Id]
+LEFT JOIN (
+    SELECT [p3].[Id], [p3].[Caption], [p3].[CreatedAt], [p3].[CreatedBy], [p3].[DeletedAt], [p3].[DeletedBy], [p3].[DisplayOrder], [p3].[IsDeleted], [p3].[IsPrimary], [p3].[LastModifiedAt], [p3].[LastModifiedBy], [p3].[PropertyId], [p3].[RowVersion], [p3].[Url]
+    FROM [PropertyImages] AS [p3]
+    WHERE [p3].[IsDeleted] = CAST(0 AS bit)
+) AS [p4] ON [p1].[Id] = [p4].[PropertyId]
+ORDER BY [p1].[IsFeatured] DESC, [p1].[CreatedAt] DESC, [p1].[Id], [p2].[Id], [a0].[Id], [t0].[Id]
+[2026-05-22 17:15:54.808 +07:00 INF] Handled GetPropertiesListQuery in 267ms
+[2026-05-22 17:15:54.808 +07:00 INF] Handled GetPropertiesListQuery in 267ms
+[2026-05-22 17:15:54.808 +07:00 INF] Executing OkObjectResult, writing value of type 'VietPropEstate.Application.Common.Models.PaginatedList`1[[VietPropEstate.Application.Features.Properties.DTOs.PropertyDto, VietPropEstate.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+[2026-05-22 17:15:54.808 +07:00 INF] Executing OkObjectResult, writing value of type 'VietPropEstate.Application.Common.Models.PaginatedList`1[[VietPropEstate.Application.Features.Properties.DTOs.PropertyDto, VietPropEstate.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+[2026-05-22 17:15:54.841 +07:00 INF] Executed action VietPropEstate.WebAPI.Controllers.PropertiesController.GetList (VietPropEstate.WebAPI) in 331.6713ms
+[2026-05-22 17:15:54.841 +07:00 INF] Executed action VietPropEstate.WebAPI.Controllers.PropertiesController.GetList (VietPropEstate.WebAPI) in 331.6615ms
+[2026-05-22 17:15:54.841 +07:00 INF] Executed endpoint 'VietPropEstate.WebAPI.Controllers.PropertiesController.GetList (VietPropEstate.WebAPI)'
+[2026-05-22 17:15:54.841 +07:00 INF] Executed endpoint 'VietPropEstate.WebAPI.Controllers.PropertiesController.GetList (VietPropEstate.WebAPI)'
+[2026-05-22 17:15:54.841 +07:00 INF] HTTP GET /api/properties responded 200 in 345.1479 ms
+[2026-05-22 17:15:54.841 +07:00 INF] HTTP GET /api/properties responded 200 in 345.1800 ms
+[2026-05-22 17:15:54.842 +07:00 INF] Request finished HTTP/1.1 GET http://localhost:5198/api/properties?pageNumber=1&pageSize=3&isFeatured=True&status=1&sortBy=CreatedAt&sortOrder=Desc - 200 null application/json; charset=utf-8 349.5509ms
+[2026-05-22 17:15:54.842 +07:00 INF] Request finished HTTP/1.1 GET http://localhost:5198/api/properties?pageNumber=1&pageSize=6&status=1&sortBy=CreatedAt&sortOrder=Desc - 200 null application/json; charset=utf-8 347.9009ms
+[2026-05-22 17:16:05.500 +07:00 INF] Request starting HTTP/1.1 GET http://localhost:5198/ - null null
+[2026-05-22 17:16:05.503 +07:00 INF] HTTP GET / responded 404 in 1.3190 ms
+[2026-05-22 17:16:05.503 +07:00 INF] Request finished HTTP/1.1 GET http://localhost:5198/ - 404 0 null 3.0487ms
+[2026-05-22 17:16:05.503 +07:00 INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET http://localhost:5198/, Response status code: 404
+[2026-05-22 17:16:16.332 +07:00 INF] Request starting HTTP/1.1 OPTIONS http://localhost:5198/api/conversations/unread - null null
+[2026-05-22 17:16:16.336 +07:00 INF] CORS policy execution successful.
+[2026-05-22 17:16:16.337 +07:00 INF] Request finished HTTP/1.1 OPTIONS http://localhost:5198/api/conversations/unread - 204 null null 5.2035ms
+[2026-05-22 17:16:16.339 +07:00 INF] Request starting HTTP/1.1 GET http://localhost:5198/api/conversations/unread - null null
+[2026-05-22 17:16:16.339 +07:00 INF] CORS policy execution successful.
+[2026-05-22 17:16:16.382 +07:00 INF] Executing endpoint 'VietPropEstate.WebAPI.Controllers.ConversationsController.GetUnreadCounts (VietPropEstate.WebAPI)'
+[2026-05-22 17:16:16.386 +07:00 INF] Request starting HTTP/1.1 OPTIONS http://localhost:5198/api/notifications?pageNumber=1&pageSize=20&unreadOnly=false - null null
+[2026-05-22 17:16:16.386 +07:00 INF] CORS policy execution successful.
+[2026-05-22 17:16:16.386 +07:00 INF] Request finished HTTP/1.1 OPTIONS http://localhost:5198/api/notifications?pageNumber=1&pageSize=20&unreadOnly=false - 204 null null 0.4459ms
+[2026-05-22 17:16:16.386 +07:00 INF] Route matched with {action = "GetUnreadCounts", controller = "Conversations"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetUnreadCounts(System.Threading.CancellationToken) on controller VietPropEstate.WebAPI.Controllers.ConversationsController (VietPropEstate.WebAPI).
+[2026-05-22 17:16:16.387 +07:00 INF] Request starting HTTP/1.1 GET http://localhost:5198/api/notifications?pageNumber=1&pageSize=20&unreadOnly=false - null null
+[2026-05-22 17:16:16.387 +07:00 INF] CORS policy execution successful.
+[2026-05-22 17:16:16.389 +07:00 INF] Executing endpoint 'VietPropEstate.WebAPI.Controllers.NotificationsController.GetNotifications (VietPropEstate.WebAPI)'
+[2026-05-22 17:16:16.390 +07:00 INF] Handling GetUnreadCountQuery {"UserId":"83ea128a-c1b2-4063-9367-ebbd1e1af818","$type":"GetUnreadCountQuery"}
+[2026-05-22 17:16:16.393 +07:00 INF] Route matched with {action = "GetNotifications", controller = "Notifications"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetNotifications(Int32, Int32, Boolean, System.Threading.CancellationToken) on controller VietPropEstate.WebAPI.Controllers.NotificationsController (VietPropEstate.WebAPI).
+[2026-05-22 17:16:16.396 +07:00 INF] Handling GetUserNotificationsQuery {"UserId":"83ea128a-c1b2-4063-9367-ebbd1e1af818","PageNumber":1,"PageSize":20,"UnreadOnly":false,"$type":"GetUserNotificationsQuery"}
+[2026-05-22 17:16:16.399 +07:00 INF] Request starting HTTP/1.1 OPTIONS http://localhost:5198/api/propertytypes - null null
+[2026-05-22 17:16:16.399 +07:00 INF] CORS policy execution successful.
+[2026-05-22 17:16:16.399 +07:00 INF] Request finished HTTP/1.1 OPTIONS http://localhost:5198/api/propertytypes - 204 null null 0.3397ms
+[2026-05-22 17:16:16.401 +07:00 INF] Request starting HTTP/1.1 GET http://localhost:5198/api/propertytypes - null null
+[2026-05-22 17:16:16.401 +07:00 INF] CORS policy execution successful.
+[2026-05-22 17:16:16.402 +07:00 INF] Executing endpoint 'VietPropEstate.WebAPI.Controllers.PropertyTypesController.GetPropertyTypes (VietPropEstate.WebAPI)'
+[2026-05-22 17:16:16.405 +07:00 INF] Route matched with {action = "GetPropertyTypes", controller = "PropertyTypes"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetPropertyTypes(System.Threading.CancellationToken) on controller VietPropEstate.WebAPI.Controllers.PropertyTypesController (VietPropEstate.WebAPI).
+[2026-05-22 17:16:16.407 +07:00 INF] Handling GetPropertyTypesQuery {"$type":"GetPropertyTypesQuery"}
+[2026-05-22 17:16:16.411 +07:00 INF] Executed DbCommand (4ms) [Parameters=[@__request_UserId_0='?' (Size = 450)], CommandType='"Text"', CommandTimeout='60']
+SELECT COUNT(*)
+FROM [Notifications] AS [n]
+WHERE [n].[IsDeleted] = CAST(0 AS bit) AND [n].[UserId] = @__request_UserId_0 AND [n].[IsDeleted] = CAST(0 AS bit)
+[2026-05-22 17:16:16.412 +07:00 INF] Executed DbCommand (4ms) [Parameters=[@__request_UserId_0='?' (Size = 450)], CommandType='"Text"', CommandTimeout='60']
+SELECT COALESCE(SUM(CASE
+    WHEN [c].[BuyerId] = @__request_UserId_0 THEN [c].[BuyerUnreadCount]
+    ELSE [c].[SellerUnreadCount]
+END), 0)
+FROM [Conversations] AS [c]
+WHERE [c].[IsDeleted] = CAST(0 AS bit) AND ([c].[BuyerId] = @__request_UserId_0 OR [c].[SellerId] = @__request_UserId_0) AND [c].[IsDeleted] = CAST(0 AS bit)
+[2026-05-22 17:16:16.419 +07:00 INF] Executed DbCommand (2ms) [Parameters=[@__request_UserId_0='?' (Size = 450)], CommandType='"Text"', CommandTimeout='60']
+SELECT COUNT(*)
+FROM [Notifications] AS [n]
+WHERE [n].[IsDeleted] = CAST(0 AS bit) AND [n].[UserId] = @__request_UserId_0 AND [n].[IsRead] = CAST(0 AS bit) AND [n].[IsDeleted] = CAST(0 AS bit)
+[2026-05-22 17:16:16.420 +07:00 INF] Handled GetUnreadCountQuery in 30ms
+[2026-05-22 17:16:16.420 +07:00 INF] Executing OkObjectResult, writing value of type 'VietPropEstate.Application.Features.Chat.Queries.GetUnreadCount.UnreadCountResult'.
+[2026-05-22 17:16:16.423 +07:00 INF] Executed action VietPropEstate.WebAPI.Controllers.ConversationsController.GetUnreadCounts (VietPropEstate.WebAPI) in 36.9088ms
+[2026-05-22 17:16:16.424 +07:00 INF] Executed endpoint 'VietPropEstate.WebAPI.Controllers.ConversationsController.GetUnreadCounts (VietPropEstate.WebAPI)'
+[2026-05-22 17:16:16.424 +07:00 INF] HTTP GET /api/conversations/unread responded 200 in 83.9072 ms
+[2026-05-22 17:16:16.424 +07:00 INF] Request finished HTTP/1.1 GET http://localhost:5198/api/conversations/unread - 200 null application/json; charset=utf-8 84.7125ms
+[2026-05-22 17:16:16.426 +07:00 INF] Executed DbCommand (3ms) [Parameters=[@__request_UserId_0='?' (Size = 450), @__p_1='?' (DbType = Int32), @__p_2='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='60']
+SELECT [n].[Id], [n].[UserId], [n].[Title], [n].[Content], [n].[Type], [n].[IsRead], [n].[ReadAt], [n].[ReferenceId], [n].[ActionUrl], [n].[CreatedAt]
+FROM [Notifications] AS [n]
+WHERE [n].[IsDeleted] = CAST(0 AS bit) AND [n].[UserId] = @__request_UserId_0 AND [n].[IsDeleted] = CAST(0 AS bit)
+ORDER BY [n].[CreatedAt] DESC
+OFFSET @__p_1 ROWS FETCH NEXT @__p_2 ROWS ONLY
+[2026-05-22 17:16:16.426 +07:00 INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='60']
+SELECT [p].[Id], [p].[CreatedAt], [p].[CreatedBy], [p].[DeletedAt], [p].[DeletedBy], [p].[Description], [p].[IsActive], [p].[IsDeleted], [p].[LastModifiedAt], [p].[LastModifiedBy], [p].[Name], [p].[RowVersion]
+FROM [PropertyTypes] AS [p]
+WHERE [p].[IsDeleted] = CAST(0 AS bit) AND [p].[IsActive] = CAST(1 AS bit) AND [p].[IsDeleted] = CAST(0 AS bit)
+[2026-05-22 17:16:16.426 +07:00 INF] Handled GetUserNotificationsQuery in 30ms
+[2026-05-22 17:16:16.426 +07:00 INF] Executing OkObjectResult, writing value of type 'VietPropEstate.Application.Common.Models.PaginatedList`1[[VietPropEstate.Application.Features.Notifications.DTOs.NotificationDto, VietPropEstate.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+[2026-05-22 17:16:16.432 +07:00 INF] Handled GetPropertyTypesQuery in 25ms
+[2026-05-22 17:16:16.433 +07:00 INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[VietPropEstate.Application.Features.Properties.DTOs.PropertyTypeDto, VietPropEstate.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+[2026-05-22 17:16:16.435 +07:00 INF] Executed action VietPropEstate.WebAPI.Controllers.PropertyTypesController.GetPropertyTypes (VietPropEstate.WebAPI) in 29.8231ms
+[2026-05-22 17:16:16.435 +07:00 INF] Executed endpoint 'VietPropEstate.WebAPI.Controllers.PropertyTypesController.GetPropertyTypes (VietPropEstate.WebAPI)'
+[2026-05-22 17:16:16.435 +07:00 INF] HTTP GET /api/propertytypes responded 200 in 33.5859 ms
+[2026-05-22 17:16:16.435 +07:00 INF] Request finished HTTP/1.1 GET http://localhost:5198/api/propertytypes - 200 null application/json; charset=utf-8 34.3173ms
+[2026-05-22 17:16:16.435 +07:00 INF] Executed action VietPropEstate.WebAPI.Controllers.NotificationsController.GetNotifications (VietPropEstate.WebAPI) in 42.0341ms
+[2026-05-22 17:16:16.435 +07:00 INF] Executed endpoint 'VietPropEstate.WebAPI.Controllers.NotificationsController.GetNotifications (VietPropEstate.WebAPI)'
+[2026-05-22 17:16:16.435 +07:00 INF] HTTP GET /api/notifications responded 200 in 47.8408 ms
+[2026-05-22 17:16:16.436 +07:00 INF] Request finished HTTP/1.1 GET http://localhost:5198/api/notifications?pageNumber=1&pageSize=20&unreadOnly=false - 200 null application/json; charset=utf-8 48.4749ms
+[2026-05-22 17:16:28.901 +07:00 INF] Request starting HTTP/1.1 GET http://localhost:5198/ - null null
+[2026-05-22 17:16:28.902 +07:00 INF] HTTP GET / responded 404 in 0.0941 ms
+[2026-05-22 17:16:28.902 +07:00 INF] Request finished HTTP/1.1 GET http://localhost:5198/ - 404 0 null 0.7604ms
+[2026-05-22 17:16:28.902 +07:00 INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET http://localhost:5198/, Response status code: 404

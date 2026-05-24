@@ -1,0 +1,314 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>VietPropEstate.WebAPI</name>
+    </assembly>
+    <members>
+        <member name="T:VietPropEstate.WebAPI.Authorization.AuthPolicies">
+            <summary>Named authorization policy constants used across the application.</summary>
+        </member>
+        <member name="T:VietPropEstate.WebAPI.Authorization.AppRoleNames">
+            <summary>Re-exports application role constants for WebAPI consumers.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.AddressesController.GetProvinces(System.Threading.CancellationToken)">
+            <summary>Returns all active Vietnamese provinces/cities.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.AddressesController.GetWards(System.Int32,System.Threading.CancellationToken)">
+            <summary>Returns wards/communes for a province code.</summary>
+        </member>
+        <member name="T:VietPropEstate.WebAPI.Controllers.AdminController">
+            <summary>Administration endpoints — users, revenue, VIP, audit logs.</summary>
+        </member>
+        <member name="T:VietPropEstate.WebAPI.Controllers.AuthController">
+            <summary>Authentication and identity management endpoints.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.AuthController.Register(VietPropEstate.Application.Features.Auth.Commands.RegisterUser.RegisterUserCommand,System.Threading.CancellationToken)">
+            <summary>Register a new account. Available roles: Customer, Broker.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.AuthController.Login(VietPropEstate.Application.Features.Auth.Commands.LoginUser.LoginUserCommand,System.Threading.CancellationToken)">
+            <summary>Authenticate with email and password. Returns JWT + refresh token cookie.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.AuthController.RefreshToken(System.Threading.CancellationToken)">
+            <summary>Exchange a valid refresh token (from HttpOnly cookie) for a new access token.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.AuthController.RevokeToken(VietPropEstate.WebAPI.Controllers.RevokeTokenRequest,System.Threading.CancellationToken)">
+            <summary>Revoke a specific refresh token (admin / manual revocation).</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.AuthController.Logout(System.Threading.CancellationToken)">
+            <summary>Log out the current user by revoking all their active refresh tokens.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.AuthController.ForgotPassword(VietPropEstate.Application.Features.Auth.Commands.ForgotPassword.ForgotPasswordCommand,System.Threading.CancellationToken)">
+            <summary>Request a password reset email. Always returns 204 to prevent email enumeration.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.AuthController.ResetPassword(VietPropEstate.Application.Features.Auth.Commands.ResetPassword.ResetPasswordCommand,System.Threading.CancellationToken)">
+            <summary>Reset the password using the token sent by email.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.AuthController.VerifyEmail(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>Confirm an email address using the userId + token from the verification email.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.AuthController.ChangePassword(VietPropEstate.WebAPI.Controllers.ChangePasswordRequest,System.Threading.CancellationToken)">
+            <summary>Change the currently authenticated user's password.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.AuthController.GetProfile(System.Threading.CancellationToken)">
+            <summary>Returns the authenticated user's profile.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.AuthController.UpdateProfile(VietPropEstate.WebAPI.Controllers.UpdateUserProfileRequest,System.Threading.CancellationToken)">
+            <summary>Update the authenticated user's profile.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.AuthController.UploadAvatar(Microsoft.AspNetCore.Http.IFormFile,System.Threading.CancellationToken)">
+            <summary>Upload or replace the authenticated user's avatar image.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.AuthController.SendPhoneVerificationCode(VietPropEstate.WebAPI.Controllers.SendPhoneCodeRequest,System.Threading.CancellationToken)">
+            <summary>Gửi mã OTP xác thực số điện thoại (bắt buộc trước khi Customer đăng tin).</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.AuthController.VerifyPhoneNumber(VietPropEstate.WebAPI.Controllers.VerifyPhoneRequest,System.Threading.CancellationToken)">
+            <summary>Xác thực số điện thoại bằng mã OTP.</summary>
+        </member>
+        <member name="T:VietPropEstate.WebAPI.Controllers.ConversationsController">
+            <summary>Buyer–Seller conversation REST API. SignalR hub: /hubs/chat</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.ConversationsController.GetMyConversations(System.Int32,System.Int32,System.Boolean,System.Threading.CancellationToken)">
+            <summary>Returns all conversations for the authenticated user, sorted by latest activity.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.ConversationsController.GetUnreadCounts(System.Threading.CancellationToken)">
+            <summary>Returns unread message + notification counts for the badge indicator.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.ConversationsController.Start(VietPropEstate.WebAPI.Controllers.StartConversationRequest,System.Threading.CancellationToken)">
+            <summary>Start (or resume) a conversation between buyer and seller about a property.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.ConversationsController.GetMessages(System.Guid,System.Int32,System.Int32,System.Nullable{System.DateTime},System.Threading.CancellationToken)">
+            <summary>Returns paginated message history. Marks delivered messages as delivered.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.ConversationsController.SendMessage(System.Guid,VietPropEstate.WebAPI.Controllers.SendMessageRequest,System.Threading.CancellationToken)">
+            <summary>Send a new message. Pushes via SignalR to conversation participants.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.ConversationsController.MarkAsRead(System.Guid,System.Threading.CancellationToken)">
+            <summary>Mark all unread messages in this conversation as read.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.ConversationsController.DeleteMessage(System.Guid,System.Guid,System.Threading.CancellationToken)">
+            <summary>Soft-delete a message (replaces content with "[Message deleted]").</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.ConversationsController.UpdateSettings(System.Guid,VietPropEstate.WebAPI.Controllers.UpdateConversationSettingsRequest,System.Threading.CancellationToken)">
+            <summary>Update per-user conversation settings (pin, mute).</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.ConversationsController.Block(System.Guid,System.Threading.CancellationToken)">
+            <summary>Block the other participant in this conversation.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.ConversationsController.Unblock(System.Guid,System.Threading.CancellationToken)">
+            <summary>Unblock the other participant in this conversation.</summary>
+        </member>
+        <member name="T:VietPropEstate.WebAPI.Controllers.DashboardController">
+            <summary>Dashboard statistics for the authenticated user.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.DashboardController.GetStats(System.Threading.CancellationToken)">
+            <summary>Returns overview stats for the user's dashboard.</summary>
+        </member>
+        <member name="T:VietPropEstate.WebAPI.Controllers.FavoritesController">
+            <summary>Favorites management — toggle and list saved properties.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.FavoritesController.GetFavorites(System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <summary>Returns the authenticated user's favorited properties (paginated).</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.FavoritesController.Toggle(System.Guid,VietPropEstate.WebAPI.Controllers.ToggleFavoriteRequest,System.Threading.CancellationToken)">
+            <summary>Toggle favorite — adds if not saved, removes if already saved.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.FavoritesController.GetStatus(System.Guid,System.Threading.CancellationToken)">
+            <summary>Check whether the property is in the user's favorites.</summary>
+        </member>
+        <member name="T:VietPropEstate.WebAPI.Controllers.NotificationsController">
+            <summary>In-app notifications for the authenticated user.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.NotificationsController.GetNotifications(System.Int32,System.Int32,System.Boolean,System.Threading.CancellationToken)">
+            <summary>Returns paginated notifications. Pass unreadOnly=true for the badge dropdown.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.NotificationsController.GetUnreadCount(System.Threading.CancellationToken)">
+            <summary>Returns the unread notification count (for the badge number).</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.NotificationsController.MarkAsRead(System.Guid,System.Threading.CancellationToken)">
+            <summary>Mark a single notification as read.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.NotificationsController.MarkAllAsRead(System.Threading.CancellationToken)">
+            <summary>Mark all notifications as read (called when user opens the notification panel).</summary>
+        </member>
+        <member name="T:VietPropEstate.WebAPI.Controllers.PaymentsController">
+            <summary>
+            VNPay payment integration.
+            Flow:
+              1. POST /api/payments/initiate  → returns PaymentUrl, redirect user to VNPay
+              2. VNPay → POST /api/payments/vnpay-ipn  (server-to-server, authoritative)
+              3. VNPay → GET  /api/payments/vnpay-return (user browser redirect, display only)
+            </summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.PaymentsController.Initiate(VietPropEstate.WebAPI.Controllers.InitiatePaymentRequest,System.Threading.CancellationToken)">
+            <summary>
+            Initiates a VIP package payment.
+            Returns a VNPay checkout URL that the client must redirect the user to.
+            </summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.PaymentsController.VnPayIpn(System.Threading.CancellationToken)">
+            <summary>
+            VNPay Instant Payment Notification (IPN) endpoint.
+            Called server-to-server by VNPay. Must return specific JSON responses.
+            IMPORTANT: This endpoint must NOT require authentication.
+            Configure IPN URL in VNPay merchant portal to point here.
+            </summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.PaymentsController.VnPayReturn">
+            <summary>
+            VNPay Return URL — called when user is redirected back from VNPay.
+            Display-only; authoritative confirmation happens via IPN.
+            </summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.PaymentsController.VnPayMockComplete(VietPropEstate.WebAPI.Controllers.MockVnPayCompleteRequest,System.Threading.CancellationToken)">
+            <summary>
+            Completes a mock VNPay payment in development (UseMockPayment=true).
+            Processes IPN server-side and returns the browser redirect URL.
+            </summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.PaymentsController.GetHistory(System.Int32,System.Int32,System.Nullable{VietPropEstate.Domain.Enums.PaymentStatus},System.Threading.CancellationToken)">
+            <summary>Returns the authenticated user's payment history (paginated).</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.PaymentsController.Cancel(System.Guid,VietPropEstate.WebAPI.Controllers.CancelPaymentRequest,System.Threading.CancellationToken)">
+            <summary>Cancel a pending payment.</summary>
+        </member>
+        <member name="T:VietPropEstate.WebAPI.Controllers.PostersController">
+            <summary>Public poster/seller profile pages.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.PostersController.GetProfile(System.String,System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <summary>Returns public profile and published listings for a user.</summary>
+        </member>
+        <member name="T:VietPropEstate.WebAPI.Controllers.PropertiesController">
+            <summary>Property listing management — CRUD, search, filtering, and discovery.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.PropertiesController.GetList(System.Int32,System.Int32,System.String,System.Nullable{System.Guid},System.Nullable{System.Guid},System.Nullable{VietPropEstate.Domain.Enums.ListingType},System.Nullable{VietPropEstate.Domain.Enums.PropertyStatus},System.Nullable{System.Int32},System.Nullable{System.Int32},System.String,System.Nullable{System.Decimal},System.Nullable{System.Decimal},System.Nullable{System.Decimal},System.Nullable{System.Decimal},System.Nullable{System.Int32},System.Nullable{System.Int32},System.Nullable{System.Int32},System.Nullable{VietPropEstate.Domain.Enums.PropertyDirection},System.Nullable{System.Boolean},System.String,System.String,System.Threading.CancellationToken)">
+            <summary>Search and filter properties with full pagination and sorting.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.PropertiesController.GetFeatured(System.Int32,System.Threading.CancellationToken)">
+            <summary>Returns the top N featured active listings.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.PropertiesController.GetMyListings(System.Int32,System.Int32,System.Nullable{VietPropEstate.Domain.Enums.PropertyStatus},System.Threading.CancellationToken)">
+            <summary>Returns paginated listings for the authenticated user.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.PropertiesController.GetById(System.Guid,System.Threading.CancellationToken)">
+            <summary>Get full property detail by ID. Tracks an anonymous view.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.PropertiesController.GetBySlug(System.String,System.Threading.CancellationToken)">
+            <summary>Get full property detail by SEO slug.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.PropertiesController.GetRelated(System.Guid,System.Int32,System.Threading.CancellationToken)">
+            <summary>Returns related listings (same type + province).</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.PropertiesController.GetByAgent(System.Guid,System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <summary>Get paginated properties listed by a specific agent.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.PropertiesController.GetRecentlyViewed(System.Int32,System.Threading.CancellationToken)">
+            <summary>Returns the authenticated user's recently viewed properties.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.PropertiesController.Create(VietPropEstate.Application.Features.Properties.Commands.CreateProperty.CreatePropertyCommand,System.Threading.CancellationToken)">
+            <summary>Create a new property listing (Customer/Broker; requires admin approval to publish).</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.PropertiesController.Update(System.Guid,VietPropEstate.Application.Features.Properties.Commands.UpdateProperty.UpdatePropertyCommand,System.Threading.CancellationToken)">
+            <summary>Update property details.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.PropertiesController.Delete(System.Guid,System.Threading.CancellationToken)">
+            <summary>Soft-delete a property (owner broker or admin).</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.PropertiesController.UploadImages(System.Guid,System.Collections.Generic.List{Microsoft.AspNetCore.Http.IFormFile},System.Threading.CancellationToken)">
+            <summary>Upload property images (multipart form).</summary>
+        </member>
+        <member name="T:VietPropEstate.WebAPI.Controllers.PropertyTypesController">
+            <summary>Property and transaction type lookups.</summary>
+        </member>
+        <member name="T:VietPropEstate.WebAPI.Controllers.VipPackagesController">
+            <summary>VIP package catalogue and user subscription management.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.VipPackagesController.GetPackages(System.Threading.CancellationToken)">
+            <summary>Returns all active VIP packages available for purchase.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.VipPackagesController.GetMySubscriptions(System.Boolean,System.Threading.CancellationToken)">
+            <summary>Returns the current user's VIP subscriptions.</summary>
+        </member>
+        <member name="T:VietPropEstate.WebAPI.Hubs.ChatHub">
+             <summary>
+             SignalR hub for real-time chat, typing indicators, online status, and notifications.
+             URL: /hubs/chat
+            
+             Connection: JWT passed as access_token query parameter (required for WebSocket).
+             Groups:
+               conversation_{id}  — all participants watching a specific conversation.
+               user_{userId}      — personal channel for notifications and unread counts.
+             </summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Hubs.ChatHub.JoinConversation(System.Guid)">
+            <summary>
+            Join a conversation group so the client receives real-time messages for it.
+            Called by client when they open a conversation.
+            </summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Hubs.ChatHub.LeaveConversation(System.Guid)">
+            <summary>
+            Leave a conversation group. Called when the client navigates away.
+            </summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Hubs.ChatHub.StartTyping(System.Guid)">
+            <summary>Broadcast that this user is typing in the conversation.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Hubs.ChatHub.StopTyping(System.Guid)">
+            <summary>Broadcast that this user has stopped typing.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Hubs.ChatHub.MarkAsRead(System.Guid)">
+            <summary>
+            Mark all unread messages in a conversation as read.
+            The server persists the change and broadcasts a read receipt.
+            </summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Hubs.ChatHub.GetUserStatus(System.String)">
+            <summary>Returns the online status of a specific user.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Hubs.ChatHub.BroadcastOnlineStatusToContactsAsync(System.String,System.Boolean)">
+            <summary>
+            Notifies all users who share at least one conversation with this user
+            about their online/offline status change.
+            </summary>
+        </member>
+        <member name="T:VietPropEstate.WebAPI.Hubs.IChatClient">
+            <summary>
+            Strongly-typed contract for events pushed from the server to connected chat clients.
+            </summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Hubs.IChatClient.ReceiveMessage(VietPropEstate.Application.Features.Chat.DTOs.MessageDto)">
+            <summary>A new message was sent in a conversation the client is watching.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Hubs.IChatClient.MessageDelivered(System.Guid,System.DateTime)">
+            <summary>Delivery confirmation sent back to the original sender.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Hubs.IChatClient.MessagesRead(System.Guid,System.String,System.DateTime)">
+            <summary>Read receipt: all messages in this conversation were read by the given user.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Hubs.IChatClient.TypingIndicator(VietPropEstate.Application.Features.Chat.DTOs.TypingIndicatorDto)">
+            <summary>Another participant is typing (or has stopped typing).</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Hubs.IChatClient.OnlineStatusChanged(VietPropEstate.Application.Features.Chat.DTOs.OnlineStatusDto)">
+            <summary>Another user's online status has changed.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Hubs.IChatClient.ReceiveNotification(VietPropEstate.Application.Features.Notifications.DTOs.NotificationDto)">
+            <summary>A new in-app notification was pushed to this user.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Hubs.IChatClient.UnreadCountsUpdated(System.Int32,System.Int32)">
+            <summary>Updated combined unread counts (messages + notifications).</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Hubs.IChatClient.ConversationStatusChanged(System.Guid,System.Boolean)">
+            <summary>A conversation this user participates in was closed or reopened.</summary>
+        </member>
+        <member name="M:VietPropEstate.WebAPI.Hubs.IChatClient.Error(System.String)">
+            <summary>Server-side error message.</summary>
+        </member>
+        <member name="T:VietPropEstate.WebAPI.Hubs.SignalRChatNotificationService">
+            <summary>
+            Bridges the Application layer's IChatNotificationService interface with
+            the ASP.NET Core SignalR IHubContext&lt;ChatHub, IChatClient&gt;.
+            Registered in Program.cs so it can reference the ChatHub type.
+            </summary>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,27 @@
+@inject IMediaUrlResolver MediaUrls
+
+<MudAvatar Style="@AvatarStyle">
+    @if (!string.IsNullOrEmpty(ResolvedAvatarUrl))
+    {
+        <MudImage Src="@ResolvedAvatarUrl" Alt="@Name" ObjectFit="ObjectFit.Cover" />
+    }
+    else
+    {
+        @Initials
+    }
+</MudAvatar>
+
+@code {
+    [Parameter] public string? AvatarUrl { get; set; }
+    [Parameter] public string? Name { get; set; }
+    [Parameter] public string Initials { get; set; } = "?";
+    [Parameter] public int Size { get; set; } = 44;
+    [Parameter] public string BackgroundColor { get; set; } = "#B91C1C";
+    [Parameter] public string TextColor { get; set; } = "#fff";
+    [Parameter] public string? ExtraStyle { get; set; }
+
+    private string? ResolvedAvatarUrl => MediaUrls.Resolve(AvatarUrl);
+
+    private string AvatarStyle =>
+        $"background:{BackgroundColor}; color:{TextColor}; width:{Size}px; height:{Size}px; font-weight:700; {ExtraStyle}";
+}

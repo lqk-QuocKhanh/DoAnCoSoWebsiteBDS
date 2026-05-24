@@ -1,0 +1,385 @@
+@page "/dashboard/ho-so"
+@layout DashboardLayout
+@using Microsoft.AspNetCore.Components.Forms
+@inject IAuthApiClient AuthClient
+@inject AuthState AuthState
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
+
+<PageTitle>Hồ sơ - VietPropEstate</PageTitle>
+
+<div class="mb-6">
+    <MudText Typo="Typo.h5" Style="font-weight:700;">Hồ sơ cá nhân</MudText>
+    <MudText Typo="Typo.body2" Style="color:#64748B;">
+        Quản lý thông tin tài khoản, liên hệ và bảo mật
+    </MudText>
+</div>
+
+@if (_loading)
+{
+    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="420px" Style="border-radius:16px;" />
+}
+else if (_profile is null)
+{
+    <MudAlert Severity="Severity.Error">Không thể tải hồ sơ. Vui lòng thử lại sau.</MudAlert>
+}
+else
+{
+    <MudPaper Elevation="0" Style="border:1px solid #E2E8F0; border-radius:16px; overflow:hidden;">
+        <div style="padding:24px; background:linear-gradient(135deg,#FEF2F2 0%,#fff 60%); border-bottom:1px solid #F1F5F9;">
+            <div class="d-flex align-items-center flex-wrap" style="gap:20px;">
+                <div style="position:relative; width:72px; height:72px; flex-shrink:0;">
+                    @if (!string.IsNullOrEmpty(_profile.AvatarUrl))
+                    {
+                        <MudAvatar Style="width:72px; height:72px;">
+                            <MudImage Src="@_profile.AvatarUrl" Alt="@_profile.FullName" ObjectFit="ObjectFit.Cover" />
+                        </MudAvatar>
+                    }
+                    else
+                    {
+                        <MudAvatar Style="background:#B91C1C; color:#fff; width:72px; height:72px; font-size:24px; font-weight:700;">
+                            @GetInitials(_profile.FullName)
+                        </MudAvatar>
+                    }
+                    <label style="position:absolute; bottom:-2px; right:-2px; width:28px; height:28px; border-radius:50%; background:#fff; border:1px solid #E2E8F0; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.12); overflow:hidden;"
+                           title="Đổi ảnh đại diện">
+                        <InputFile OnChange="OnAvatarSelected" accept="image/jpeg,image/png,image/webp"
+                                   disabled="@_uploadingAvatar"
+                                   style="position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%;" />
+                        @if (_uploadingAvatar)
+                        {
+                            <MudProgressCircular Indeterminate="true" Size="Size.Small" Style="width:16px; height:16px;" />
+                        }
+                        else
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.PhotoCamera" Size="Size.Small" Style="color:#B91C1C; pointer-events:none;" />
+                        }
+                    </label>
+                </div>
+                <div>
+                    <MudText Style="font-size:22px; font-weight:700; color:#0F172A;">@_profile.FullName</MudText>
+                    <MudText Style="color:#64748B; font-size:14px;">@_profile.Email</MudText>
+                    <MudChip T="string" Size="Size.Small" Style="margin-top:8px; background:#EFF6FF; color:#2563EB;">
+                        @GetRoleLabel()
+                    </MudChip>
+                </div>
+            </div>
+        </div>
+
+        <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true">
+            <MudTabPanel Text="Thông tin cá nhân" Icon="@Icons.Material.Filled.Person" Class="pa-6">
+                <MudGrid Spacing="3">
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_form.FirstName" Label="Họ" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_form.LastName" Label="Tên" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField Value="@_profile.Email" Label="Email" Variant="Variant.Outlined"
+                                      Disabled="true" HelperText="Email không thể thay đổi" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_form.PhoneNumber" Label="Số điện thoại"
+                                      Variant="Variant.Outlined" Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.Phone"
+                                      HelperText="@GetPhoneHelperText()" />
+                        @if (_profile is not null && !_profile.PhoneNumberConfirmed && AuthState.CurrentUser?.Roles.Contains("Customer") == true)
+                        {
+                            <MudAlert Severity="Severity.Info" Dense="true" Class="mt-2">
+                                Số điện thoại chưa xác thực.
+                                <MudLink Href="/dashboard/tin-dang/them-moi" Style="font-weight:600;">Xác thực ngay</MudLink>
+                                để có thể đăng tin.
+                            </MudAlert>
+                        }
+                        else if (_profile?.PhoneNumberConfirmed == true)
+                        {
+                            <MudChip T="string" Size="Size.Small" Style="margin-top:8px; background:#DCFCE7; color:#16A34A;" Icon="@Icons.Material.Filled.Verified">
+                                Đã xác thực
+                            </MudChip>
+                        }
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudText Style="font-weight:600; color:#334155; margin-bottom:8px;">Địa chỉ liên hệ</MudText>
+                        <AddressSelector ProvinceCode="@_form.ProvinceCode"
+                                         ProvinceName="@_form.ProvinceName"
+                                         WardCode="@_form.WardCode"
+                                         WardName="@_form.WardName"
+                                         StreetAddress="@_form.AddressLine"
+                                         ProvinceChanged="OnProvinceChanged"
+                                         WardChanged="OnWardChanged"
+                                         StreetAddressChanged="OnStreetChanged" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                   Disabled="_savingProfile" OnClick="SaveProfileAsync"
+                                   StartIcon="@Icons.Material.Filled.Save">
+                            @(_savingProfile ? "Đang lưu..." : "Lưu thay đổi")
+                        </MudButton>
+                    </MudItem>
+                </MudGrid>
+            </MudTabPanel>
+
+            <MudTabPanel Text="Đổi mật khẩu" Icon="@Icons.Material.Filled.Lock" Class="pa-6">
+                <MudGrid Spacing="3" Style="max-width:520px;">
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="_passwordForm.CurrentPassword" Label="Mật khẩu hiện tại"
+                                      Variant="Variant.Outlined" InputType="@(_showCurrentPassword ? InputType.Text : InputType.Password)"
+                                      Adornment="Adornment.End"
+                                      AdornmentIcon="@(_showCurrentPassword ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                                      OnAdornmentClick="@(() => _showCurrentPassword = !_showCurrentPassword)" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="_passwordForm.NewPassword" Label="Mật khẩu mới"
+                                      Variant="Variant.Outlined" InputType="@(_showNewPassword ? InputType.Text : InputType.Password)"
+                                      Adornment="Adornment.End"
+                                      AdornmentIcon="@(_showNewPassword ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                                      OnAdornmentClick="@(() => _showNewPassword = !_showNewPassword)"
+                                      HelperText="Ít nhất 8 ký tự, gồm chữ hoa, chữ thường và số" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="_passwordForm.ConfirmNewPassword" Label="Xác nhận mật khẩu mới"
+                                      Variant="Variant.Outlined" InputType="@(_showConfirmPassword ? InputType.Text : InputType.Password)"
+                                      Adornment="Adornment.End"
+                                      AdornmentIcon="@(_showConfirmPassword ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                                      OnAdornmentClick="@(() => _showConfirmPassword = !_showConfirmPassword)" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudButton Variant="Variant.Filled" Color="Color.Error"
+                                   Disabled="_changingPassword" OnClick="ChangePasswordAsync"
+                                   StartIcon="@Icons.Material.Filled.LockReset">
+                            @(_changingPassword ? "Đang xử lý..." : "Đổi mật khẩu")
+                        </MudButton>
+                    </MudItem>
+                </MudGrid>
+            </MudTabPanel>
+
+            <MudTabPanel Text="Tài khoản" Icon="@Icons.Material.Filled.ManageAccounts" Class="pa-6">
+                <MudGrid Spacing="2" Style="max-width:640px;">
+                    <MudItem xs="12" sm="6">
+                        <MudText Style="font-size:12px; color:#94A3B8;">Trạng thái email</MudText>
+                        <MudText Style="font-weight:600;">
+                            @(_profile.EmailConfirmed ? "Đã xác thực" : "Chưa xác thực")
+                        </MudText>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudText Style="font-size:12px; color:#94A3B8;">Trạng thái tài khoản</MudText>
+                        <MudText Style="font-weight:600;">
+                            @(_profile.IsActive ? "Đang hoạt động" : "Đã vô hiệu hóa")
+                        </MudText>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudText Style="font-size:12px; color:#94A3B8;">Xác thực SĐT</MudText>
+                        <MudText Style="font-weight:600;">
+                            @(_profile.PhoneNumberConfirmed ? "Đã xác thực" : "Chưa xác thực")
+                        </MudText>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudText Style="font-size:12px; color:#94A3B8;">Ngày tham gia</MudText>
+                        <MudText Style="font-weight:600;">@_profile.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</MudText>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudText Style="font-size:12px; color:#94A3B8;">Đăng nhập gần nhất</MudText>
+                        <MudText Style="font-weight:600;">
+                            @(_profile.LastLoginAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "—")
+                        </MudText>
+                    </MudItem>
+                </MudGrid>
+            </MudTabPanel>
+        </MudTabs>
+    </MudPaper>
+}
+
+@code {
+    private UserProfile? _profile;
+    private ProfileForm _form = new();
+    private ChangePasswordRequest _passwordForm = new();
+    private bool _loading = true;
+    private bool _savingProfile;
+    private bool _changingPassword;
+    private bool _showCurrentPassword;
+    private bool _showNewPassword;
+    private bool _showConfirmPassword;
+    private bool _uploadingAvatar;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _profile = await AuthClient.GetProfileAsync();
+        if (_profile is not null)
+            _form = ProfileForm.FromProfile(_profile);
+        _loading = false;
+    }
+
+    private async Task OnAvatarSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file.Size > 5 * 1024 * 1024)
+        {
+            Snackbar.Add("Ảnh không được vượt quá 5MB.", Severity.Warning);
+            return;
+        }
+
+        _uploadingAvatar = true;
+        try
+        {
+            await using var stream = file.OpenReadStream(5 * 1024 * 1024);
+            using var memory = new MemoryStream();
+            await stream.CopyToAsync(memory);
+            memory.Position = 0;
+
+            var (success, message, profile) = await AuthClient.UploadAvatarAsync(
+                memory, file.Name, file.ContentType);
+
+            if (success && profile is not null)
+            {
+                _profile = profile;
+                Snackbar.Add(message ?? "Cập nhật ảnh đại diện thành công.", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add(message ?? "Không thể tải ảnh đại diện.", Severity.Error);
+            }
+        }
+        finally
+        {
+            _uploadingAvatar = false;
+        }
+    }
+
+    private async Task SaveProfileAsync()
+    {
+        _savingProfile = true;
+        try
+        {
+            var (success, message, profile) = await AuthClient.UpdateProfileAsync(new UpdateProfileRequest
+            {
+                FirstName = _form.FirstName?.Trim(),
+                LastName = _form.LastName?.Trim(),
+                PhoneNumber = _form.PhoneNumber?.Trim(),
+                AddressLine = _form.AddressLine?.Trim(),
+                ProvinceName = _form.ProvinceName,
+                WardName = _form.WardName,
+                ProvinceCode = _form.ProvinceCode,
+                WardCode = _form.WardCode
+            });
+
+            if (success && profile is not null)
+            {
+                _profile = profile;
+                Snackbar.Add(message ?? "Cập nhật thành công.", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add(message ?? "Không thể cập nhật hồ sơ.", Severity.Error);
+            }
+        }
+        finally
+        {
+            _savingProfile = false;
+        }
+    }
+
+    private async Task ChangePasswordAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_passwordForm.CurrentPassword)
+            || string.IsNullOrWhiteSpace(_passwordForm.NewPassword))
+        {
+            Snackbar.Add("Vui lòng nhập đầy đủ thông tin mật khẩu.", Severity.Warning);
+            return;
+        }
+
+        if (_passwordForm.NewPassword != _passwordForm.ConfirmNewPassword)
+        {
+            Snackbar.Add("Mật khẩu xác nhận không khớp.", Severity.Warning);
+            return;
+        }
+
+        _changingPassword = true;
+        try
+        {
+            var (success, message) = await AuthClient.ChangePasswordAsync(_passwordForm);
+            if (success)
+            {
+                Snackbar.Add(message ?? "Đổi mật khẩu thành công.", Severity.Success);
+                Nav.NavigateTo("/dang-nhap");
+            }
+            else
+            {
+                Snackbar.Add(message ?? "Không thể đổi mật khẩu.", Severity.Error);
+            }
+        }
+        finally
+        {
+            _changingPassword = false;
+        }
+    }
+
+    private Task OnProvinceChanged((int? Code, string? Name) value)
+    {
+        _form.ProvinceCode = value.Code;
+        _form.ProvinceName = value.Name;
+        _form.WardCode = null;
+        _form.WardName = null;
+        return Task.CompletedTask;
+    }
+
+    private Task OnWardChanged((int? Code, string? Name) value)
+    {
+        _form.WardCode = value.Code;
+        _form.WardName = value.Name;
+        return Task.CompletedTask;
+    }
+
+    private Task OnStreetChanged(string? value)
+    {
+        _form.AddressLine = value;
+        return Task.CompletedTask;
+    }
+
+    private string GetRoleLabel()
+    {
+        if (AuthState.IsAdmin) return "Quản trị viên";
+        if (AuthState.IsBroker) return "Môi giới";
+        if (AuthState.IsStaff) return "Nhân viên";
+        return "Khách hàng";
+    }
+
+    private string GetPhoneHelperText()
+    {
+        if (_profile?.PhoneNumberConfirmed == true)
+            return "Số điện thoại đã được xác thực.";
+        if (AuthState.CurrentUser?.Roles.Contains("Customer") == true)
+            return "Cần xác thực SĐT trước khi đăng tin BĐS.";
+        return "Dùng để liên hệ khi có người quan tâm tin đăng.";
+    }
+
+    private static string GetInitials(string name)
+    {
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length >= 2 ? $"{parts[0][0]}{parts[^1][0]}".ToUpper() : name[..1].ToUpper();
+    }
+
+    private sealed class ProfileForm
+    {
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public string? PhoneNumber { get; set; }
+        public string? AddressLine { get; set; }
+        public string? ProvinceName { get; set; }
+        public string? WardName { get; set; }
+        public int? ProvinceCode { get; set; }
+        public int? WardCode { get; set; }
+
+        public static ProfileForm FromProfile(UserProfile profile) => new()
+        {
+            FirstName = profile.FirstName,
+            LastName = profile.LastName,
+            PhoneNumber = profile.PhoneNumber,
+            AddressLine = profile.AddressLine,
+            ProvinceName = profile.ProvinceName,
+            WardName = profile.WardName,
+            ProvinceCode = profile.ProvinceCode,
+            WardCode = profile.WardCode
+        };
+    }
+}

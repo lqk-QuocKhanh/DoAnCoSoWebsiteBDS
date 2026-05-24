@@ -1,0 +1,225 @@
+@inject NavigationManager Nav
+@inject IAddressApiClient AddressClient
+
+@if (Layout == "compact")
+{
+    <div class="hero-search-compact">
+        <div class="hero-search-compact-bar">
+            <div class="hero-search-compact-field">
+                <MudSelect T="string" @bind-Value="_propertyType" Variant="Variant.Text"
+                           Class="hero-search-compact-select"
+                           AnchorOrigin="Origin.BottomCenter">
+                    <MudSelectItem Value="@("")">Tất cả loại</MudSelectItem>
+                    <MudSelectItem Value="@("Căn hộ")">Căn hộ</MudSelectItem>
+                    <MudSelectItem Value="@("Nhà phố")">Nhà phố</MudSelectItem>
+                    <MudSelectItem Value="@("Biệt thự")">Biệt thự</MudSelectItem>
+                    <MudSelectItem Value="@("Đất nền")">Đất nền</MudSelectItem>
+                    <MudSelectItem Value="@("Văn phòng")">Văn phòng</MudSelectItem>
+                </MudSelect>
+            </div>
+            <div class="hero-search-compact-divider"></div>
+            <div class="hero-search-compact-field">
+                <MudSelect T="int" @bind-Value="_activeTab" Variant="Variant.Text"
+                           Class="hero-search-compact-select">
+                    <MudSelectItem Value="0">Mua bán</MudSelectItem>
+                    <MudSelectItem Value="1">Cho thuê</MudSelectItem>
+                </MudSelect>
+            </div>
+            <div class="hero-search-compact-divider"></div>
+            <div class="hero-search-compact-field hero-search-compact-field--grow">
+                <MudSelect T="int?" Value="_selectedProvinceCode" ValueChanged="OnProvinceCodeChanged"
+                           Variant="Variant.Text" Class="hero-search-compact-select"
+                           Placeholder="Khu vực" Clearable="true">
+                    @foreach (var province in _provinces)
+                    {
+                        <MudSelectItem T="int?" Value="@province.Code">@province.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </div>
+            <div class="hero-search-compact-divider"></div>
+            <div class="hero-search-compact-field">
+                <MudSelect T="string" @bind-Value="_priceRange" Variant="Variant.Text"
+                           Class="hero-search-compact-select"
+                           Placeholder="Giá" Clearable="true">
+                    <MudSelectItem Value="@("0-1b")">Dưới 1 tỷ</MudSelectItem>
+                    <MudSelectItem Value="@("1b-3b")">1 – 3 tỷ</MudSelectItem>
+                    <MudSelectItem Value="@("3b-5b")">3 – 5 tỷ</MudSelectItem>
+                    <MudSelectItem Value="@("5b-10b")">5 – 10 tỷ</MudSelectItem>
+                    <MudSelectItem Value="@("10b+")">Trên 10 tỷ</MudSelectItem>
+                </MudSelect>
+            </div>
+            <button type="button" class="hero-search-compact-btn" @onclick="SearchAsync">
+                Tìm
+            </button>
+        </div>
+        <div class="hero-search-compact-location">
+            <MudIcon Icon="@Icons.Material.Outlined.LocationOn" Size="Size.Small" />
+            <span>@GetLocationLabel()</span>
+            @if (_showAdvanced)
+            {
+                <button type="button" class="hero-search-advanced-toggle" @onclick="@(() => _showAdvanced = false)">
+                    Thu gọn
+                </button>
+            }
+            else
+            {
+                <button type="button" class="hero-search-advanced-toggle" @onclick="@(() => _showAdvanced = true)">
+                    Bộ lọc nâng cao
+                </button>
+            }
+        </div>
+        @if (_showAdvanced)
+        {
+            <div class="hero-search-advanced">
+                <MudTextField @bind-Value="_keyword" Placeholder="Từ khóa, dự án, địa chỉ..."
+                              Variant="Variant.Outlined" Class="hero-search-advanced-input" Immediate="true" />
+                <MudSelect T="int?" @bind-Value="_selectedWardCode" Label="Phường/Xã" Variant="Variant.Outlined"
+                           Clearable="true" Disabled="@(!_selectedProvinceCode.HasValue || _loadingWards)">
+                    @foreach (var ward in _wards)
+                    {
+                        <MudSelectItem T="int?" Value="@ward.Code">@ward.Name</MudSelectItem>
+                    }
+                </MudSelect>
+                <MudSelect T="string" @bind-Value="_areaRange" Label="Diện tích" Variant="Variant.Outlined" Clearable="true">
+                    <MudSelectItem Value="@("0-50")">Dưới 50 m²</MudSelectItem>
+                    <MudSelectItem Value="@("50-100")">50 – 100 m²</MudSelectItem>
+                    <MudSelectItem Value="@("100-200")">100 – 200 m²</MudSelectItem>
+                    <MudSelectItem Value="@("200+")">Trên 200 m²</MudSelectItem>
+                </MudSelect>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="hero-search-glass">
+        <MudTabs @bind-ActivePanelIndex="_activeTab" Elevation="0" Rounded="true" Style="margin-bottom:24px;">
+            <MudTabPanel Text="Mua bán" Icon="@Icons.Material.Filled.Sell" />
+            <MudTabPanel Text="Cho thuê" Icon="@Icons.Material.Filled.House" />
+        </MudTabs>
+        <MudGrid Spacing="2">
+            <MudItem xs="12" md="6">
+                <MudTextField @bind-Value="_keyword" Label="Từ khóa" Variant="Variant.Outlined"
+                              Placeholder="Tên dự án, địa chỉ..." Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" />
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudSelect T="int?" Label="Tỉnh/Thành phố" Variant="Variant.Outlined"
+                           Value="_selectedProvinceCode" ValueChanged="OnProvinceCodeChanged" Clearable="true">
+                    @foreach (var province in _provinces)
+                    {
+                        <MudSelectItem T="int?" Value="@province.Code">@province.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudSelect T="int?" Label="Phường/Xã" Variant="Variant.Outlined"
+                           Value="_selectedWardCode" ValueChanged="@(code => _selectedWardCode = code)"
+                           Disabled="@(!_selectedProvinceCode.HasValue || _loadingWards)" Clearable="true">
+                    @foreach (var ward in _wards)
+                    {
+                        <MudSelectItem T="int?" Value="@ward.Code">@ward.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+                <MudSelect T="string" Label="Khoảng giá" Variant="Variant.Outlined" @bind-Value="_priceRange" Clearable="true">
+                    <MudSelectItem Value="@("0-1b")">Dưới 1 tỷ</MudSelectItem>
+                    <MudSelectItem Value="@("1b-3b")">1 - 3 tỷ</MudSelectItem>
+                    <MudSelectItem Value="@("3b-5b")">3 - 5 tỷ</MudSelectItem>
+                    <MudSelectItem Value="@("5b-10b")">5 - 10 tỷ</MudSelectItem>
+                    <MudSelectItem Value="@("10b+")">Trên 10 tỷ</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+                <MudSelect T="string" Label="Diện tích" Variant="Variant.Outlined" @bind-Value="_areaRange" Clearable="true">
+                    <MudSelectItem Value="@("0-50")">Dưới 50 m²</MudSelectItem>
+                    <MudSelectItem Value="@("50-100")">50 - 100 m²</MudSelectItem>
+                    <MudSelectItem Value="@("100-200")">100 - 200 m²</MudSelectItem>
+                    <MudSelectItem Value="@("200+")">Trên 200 m²</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" md="4" Class="d-flex align-items-end">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Size="Size.Large"
+                           OnClick="@SearchAsync" StartIcon="@Icons.Material.Filled.Search"
+                           Style="height:56px; font-weight:700; border-radius:12px;">
+                    Tìm kiếm
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </div>
+}
+
+@code {
+    [Parameter] public string Layout { get; set; } = "full";
+
+    private int _activeTab;
+    private string _keyword = "";
+    private string _propertyType = "";
+    private string? _priceRange;
+    private string? _areaRange;
+    private int? _selectedProvinceCode;
+    private int? _selectedWardCode;
+    private List<AddressProvince> _provinces = [];
+    private List<AddressWard> _wards = [];
+    private bool _loadingWards;
+    private bool _showAdvanced;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _provinces = await AddressClient.GetProvincesAsync();
+    }
+
+    private async Task OnProvinceCodeChanged(int? provinceCode)
+    {
+        _selectedProvinceCode = provinceCode;
+        _selectedWardCode = null;
+        _wards = [];
+
+        if (provinceCode.HasValue)
+        {
+            _loadingWards = true;
+            StateHasChanged();
+            _wards = await AddressClient.GetWardsAsync(provinceCode.Value);
+            _loadingWards = false;
+        }
+    }
+
+    private string GetLocationLabel()
+    {
+        if (_selectedProvinceCode.HasValue)
+        {
+            var name = _provinces.FirstOrDefault(p => p.Code == _selectedProvinceCode)?.Name;
+            if (!string.IsNullOrEmpty(name)) return name;
+        }
+        return "TP. Hồ Chí Minh, Việt Nam";
+    }
+
+    private void SearchAsync()
+    {
+        var qs = new System.Text.StringBuilder("/bat-dong-san?");
+        if (_activeTab == 0) qs.Append("listingType=1&");
+        else qs.Append("listingType=2&");
+
+        var search = string.IsNullOrWhiteSpace(_keyword) ? _propertyType : _keyword;
+        if (!string.IsNullOrWhiteSpace(search))
+            qs.Append($"searchTerm={Uri.EscapeDataString(search)}&");
+
+        if (_selectedProvinceCode.HasValue) qs.Append($"provinceCode={_selectedProvinceCode.Value}&");
+        if (_selectedWardCode.HasValue) qs.Append($"wardCode={_selectedWardCode.Value}&");
+
+        var (minPrice, maxPrice) = _priceRange switch
+        {
+            "0-1b" => (0m, 1_000_000_000m),
+            "1b-3b" => (1_000_000_000m, 3_000_000_000m),
+            "3b-5b" => (3_000_000_000m, 5_000_000_000m),
+            "5b-10b" => (5_000_000_000m, 10_000_000_000m),
+            "10b+" => (10_000_000_000m, 0m),
+            _ => (0m, 0m)
+        };
+        if (minPrice > 0) qs.Append($"minPrice={minPrice}&");
+        if (maxPrice > 0) qs.Append($"maxPrice={maxPrice}&");
+
+        Nav.NavigateTo(qs.ToString().TrimEnd('&', '?'));
+    }
+}

@@ -1,0 +1,37 @@
+<div style="text-align:center; padding:@Padding; color:#94A3B8;">
+    <div style="width:@IconSize; height:@IconSize; background:#F1F5F9; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+        <MudIcon Icon="@Icon" Style="@IconInnerStyle" />
+    </div>
+    <MudText Typo="Typo.h6" Style="font-weight:600; color:#64748B; margin-bottom:8px;">@Title</MudText>
+    @if (!string.IsNullOrEmpty(Subtitle))
+    {
+        <MudText Typo="Typo.body2" Style="color:#94A3B8; max-width:360px; margin:0 auto 24px;">@Subtitle</MudText>
+    }
+    @if (!string.IsNullOrEmpty(ActionText))
+    {
+        <MudButton Href="@ActionHref" Variant="Variant.Filled" Color="Color.Primary"
+                   StartIcon="@ActionIcon" Style="margin-top:16px;">
+            @ActionText
+        </MudButton>
+    }
+</div>
+
+@code {
+    [Parameter] public string Icon { get; set; } = Icons.Material.Outlined.SearchOff;
+    [Parameter] public string Title { get; set; } = "Không có dữ liệu";
+    [Parameter] public string? Subtitle { get; set; }
+    [Parameter] public string? ActionText { get; set; }
+    [Parameter] public string? ActionHref { get; set; }
+    [Parameter] public string? ActionIcon { get; set; }
+    [Parameter] public string IconSize { get; set; } = "80px";
+    [Parameter] public string Padding { get; set; } = "48px 24px";
+
+    private string IconInnerStyle
+    {
+        get
+        {
+            var size = int.TryParse(IconSize.Replace("px", ""), out var s) ? s / 2 : 40;
+            return $"font-size:{size}px; color:#CBD5E1;";
+        }
+    }
+}

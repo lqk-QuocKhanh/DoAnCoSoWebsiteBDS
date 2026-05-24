@@ -1,0 +1,139 @@
+@page "/dashboard/tin-dang/{PropertyId:guid}/chinh-sua"
+@layout DashboardLayout
+@using VietPropEstate.Application.Features.Properties.Commands.UpdateProperty
+@using VietPropEstate.Domain.Enums
+@inject IPropertyApiService PropertyService
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
+
+<PageTitle>Chỉnh sửa tin đăng - VietPropEstate</PageTitle>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
+}
+else if (_property == null)
+{
+    <EmptyState Icon="@Icons.Material.Outlined.ErrorOutline"
+                Title="Không tìm thấy tin đăng"
+                Subtitle="Tin đăng không tồn tại hoặc bạn không có quyền chỉnh sửa"
+                ActionText="Quay lại" ActionHref="/dashboard/tin-dang" />
+}
+else
+{
+    <div class="mb-6">
+        <MudText Typo="Typo.h5" Style="font-weight:700;">Chỉnh sửa tin đăng</MudText>
+        <MudText Typo="Typo.body2" Style="color:#64748B;">Cập nhật thông tin bất động sản</MudText>
+    </div>
+
+    <MudPaper Elevation="0" Style="border:1px solid #E2E8F0; border-radius:20px; padding:32px;">
+        <MudGrid Spacing="3">
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_title" Label="Tiêu đề *" Variant="Variant.Outlined" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_description" Label="Mô tả" Variant="Variant.Outlined" Lines="6" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField T="decimal" @bind-Value="_price" Label="Giá (VND) *" Variant="Variant.Outlined" Min="0" Format="N0" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField T="decimal" @bind-Value="_area" Label="Diện tích (m²) *" Variant="Variant.Outlined" Min="0" />
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudNumericField T="int?" @bind-Value="_bedrooms" Label="Phòng ngủ" Variant="Variant.Outlined" Min="0" />
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudNumericField T="int?" @bind-Value="_bathrooms" Label="Phòng tắm" Variant="Variant.Outlined" Min="0" />
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudNumericField T="int?" @bind-Value="_floors" Label="Số tầng" Variant="Variant.Outlined" Min="0" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_videoUrl" Label="Link video" Variant="Variant.Outlined" />
+            </MudItem>
+        </MudGrid>
+
+        <div class="d-flex justify-content-between mt-6">
+            <MudButton Variant="Variant.Outlined" Href="/dashboard/tin-dang" Style="border-radius:10px;">Hủy</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@Save"
+                       Disabled="@_saving" Style="border-radius:10px;">
+                @(_saving ? "Đang lưu..." : "Lưu thay đổi")
+            </MudButton>
+        </div>
+    </MudPaper>
+}
+
+@code {
+    [Parameter] public Guid PropertyId { get; set; }
+
+    private VietPropEstate.Application.Features.Properties.DTOs.PropertyDetailDto? _property;
+    private bool _loading = true;
+    private bool _saving;
+
+    private string _title = "";
+    private string? _description;
+    private decimal _price;
+    private decimal _area;
+    private int? _bedrooms;
+    private int? _bathrooms;
+    private int? _floors;
+    private string? _videoUrl;
+
+    protected override async Task OnParametersSetAsync() => await LoadProperty();
+
+    private async Task LoadProperty()
+    {
+        _loading = true;
+        _property = await PropertyService.GetPropertyByIdAsync(PropertyId);
+
+        if (_property is not null)
+        {
+            _title = _property.Title;
+            _description = _property.Description;
+            _price = _property.PriceAmount;
+            _area = _property.Area;
+            _bedrooms = _property.NumberOfBedrooms;
+            _bathrooms = _property.NumberOfBathrooms;
+            _floors = _property.NumberOfFloors;
+            _videoUrl = _property.VideoUrl;
+        }
+
+        _loading = false;
+    }
+
+    private async Task Save()
+    {
+        if (_property is null || string.IsNullOrWhiteSpace(_title) || _price <= 0 || _area <= 0)
+        {
+            Snackbar.Add("Vui lòng điền đầy đủ thông tin bắt buộc.", Severity.Warning);
+            return;
+        }
+
+        _saving = true;
+        var success = await PropertyService.UpdatePropertyAsync(new UpdatePropertyCommand
+        {
+            Id = _property.Id,
+            Title = _title.Trim(),
+            Description = _description,
+            Price = _price,
+            Currency = _property.PriceCurrency,
+            Area = _area,
+            NumberOfBedrooms = _bedrooms,
+            NumberOfBathrooms = _bathrooms,
+            NumberOfFloors = _floors,
+            Direction = _property.Direction,
+            VideoUrl = _videoUrl,
+            TransactionTypeId = _property.TransactionTypeId
+        });
+
+        _saving = false;
+
+        if (success)
+        {
+            Snackbar.Add("Đã cập nhật tin đăng", Severity.Success);
+            Nav.NavigateTo("/dashboard/tin-dang");
+        }
+        else Snackbar.Add("Không thể cập nhật tin đăng", Severity.Error);
+    }
+}

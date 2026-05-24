@@ -1,0 +1,88 @@
+@page "/sysadmin"
+@layout SysAdminLayout
+@inject IAdminApiClient AdminClient
+@inject AuthState AuthState
+@inject NavigationManager Nav
+
+<PageTitle>SysAdmin - VietPropEstate</PageTitle>
+
+<div class="ap-page">
+    <div class="ap-page-header">
+        <div>
+            <h1 class="ap-page-title">Quản trị hệ thống</h1>
+            <p class="ap-page-subtitle">Phân quyền, bảo mật và giám sát hoạt động nền tảng</p>
+        </div>
+    </div>
+
+    @if (_loading)
+    {
+        <div class="ap-stat-grid">
+            @for (int i = 0; i < 3; i++)
+            {
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="120px" Style="border-radius:16px;" />
+            }
+        </div>
+    }
+    else
+    {
+        <div class="ap-stat-grid" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="ap-stat-card" style="background:linear-gradient(135deg,#1E3A8A,#2563EB); border:none; color:#fff;">
+                <MudIcon Icon="@Icons.Material.Filled.ManageAccounts" Style="font-size:28px; margin-bottom:8px; opacity:0.9;" />
+                <div class="ap-stat-value" style="color:#fff;">@(_userStats?.Admins ?? 0)</div>
+                <div class="ap-stat-label" style="color:rgba(255,255,255,0.85);">Quản trị viên</div>
+            </div>
+            <div class="ap-stat-card">
+                <MudIcon Icon="@Icons.Material.Filled.VerifiedUser" Style="color:#2563EB; font-size:28px; margin-bottom:8px;" />
+                <div class="ap-stat-value" style="color:#0F172A;">@(_userStats?.Total ?? 0)</div>
+                <div class="ap-stat-label">Tổng tài khoản</div>
+            </div>
+            <div class="ap-stat-card">
+                <MudIcon Icon="@Icons.Material.Filled.History" Style="color:#2563EB; font-size:28px; margin-bottom:8px;" />
+                <div class="ap-stat-value" style="color:#0F172A;">@_recentLogCount</div>
+                <div class="ap-stat-label">Nhật ký gần đây</div>
+            </div>
+        </div>
+
+        <h2 class="ap-page-title" style="font-size:1.1rem; margin:32px 0 16px;">Chức năng hệ thống</h2>
+        <div class="ap-quick-grid">
+            @foreach (var item in _quickLinks)
+            {
+                <div class="ap-quick-card" @onclick="@(() => Nav.NavigateTo(item.Href))">
+                    <div class="ap-quick-card__icon">
+                        <MudIcon Icon="@item.Icon" />
+                    </div>
+                    <div class="ap-quick-card__title">@item.Title</div>
+                    <div class="ap-quick-card__desc">@item.Description</div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private bool _loading = true;
+    private AdminUserStats? _userStats;
+    private int _recentLogCount;
+
+    private readonly (string Icon, string Title, string Description, string Href)[] _quickLinks =
+    [
+        (Icons.Material.Filled.People, "Quản lý tài khoản",
+            "Quản lý toàn bộ người dùng và phân quyền", "/sysadmin/nguoi-dung"),
+        (Icons.Material.Filled.History, "Nhật ký hoạt động",
+            "Theo dõi audit log và sự kiện bảo mật", "/sysadmin/nhat-ky"),
+        (Icons.Material.Filled.AdminPanelSettings, "Quản trị vận hành",
+            "Chuyển sang panel Admin (kiểm duyệt, VIP, thanh toán)", "/admin"),
+    ];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var statsTask = AdminClient.GetUserStatsAsync();
+        var logsTask = AdminClient.GetActivityLogsAsync();
+
+        _userStats = await statsTask;
+        var logs = await logsTask;
+
+        _recentLogCount = logs.Count;
+        _loading = false;
+    }
+}

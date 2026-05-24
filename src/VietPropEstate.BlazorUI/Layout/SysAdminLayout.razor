@@ -1,0 +1,148 @@
+@inherits LayoutComponentBase
+@implements IDisposable
+@inject AuthState AuthState
+@inject NavigationManager Nav
+@inject NotificationState NotificationState
+@inject IAdminApiClient AdminClient
+@inject AdminState AdminState
+@inject IMediaUrlResolver MediaUrls
+
+@if (!AuthState.CanManageSystem)
+{
+    <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0F172A;">
+        <div style="text-align:center; padding:40px;">
+            <div style="width:80px;height:80px;background:rgba(37,99,235,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;">
+                <MudIcon Icon="@Icons.Material.Filled.Shield" Style="color:#93C5FD;font-size:40px;" />
+            </div>
+            <MudText Typo="Typo.h3" Style="color:#93C5FD; font-weight:800;" Class="mb-2">403</MudText>
+            <MudText Typo="Typo.h5" Style="font-weight:700; color:#E2E8F0;" Class="mb-2">Khu vực SysAdmin</MudText>
+            <MudText Typo="Typo.body2" Style="color:#94A3B8;" Class="mb-6">
+                Chỉ tài khoản Quản trị hệ thống mới truy cập được.
+            </MudText>
+            <MudButton Href="/" Variant="Variant.Filled" Color="Color.Primary" Style="border-radius:12px;">Về trang chủ</MudButton>
+        </div>
+    </div>
+    return;
+}
+
+<MudLayout Class="admin-panel--urbn admin-panel--sysadmin">
+    <MudAppBar Elevation="0" Fixed="true"
+               Style="background:#0F172A; color:#fff; height:64px; z-index:1200; border-bottom:1px solid rgba(255,255,255,0.08);">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" OnClick="@ToggleDrawer" />
+        <div class="d-flex align-items-center ml-2" style="gap:8px;">
+            <div style="width:32px;height:32px;background:linear-gradient(135deg,#2563EB,#1D4ED8);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                <MudIcon Icon="@Icons.Material.Filled.Shield" Style="color:#fff; font-size:18px;" />
+            </div>
+            <MudText Typo="Typo.h6" Style="font-weight:700; color:#fff; letter-spacing:-0.3px;">SysAdmin</MudText>
+        </div>
+        <MudSpacer />
+        @if (AuthState.CanManageUsers)
+        {
+            <MudButton Variant="Variant.Text" Href="/admin" StartIcon="@Icons.Material.Filled.AdminPanelSettings"
+                       Style="color:#94A3B8; text-transform:none; margin-right:8px;">
+                Quản trị vận hành
+            </MudButton>
+        }
+        <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" Color="Color.Inherit" Href="/" Target="_blank" Style="color:#64748B;" />
+        <NotificationMenu />
+        <UserAvatarMenu />
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="_drawerOpen" Elevation="0" ClipMode="DrawerClipMode.Always"
+               Style="background:#0F172A; border-right:1px solid rgba(255,255,255,0.06); top:64px; overflow-y:auto;">
+        <div class="ap-drawer-inner">
+            <div class="ap-nav-label">Hệ thống</div>
+            <MudNavMenu>
+                <MudNavLink Href="/sysadmin" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">
+                    Tổng quan
+                </MudNavLink>
+                <MudNavLink Href="/sysadmin/nguoi-dung" Icon="@Icons.Material.Filled.People">
+                    Quản lý tài khoản
+                </MudNavLink>
+                <MudNavLink Href="/sysadmin/nhat-ky" Icon="@Icons.Material.Filled.History">
+                    Nhật ký hoạt động
+                </MudNavLink>
+            </MudNavMenu>
+
+            <MudDivider Style="border-color:rgba(255,255,255,0.06); margin:16px 0;" />
+
+            <div class="ap-nav-label">Liên kết nhanh</div>
+            <MudNavMenu>
+                @if (AuthState.CanModerateListings)
+                {
+                    <MudNavLink Href="/admin/bat-dong-san" Icon="@Icons.Material.Filled.Apartment">
+                        Kiểm duyệt tin
+                        @if (AdminState.PendingApprovals > 0)
+                        {
+                            <MudBadge Content="@AdminState.PendingApprovals" Color="Color.Warning" Style="margin-left:auto;" />
+                        }
+                    </MudNavLink>
+                }
+            </MudNavMenu>
+
+            <div class="ap-sidebar-profile">
+                <div class="ap-sidebar-profile__inner">
+                    @if (HasAvatar())
+                    {
+                        <MudAvatar Class="ap-sidebar-profile__avatar">
+                            <MudImage Src="@GetAvatarUrl()" Alt="@GetDisplayName()" ObjectFit="ObjectFit.Cover" />
+                        </MudAvatar>
+                    }
+                    else
+                    {
+                        <MudAvatar Class="ap-sidebar-profile__avatar"
+                                   Style="background:linear-gradient(135deg,#2563EB,#1D4ED8); color:#fff;">
+                            @GetUserInitials()
+                        </MudAvatar>
+                    }
+                    <div style="min-width:0;">
+                        <div class="ap-sidebar-profile__name">@GetDisplayName()</div>
+                        <div class="ap-sidebar-profile__role">Quản trị hệ thống</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </MudDrawer>
+
+    <MudMainContent Style="padding-top:64px; min-height:100vh;">
+        <div style="padding:24px;">
+            @Body
+        </div>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private bool _drawerOpen = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!AuthState.CanManageSystem) return;
+        AuthState.OnChange += HandleAuthChange;
+        AdminState.OnChange += HandleAdminStateChanged;
+        await AdminState.RefreshPendingApprovalsAsync(AdminClient);
+    }
+
+    private void HandleAuthChange() => InvokeAsync(StateHasChanged);
+    private void HandleAdminStateChanged() => InvokeAsync(StateHasChanged);
+    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+
+    private string GetDisplayName() =>
+        AuthState.CurrentUser?.FullName ?? AuthState.CurrentUser?.Email ?? "System Admin";
+
+    private string? GetAvatarUrl() => MediaUrls.Resolve(AuthState.CurrentUser?.AvatarUrl);
+
+    private bool HasAvatar() => !string.IsNullOrEmpty(GetAvatarUrl());
+
+    private string GetUserInitials()
+    {
+        var name = GetDisplayName();
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length >= 2 ? $"{parts[0][0]}{parts[^1][0]}" : name[..1].ToUpper();
+    }
+
+    public void Dispose()
+    {
+        AuthState.OnChange -= HandleAuthChange;
+        AdminState.OnChange -= HandleAdminStateChanged;
+    }
+}

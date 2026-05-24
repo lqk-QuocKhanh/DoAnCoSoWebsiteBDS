@@ -1,0 +1,11 @@
+<MudThemeProvider Theme="@AppTheme.Theme" />
+<MudPopoverProvider />
+<MudDialogProvider FullWidth="@DialogFullWidth" MaxWidth="@DialogMaxWidth" />
+<MudSnackbarProvider />
+@ChildContent
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public bool DialogFullWidth { get; set; } = true;
+    [Parameter] public MaxWidth DialogMaxWidth { get; set; } = MaxWidth.Small;
+}

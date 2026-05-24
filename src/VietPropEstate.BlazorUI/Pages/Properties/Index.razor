@@ -1,0 +1,461 @@
+@page "/bat-dong-san"
+@layout PublicLayout
+@inject IPropertyApiService PropertyService
+@inject NavigationManager Nav
+@inject IAddressApiClient AddressClient
+
+<PageTitle>Danh sách bất động sản - VietPropEstate</PageTitle>
+
+<div class="urbn-listing-page">
+<div class="urbn-listing-inner">
+    <aside class="urbn-filter-panel d-none d-md-block">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="urbn-filter-title" style="margin:0;">Bộ lọc</h2>
+            <button type="button" class="urbn-filter-clear" @onclick="ClearFilters">Xóa tất cả</button>
+        </div>
+
+        <div class="urbn-segment">
+            <button type="button" class="urbn-segment-btn @(_listingType == null ? "active" : "")"
+                    @onclick="@(() => SetListingType(null))">Tất cả</button>
+            <button type="button" class="urbn-segment-btn @(_listingType == ListingType.ForSale ? "active" : "")"
+                    @onclick="@(() => SetListingType(ListingType.ForSale))">Mua</button>
+            <button type="button" class="urbn-segment-btn @(_listingType == ListingType.ForRent ? "active" : "")"
+                    @onclick="@(() => SetListingType(ListingType.ForRent))">Thuê</button>
+        </div>
+
+        <div class="urbn-filter-group">
+            <span class="urbn-filter-label">Khu vực</span>
+            <MudSelect T="int?" Label="Tỉnh/Thành phố" Variant="Variant.Outlined" Dense="true"
+                       @key="@($"province-{_filterVersion}")"
+                       Value="_selectedProvinceCode" ValueChanged="OnProvinceCodeChanged"
+                       Clearable="true" Class="mb-3">
+                @foreach (var p in _provinces)
+                {
+                    <MudSelectItem T="int?" Value="@p.Code">@p.Name</MudSelectItem>
+                }
+            </MudSelect>
+            @if (_selectedProvinceCode.HasValue)
+            {
+                <MudSelect T="int?" Label="Phường/Xã" Variant="Variant.Outlined" Dense="true"
+                           @key="@($"ward-{_filterVersion}-{_selectedProvinceCode}")"
+                           Value="_selectedWardCode" ValueChanged="OnWardCodeChanged"
+                           Disabled="@_loadingWards" Clearable="true">
+                    @if (_loadingWards)
+                    {
+                        <MudSelectItem T="int?" Disabled="true" Value="@((int?)null)">Đang tải...</MudSelectItem>
+                    }
+                    else
+                    {
+                        @foreach (var w in _wards)
+                        {
+                            <MudSelectItem T="int?" Value="@w.Code">@w.Name</MudSelectItem>
+                        }
+                    }
+                </MudSelect>
+            }
+        </div>
+
+        <div class="urbn-filter-group">
+            <span class="urbn-filter-label">Khoảng giá (tỷ VND)</span>
+            <div class="d-flex" style="gap:8px;">
+                <MudNumericField T="decimal?" @bind-Value="_minPrice" @bind-Value:after="OnFilterFieldChanged"
+                                 Label="Từ" Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" />
+                <MudNumericField T="decimal?" @bind-Value="_maxPrice" @bind-Value:after="OnFilterFieldChanged"
+                                 Label="Đến" Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" />
+            </div>
+        </div>
+
+        <div class="urbn-filter-group">
+            <span class="urbn-filter-label">Diện tích (m²)</span>
+            <div class="d-flex" style="gap:8px;">
+                <MudNumericField T="decimal?" @bind-Value="_minArea" @bind-Value:after="OnFilterFieldChanged"
+                                 Label="Từ" Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" />
+                <MudNumericField T="decimal?" @bind-Value="_maxArea" @bind-Value:after="OnFilterFieldChanged"
+                                 Label="Đến" Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" />
+            </div>
+        </div>
+
+        <div class="urbn-filter-group">
+            <span class="urbn-filter-label">Phòng ngủ</span>
+            <div class="d-flex flex-wrap" style="gap:6px;">
+                @foreach (var n in new int?[] { null, 1, 2, 3, 4 })
+                {
+                    <MudChip T="string" Size="Size.Small"
+                             Variant="@(_minBedrooms == n ? Variant.Filled : Variant.Outlined)"
+                             Color="@(_minBedrooms == n ? Color.Dark : Color.Default)"
+                             OnClick="@(() => SetMinBedrooms(n))">
+                        @(n == null ? "Tất cả" : n == 4 ? "4+" : n.ToString())
+                    </MudChip>
+                }
+            </div>
+        </div>
+
+        <button type="button" class="urbn-filter-apply" @onclick="LoadProperties">Áp dụng bộ lọc</button>
+    </aside>
+
+    <main>
+        <MudBreadcrumbs Items="@_breadcrumbs" Class="mb-4 pa-0" />
+        <h1 style="font-size:1.5rem; font-weight:800; margin:0 0 24px; letter-spacing:-0.02em;">@GetPageTitle()</h1>
+
+        <div class="urbn-listing-toolbar">
+            <span class="urbn-listing-count">
+                @(_totalCount > 0 ? $"{_totalCount} kết quả" : "Không có kết quả")
+            </span>
+            <div class="d-flex align-items-center" style="gap:8px;">
+                <MudButton Variant="Variant.Outlined" Size="Size.Small" Class="d-flex d-md-none"
+                           OnClick="OpenMobileFilter" StartIcon="@Icons.Material.Filled.FilterAlt">
+                    Bộ lọc
+                </MudButton>
+                <MudSelect T="string" Dense="true" Value="@_sortBy" ValueChanged="OnSortChanged"
+                           Style="min-width:160px;" Variant="Variant.Outlined" Label="Sắp xếp">
+                    <MudSelectItem Value="@("CreatedAt_Desc")">Mới nhất</MudSelectItem>
+                    <MudSelectItem Value="@("Price_Asc")">Giá tăng dần</MudSelectItem>
+                    <MudSelectItem Value="@("Price_Desc")">Giá giảm dần</MudSelectItem>
+                    <MudSelectItem Value="@("Area_Desc")">Diện tích lớn</MudSelectItem>
+                </MudSelect>
+            </div>
+        </div>
+
+        @if (_loading)
+        {
+            <div class="urbn-listing-grid">
+                @for (int i = 0; i < 6; i++)
+                {
+                    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="320px" />
+                }
+            </div>
+        }
+        else if (_properties.Count == 0)
+        {
+            <EmptyState Icon="@Icons.Material.Outlined.SearchOff"
+                        Title="Không tìm thấy bất động sản"
+                        Subtitle="Thử thay đổi bộ lọc hoặc tìm kiếm với từ khóa khác"
+                        ActionText="Xóa bộ lọc" ActionHref="/bat-dong-san" />
+        }
+        else
+        {
+            <div class="urbn-listing-grid">
+                @foreach (var property in _properties)
+                {
+                    <PropertyCard Property="@property" Layout="urbn" />
+                }
+            </div>
+
+            @if (_totalPages > 1)
+            {
+                <div style="display:flex; justify-content:center; margin-top:40px;">
+                    <MudPagination Count="@_totalPages" Selected="_currentPage" SelectedChanged="OnPageChanged"
+                                   ShowFirstButton="true" ShowLastButton="true" Color="Color.Dark" />
+                </div>
+            }
+        }
+    </main>
+</div>
+</div>
+
+<!-- Mobile filter sheet (custom overlay — avoids MudDrawer conflicts with PublicLayout) -->
+@if (_filterDrawerOpen)
+{
+    <div class="mobile-filter-overlay d-md-none" @onclick="CloseMobileFilter">
+        <div class="mobile-filter-panel" @onclick:stopPropagation="true">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <MudText Typo="Typo.h6" Style="font-weight:700;">Bộ lọc</MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.Close" aria-label="Đóng bộ lọc" OnClick="CloseMobileFilter" />
+            </div>
+
+            <MudText Typo="Typo.caption" Style="font-weight:600; color:#64748B; text-transform:uppercase; margin-bottom:8px;">Hình thức</MudText>
+            <div class="d-flex flex-wrap mb-4" style="gap:8px;">
+                <MudChip T="string" Variant="@(_listingType == null ? Variant.Filled : Variant.Outlined)"
+                         Color="@(_listingType == null ? Color.Primary : Color.Default)"
+                         OnClick="@(() => SetListingType(null))">Tất cả</MudChip>
+                <MudChip T="string" Variant="@(_listingType == ListingType.ForSale ? Variant.Filled : Variant.Outlined)"
+                         Color="@(_listingType == ListingType.ForSale ? Color.Primary : Color.Default)"
+                         OnClick="@(() => SetListingType(ListingType.ForSale))">Mua bán</MudChip>
+                <MudChip T="string" Variant="@(_listingType == ListingType.ForRent ? Variant.Filled : Variant.Outlined)"
+                         Color="@(_listingType == ListingType.ForRent ? Color.Primary : Color.Default)"
+                         OnClick="@(() => SetListingType(ListingType.ForRent))">Cho thuê</MudChip>
+            </div>
+
+            <MudSelect T="int?" Label="Tỉnh/Thành phố" Variant="Variant.Outlined" Dense="true"
+                       @key="@($"mobile-province-{_filterVersion}")"
+                       Value="_selectedProvinceCode" ValueChanged="OnProvinceCodeChanged"
+                       Clearable="true" Class="mb-3">
+                @foreach (var p in _provinces)
+                {
+                    <MudSelectItem T="int?" Value="@p.Code">@p.Name</MudSelectItem>
+                }
+            </MudSelect>
+
+            @if (_selectedProvinceCode.HasValue)
+            {
+                <MudSelect T="int?" Label="Phường/Xã" Variant="Variant.Outlined" Dense="true"
+                           @key="@($"mobile-ward-{_filterVersion}-{_selectedProvinceCode}")"
+                           Value="_selectedWardCode" ValueChanged="OnWardCodeChanged"
+                           Disabled="@_loadingWards" Clearable="true" Class="mb-3">
+                    @if (_loadingWards)
+                    {
+                        <MudSelectItem T="int?" Disabled="true" Value="@((int?)null)">Đang tải...</MudSelectItem>
+                    }
+                    else
+                    {
+                        @foreach (var w in _wards)
+                        {
+                            <MudSelectItem T="int?" Value="@w.Code">@w.Name</MudSelectItem>
+                        }
+                    }
+                </MudSelect>
+            }
+
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
+                       OnClick="ApplyMobileFilters" Class="mt-4">
+                Áp dụng
+            </MudButton>
+        </div>
+    </div>
+}
+
+@code {
+    [SupplyParameterFromQuery(Name = "searchTerm")]
+    public string? SearchTerm { get; set; }
+
+    [SupplyParameterFromQuery(Name = "listingType")]
+    public string? ListingTypeParam { get; set; }
+
+    [SupplyParameterFromQuery(Name = "provinceCode")]
+    public int? ProvinceCode { get; set; }
+
+    [SupplyParameterFromQuery(Name = "wardCode")]
+    public int? WardCode { get; set; }
+
+    [SupplyParameterFromQuery(Name = "isFeatured")]
+    public bool? IsFeatured { get; set; }
+
+    [SupplyParameterFromQuery(Name = "minPrice")]
+    public decimal? MinPriceParam { get; set; }
+
+    [SupplyParameterFromQuery(Name = "maxPrice")]
+    public decimal? MaxPriceParam { get; set; }
+
+    private const int PageSize = 12;
+    private List<PropertyDto> _properties = [];
+    private bool _loading = true;
+    private int _currentPage = 1;
+    private int _totalCount;
+    private int _totalPages;
+    private bool _filterDrawerOpen;
+    private bool _loadingWards;
+
+    private ListingType? _listingType;
+    private int? _selectedProvinceCode;
+    private int? _selectedWardCode;
+    private decimal? _minPrice;
+    private decimal? _maxPrice;
+    private decimal? _minArea;
+    private decimal? _maxArea;
+    private int? _minBedrooms;
+    private string _sortBy = "CreatedAt_Desc";
+    private List<AddressProvince> _provinces = [];
+    private List<AddressWard> _wards = [];
+    private bool _provincesLoaded;
+    private int _filterVersion;
+
+    private List<BreadcrumbItem> _breadcrumbs = [
+        new BreadcrumbItem("Trang chủ", href: "/"),
+        new BreadcrumbItem("Bất động sản", href: null, disabled: true)
+    ];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _provinces = await AddressClient.GetProvincesAsync();
+        _provincesLoaded = true;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!_provincesLoaded)
+            return;
+
+        _filterDrawerOpen = false;
+
+        if (!HasQueryFilters())
+            ResetFilterFields();
+        else
+        {
+            _listingType = null;
+            if (!string.IsNullOrWhiteSpace(ListingTypeParam))
+            {
+                if (int.TryParse(ListingTypeParam, out var listingTypeNumber) &&
+                    Enum.IsDefined(typeof(ListingType), listingTypeNumber))
+                {
+                    _listingType = (ListingType)listingTypeNumber;
+                }
+                else if (Enum.TryParse<ListingType>(ListingTypeParam, true, out var listingTypeName))
+                {
+                    _listingType = listingTypeName;
+                }
+            }
+
+            _minPrice = MinPriceParam.HasValue ? MinPriceParam.Value / 1_000_000_000m : null;
+            _maxPrice = MaxPriceParam.HasValue ? MaxPriceParam.Value / 1_000_000_000m : null;
+
+            if (ProvinceCode.HasValue)
+            {
+                _selectedProvinceCode = ProvinceCode.Value;
+                _wards = await AddressClient.GetWardsAsync(ProvinceCode.Value);
+                _selectedWardCode = WardCode;
+            }
+            else
+            {
+                _selectedProvinceCode = null;
+                _selectedWardCode = null;
+                _wards = [];
+            }
+        }
+
+        _currentPage = 1;
+        await LoadProperties();
+    }
+
+    private bool HasQueryFilters() =>
+        !string.IsNullOrWhiteSpace(SearchTerm) ||
+        !string.IsNullOrWhiteSpace(ListingTypeParam) ||
+        ProvinceCode.HasValue ||
+        WardCode.HasValue ||
+        MinPriceParam.HasValue ||
+        IsFeatured == true;
+
+    private void ResetFilterFields()
+    {
+        _listingType = null;
+        _selectedProvinceCode = null;
+        _selectedWardCode = null;
+        _wards = [];
+        _minPrice = null;
+        _maxPrice = null;
+        _minArea = null;
+        _maxArea = null;
+        _minBedrooms = null;
+        _sortBy = "CreatedAt_Desc";
+        _currentPage = 1;
+    }
+
+    private Task OnFilterFieldChanged() => Task.CompletedTask;
+
+    private async Task LoadProperties()
+    {
+        _loading = true;
+        StateHasChanged();
+
+        var (sortBy, sortOrder) = _sortBy switch
+        {
+            "Price_Asc" => ("Price", "Asc"),
+            "Price_Desc" => ("Price", "Desc"),
+            "Area_Desc" => ("Area", "Desc"),
+            _ => ("CreatedAt", "Desc")
+        };
+
+        var minPriceVnd = _minPrice.HasValue ? _minPrice.Value * 1_000_000_000 : (decimal?)null;
+        var maxPriceVnd = _maxPrice.HasValue ? _maxPrice.Value * 1_000_000_000 : (decimal?)null;
+
+        var result = await PropertyService.GetPropertiesAsync(
+            pageNumber: _currentPage,
+            pageSize: PageSize,
+            searchTerm: SearchTerm,
+            listingType: _listingType,
+            provinceCode: _selectedProvinceCode,
+            wardCode: _selectedWardCode,
+            minPrice: minPriceVnd,
+            maxPrice: maxPriceVnd,
+            minArea: _minArea,
+            maxArea: _maxArea,
+            minBedrooms: _minBedrooms,
+            isFeatured: IsFeatured,
+            sortBy: sortBy,
+            sortOrder: sortOrder);
+
+        _properties = result?.Items.ToList() ?? [];
+        _totalCount = result?.TotalCount ?? 0;
+        _totalPages = result?.TotalPages ?? 0;
+        _loading = false;
+    }
+
+    private async Task OnPageChanged(int page)
+    {
+        _currentPage = page;
+        await LoadProperties();
+    }
+
+    private async Task OnProvinceCodeChanged(int? provinceCode)
+    {
+        _selectedProvinceCode = provinceCode;
+        _selectedWardCode = null;
+        _wards = [];
+        _currentPage = 1;
+
+        if (provinceCode.HasValue)
+        {
+            _loadingWards = true;
+            StateHasChanged();
+            _wards = await AddressClient.GetWardsAsync(provinceCode.Value);
+            _loadingWards = false;
+        }
+
+        await LoadProperties();
+    }
+
+    private async Task OnWardCodeChanged(int? wardCode)
+    {
+        _selectedWardCode = wardCode;
+        _currentPage = 1;
+        await LoadProperties();
+    }
+
+    private async Task OnSortChanged(string value)
+    {
+        _sortBy = value;
+        _currentPage = 1;
+        await LoadProperties();
+    }
+
+    private async Task ApplyMobileFilters()
+    {
+        CloseMobileFilter();
+        await LoadProperties();
+    }
+
+    private void OpenMobileFilter() => _filterDrawerOpen = true;
+
+    private void CloseMobileFilter() => _filterDrawerOpen = false;
+
+    private async Task ClearFilters()
+    {
+        ResetFilterFields();
+        _filterVersion++;
+        Nav.NavigateTo("/bat-dong-san", replace: true);
+        await LoadProperties();
+    }
+
+    private async Task SetMinBedrooms(int? bedrooms)
+    {
+        _minBedrooms = bedrooms;
+        _currentPage = 1;
+        await LoadProperties();
+    }
+
+    private void SetListingType(ListingType? lt)
+    {
+        CloseMobileFilter();
+        _currentPage = 1;
+        var url = lt.HasValue
+            ? $"/bat-dong-san?listingType={(int)lt.Value}"
+            : "/bat-dong-san";
+        Nav.NavigateTo(url);
+    }
+
+    private string GetPageTitle() => _listingType switch
+    {
+        Domain.Enums.ListingType.ForSale => "Bất động sản bán",
+        Domain.Enums.ListingType.ForRent => "Bất động sản cho thuê",
+        _ => "Danh sách bất động sản"
+    };
+}

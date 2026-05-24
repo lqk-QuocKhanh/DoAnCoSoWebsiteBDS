@@ -1,0 +1,43 @@
+@inject NavigationManager Nav
+
+<div class="d-flex flex-wrap" style="gap:10px;">
+    @foreach (var province in _provinces)
+    {
+        <div class="@($"province-chip mud-chip {(_selected == province.Code ? "active" : "")}")"
+             style="cursor:pointer; padding:8px 20px; border-radius:50px; font-size:14px; font-weight:500; background:#fff; border:2px solid #E2E8F0; transition:all 0.2s; display:flex; align-items:center; gap:8px; box-shadow:0 2px 8px rgba(15,23,42,0.06);"
+             @onclick="@(() => SelectProvince(province))">
+            <MudIcon Icon="@Icons.Material.Filled.LocationCity" Size="Size.Small"
+                     Style="@(_selected == province.Code ? "color:#B91C1C;" : "color:#94A3B8;")" />
+            <span>@province.Name</span>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public EventCallback<(int? Code, string? Name)> OnProvinceSelected { get; set; }
+
+    private int? _selected;
+
+    private readonly (int Code, string Name)[] _provinces =
+    [
+        (79, "TP. Hồ Chí Minh"),
+        (1,  "Hà Nội"),
+        (48, "Đà Nẵng"),
+        (74, "Bình Dương"),
+        (75, "Đồng Nai"),
+    ];
+
+    private async Task SelectProvince((int Code, string Name) province)
+    {
+        if (_selected == province.Code)
+        {
+            _selected = null;
+            await OnProvinceSelected.InvokeAsync((null, null));
+        }
+        else
+        {
+            _selected = province.Code;
+            await OnProvinceSelected.InvokeAsync((province.Code, province.Name));
+        }
+    }
+}

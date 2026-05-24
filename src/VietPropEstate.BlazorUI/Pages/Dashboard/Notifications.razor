@@ -1,0 +1,89 @@
+@page "/dashboard/thong-bao"
+@layout DashboardLayout
+@using VietPropEstate.BlazorUI.Helpers
+@inject INotificationsApiClient NotificationsClient
+@inject NotificationState NotificationState
+@inject NavigationManager Nav
+
+<PageTitle>Thông báo - VietPropEstate</PageTitle>
+
+<MudText Typo="Typo.h5" Style="font-weight:700; margin-bottom:8px;">Thông báo</MudText>
+<MudText Typo="Typo.body2" Style="color:#64748B; margin-bottom:24px;">Tất cả thông báo của bạn</MudText>
+
+<div class="d-flex justify-content-end mb-4">
+    <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Outlined.DoneAll"
+               OnClick="@MarkAllRead" Style="border-radius:10px;">
+        Đánh dấu tất cả đã đọc
+    </MudButton>
+</div>
+
+@if (_loading)
+{
+    <LoadingSkeleton Count="5" Type="list" />
+}
+else if (_notifications.Count == 0)
+{
+    <EmptyState Icon="@Icons.Material.Outlined.NotificationsNone"
+                Title="Không có thông báo"
+                Subtitle="Các thông báo mới sẽ xuất hiện tại đây" />
+}
+else
+{
+    <MudPaper Elevation="0" Style="border:1px solid #E2E8F0; border-radius:16px; overflow:hidden;">
+        @foreach (var notif in _notifications)
+        {
+            <div style="padding:16px 20px; border-bottom:1px solid #F1F5F9; cursor:pointer; @(!notif.IsRead ? "background:#FEF2F2;" : "")"
+                 @onclick="@(() => OpenNotification(notif))">
+                <div class="d-flex" style="gap:12px;">
+                    <MudIcon Icon="@Icons.Material.Filled.Notifications" Style="color:#B91C1C;" />
+                    <div style="flex:1;">
+                        <MudText Style="font-weight:600;">@notif.Title</MudText>
+                        <MudText Typo="Typo.body2" Style="color:#64748B;">@notif.Content</MudText>
+                        <MudText Typo="Typo.caption" Style="color:#94A3B8; margin-top:4px;">
+                            @notif.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                        </MudText>
+                    </div>
+                    @if (!notif.IsRead)
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Error">Mới</MudChip>
+                    }
+                </div>
+            </div>
+        }
+    </MudPaper>
+}
+
+@code {
+    private List<VietPropEstate.Application.Features.Notifications.DTOs.NotificationDto> _notifications = [];
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync() => await LoadNotifications();
+
+    private async Task LoadNotifications()
+    {
+        _loading = true;
+        var result = await NotificationsClient.GetNotificationsAsync(page: 1, unreadOnly: false);
+        _notifications = result?.Items.ToList() ?? [];
+        _loading = false;
+    }
+
+    private async Task MarkAllRead()
+    {
+        await NotificationsClient.MarkAllAsReadAsync();
+        NotificationState.SetCounts(NotificationState.UnreadMessages, 0);
+        await LoadNotifications();
+    }
+
+    private async Task OpenNotification(VietPropEstate.Application.Features.Notifications.DTOs.NotificationDto notif)
+    {
+        if (!notif.IsRead)
+        {
+            await NotificationsClient.MarkAsReadAsync(notif.Id);
+            NotificationState.DecrementNotification();
+        }
+
+        var url = NotificationNavigation.GetUrl(notif);
+        if (!string.IsNullOrEmpty(url))
+            Nav.NavigateTo(url);
+    }
+}

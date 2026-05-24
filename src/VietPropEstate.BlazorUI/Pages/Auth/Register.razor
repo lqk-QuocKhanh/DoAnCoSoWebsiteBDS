@@ -1,0 +1,137 @@
+@page "/dang-ky"
+@layout AuthLayout
+@inject IAuthApiClient AuthClient
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+@inject AuthState AuthState
+
+<PageTitle>Đăng ký - VietPropEstate</PageTitle>
+
+<div class="auth-form">
+    <h1 class="auth-form-title">Đăng ký</h1>
+    <p class="auth-form-subtitle">Tạo tài khoản để mua, bán hoặc cho thuê bất động sản.</p>
+
+        <EditForm Model="@_model" OnValidSubmit="@HandleRegister">
+            <DataAnnotationsValidator />
+            <div class="d-flex flex-column" style="gap:14px;">
+                <MudGrid Spacing="2">
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_model.FirstName" Label="Họ" Variant="Variant.Outlined"
+                                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.Person"
+                                      Disabled="@_loading" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_model.LastName" Label="Tên" Variant="Variant.Outlined"
+                                      Disabled="@_loading" />
+                    </MudItem>
+                </MudGrid>
+
+                <MudTextField @bind-Value="_model.Email" Label="Email" Variant="Variant.Outlined"
+                              InputType="InputType.Email" Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Outlined.Email"
+                              Placeholder="email@example.com" Disabled="@_loading" />
+
+                <MudTextField @bind-Value="_model.PhoneNumber" Label="Số điện thoại (tuỳ chọn)" Variant="Variant.Outlined"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.Phone"
+                              Placeholder="0912 345 678" Disabled="@_loading"
+                              HelperText="Không bắt buộc khi đăng ký. Bạn sẽ xác thực SĐT khi muốn đăng tin." />
+
+                <MudTextField @bind-Value="_model.Password" Label="Mật khẩu" Variant="Variant.Outlined"
+                              InputType="@(_showPassword ? InputType.Text : InputType.Password)"
+                              Adornment="Adornment.End"
+                              AdornmentIcon="@(_showPassword ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                              OnAdornmentClick="@(() => _showPassword = !_showPassword)"
+                              HelperText="Tối thiểu 8 ký tự, bao gồm chữ hoa, chữ thường và số"
+                              Disabled="@_loading" />
+
+                <MudTextField @bind-Value="_model.ConfirmPassword" Label="Xác nhận mật khẩu" Variant="Variant.Outlined"
+                              InputType="@(_showPassword ? InputType.Text : InputType.Password)"
+                              Disabled="@_loading" />
+
+                <MudSelect T="string" @bind-Value="_model.Role" Label="Tôi là" Variant="Variant.Outlined"
+                           AdornmentIcon="@Icons.Material.Outlined.AccountCircle"
+                           Adornment="Adornment.Start" Disabled="@_loading">
+                    <MudSelectItem Value="@("Customer")">Người mua / thuê bất động sản</MudSelectItem>
+                    <MudSelectItem Value="@("Broker")">Môi giới / Chủ bất động sản</MudSelectItem>
+                </MudSelect>
+
+                @if (!string.IsNullOrEmpty(_errorMessage))
+                {
+                    <MudAlert Severity="Severity.Error" Dense="true">@_errorMessage</MudAlert>
+                }
+
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled"
+                           FullWidth="true" Disabled="@_loading" Class="auth-btn-primary">
+                    @if (_loading)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Color="Color.Inherit" />
+                        <span style="margin-left:8px;">Đang đăng ký...</span>
+                    }
+                    else
+                    {
+                        <span>Đăng ký ngay</span>
+                    }
+                </MudButton>
+            </div>
+        </EditForm>
+
+    <p style="text-align:center; margin-top:32px; font-size:14px; color:#64748B;">
+        Đã có tài khoản?
+        <MudLink Href="/dang-nhap" Class="auth-link">Đăng nhập</MudLink>
+    </p>
+</div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "role")]
+    public string? DefaultRole { get; set; }
+
+    private RegisterRequest _model = new() { Role = "Customer" };
+    private bool _loading;
+    private bool _showPassword;
+    private string? _errorMessage;
+
+    protected override void OnInitialized()
+    {
+        if (AuthState.IsAuthenticated) Nav.NavigateTo("/dashboard");
+
+        if (string.Equals(DefaultRole, "Broker", StringComparison.OrdinalIgnoreCase))
+            _model.Role = "Broker";
+        else if (string.Equals(DefaultRole, "Customer", StringComparison.OrdinalIgnoreCase))
+            _model.Role = "Customer";
+    }
+
+    private async Task HandleRegister()
+    {
+        _loading = true;
+        _errorMessage = null;
+
+        if (_model.Password != _model.ConfirmPassword)
+        {
+            _errorMessage = "Mật khẩu xác nhận không khớp.";
+            _loading = false;
+            return;
+        }
+
+        try
+        {
+            var result = await AuthClient.RegisterAsync(_model);
+            if (result.Success && result.User is not null)
+            {
+                Snackbar.Add(result.Message ?? "Đăng ký thành công! Chào mừng bạn đến VietPropEstate.", Severity.Success);
+                Nav.NavigateTo("/dashboard");
+            }
+            else
+            {
+                _errorMessage = result.Message ?? "Không thể đăng ký. Email có thể đã được sử dụng.";
+            }
+        }
+        catch
+        {
+            _errorMessage = "Có lỗi xảy ra. Vui lòng thử lại sau.";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

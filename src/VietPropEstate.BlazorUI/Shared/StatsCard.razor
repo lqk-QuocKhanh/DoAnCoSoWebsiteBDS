@@ -1,0 +1,47 @@
+@inject NavigationManager Nav
+
+<div class="@($"dash-stat dash-stat--{Variant} {(string.IsNullOrWhiteSpace(Href) ? "" : "dash-stat--clickable")} {Class}")"
+     role="@(string.IsNullOrWhiteSpace(Href) ? null : "button")"
+     tabindex="@(string.IsNullOrWhiteSpace(Href) ? null : "0")"
+     aria-label="@Title"
+     @onclick="Navigate"
+     @onkeydown="HandleKeyDown">
+    <div class="dash-stat-top">
+        <span class="dash-stat-label">@Title</span>
+        <span class="dash-stat-icon">
+            <MudIcon Icon="@Icon" Size="Size.Small" />
+        </span>
+    </div>
+    <div class="dash-stat-value">@Value</div>
+    @if (!string.IsNullOrEmpty(Change))
+    {
+        <div class="dash-stat-change @(ChangePositive ? "dash-stat-change--up" : "dash-stat-change--down")">
+            <MudIcon Icon="@(ChangePositive ? Icons.Material.Outlined.TrendingUp : Icons.Material.Outlined.TrendingDown)"
+                     Size="Size.Small" />
+            <span>@Change</span>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Value { get; set; } = "0";
+    [Parameter] public string Icon { get; set; } = Icons.Material.Filled.Analytics;
+    [Parameter] public string Variant { get; set; } = "slate";
+    [Parameter] public string? Change { get; set; }
+    [Parameter] public bool ChangePositive { get; set; } = true;
+    [Parameter] public string? Href { get; set; }
+    [Parameter] public string? Class { get; set; }
+
+    private void Navigate()
+    {
+        if (!string.IsNullOrWhiteSpace(Href))
+            Nav.NavigateTo(Href);
+    }
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key is "Enter" or " " && !string.IsNullOrWhiteSpace(Href))
+            Nav.NavigateTo(Href);
+    }
+}

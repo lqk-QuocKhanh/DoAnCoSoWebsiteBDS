@@ -1,0 +1,301 @@
+@page "/dashboard/tin-nhan"
+@layout DashboardLayout
+@inject IChatApiClient ChatClient
+@inject INotificationsApiClient NotificationsClient
+@inject NotificationState NotificationState
+@inject AuthState AuthState
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<PageTitle>Tin nhắn - VietPropEstate</PageTitle>
+
+<MudText Typo="Typo.h5" Style="font-weight:700; margin-bottom:24px;">Tin nhắn</MudText>
+
+<MudPaper Elevation="0" Class="chat-panel" Style="border:1px solid #E2E8F0; border-radius:20px; overflow:hidden; height:calc(100vh - 200px); min-height:500px; display:flex;">
+
+    <!-- Conversation list -->
+    <div class="chat-sidebar" style="border-right:1px solid #E2E8F0;">
+        <ChatConversationList Conversations="@_conversations?.Items"
+                              ActiveConversationId="@_activeConversation?.Id"
+                              OnConversationSelected="@SelectConversation"
+                              OnConversationAction="@HandleConversationAction" />
+    </div>
+
+    <!-- Chat area -->
+    <div style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
+        @if (_activeConversation == null)
+        {
+            <div style="flex:1; display:flex; align-items:center; justify-content:center;">
+                <EmptyState Icon="@Icons.Material.Outlined.Chat"
+                            Title="Chọn cuộc trò chuyện"
+                            Subtitle="Chọn một cuộc trò chuyện từ danh sách bên trái để bắt đầu nhắn tin" />
+            </div>
+        }
+        else
+        {
+            <!-- Chat header -->
+            <div style="padding:16px 20px; border-bottom:1px solid #E2E8F0; display:flex; align-items:center; gap:12px; background:#fff;">
+                <div style="position:relative;">
+                    @if (!string.IsNullOrEmpty(_activeConversation.OtherParticipantId))
+                    {
+                        <MudLink Href="@($"/nguoi-dang/{_activeConversation.OtherParticipantId}")" Style="text-decoration:none;">
+                            <UserAvatar AvatarUrl="@_activeConversation.OtherParticipantAvatarUrl"
+                                        Name="@_activeConversation.OtherParticipantName"
+                                        Initials="@GetInitials(_activeConversation.OtherParticipantName)"
+                                        Size="42" />
+                        </MudLink>
+                    }
+                    else
+                    {
+                        <UserAvatar AvatarUrl="@_activeConversation.OtherParticipantAvatarUrl"
+                                    Name="@_activeConversation.OtherParticipantName"
+                                    Initials="@GetInitials(_activeConversation.OtherParticipantName)"
+                                    Size="42" />
+                    }
+                    @if (_activeConversation.OtherParticipantOnline)
+                    {
+                        <div style="position:absolute; bottom:0; right:0; width:11px; height:11px; background:#16A34A; border-radius:50%; border:2px solid #fff;"></div>
+                    }
+                </div>
+                <div style="flex:1;">
+                    <div class="d-flex align-items-center" style="gap:6px;">
+                        @if (_activeConversation.IsPinned)
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.PushPin" Size="Size.Small" Style="color:#B91C1C;" />
+                        }
+                        @if (!string.IsNullOrEmpty(_activeConversation.OtherParticipantId))
+                        {
+                            <MudLink Href="@($"/nguoi-dang/{_activeConversation.OtherParticipantId}")"
+                                     Style="text-decoration:none; color:inherit;">
+                                <MudText Typo="Typo.subtitle2" Style="font-weight:700;">
+                                    @(_activeConversation.OtherParticipantName ?? "Người dùng")
+                                </MudText>
+                            </MudLink>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.subtitle2" Style="font-weight:700;">@(_activeConversation.OtherParticipantName ?? "Người dùng")</MudText>
+                        }
+                        @if (_activeConversation.IsMuted)
+                        {
+                            <MudIcon Icon="@Icons.Material.Outlined.NotificationsOff" Size="Size.Small" Style="color:#94A3B8;" Title="Đã tắt thông báo" />
+                        }
+                    </div>
+                    <MudText Typo="Typo.caption" Style="@GetOnlineStatusStyle(_activeConversation.OtherParticipantOnline)">
+                        @(_activeConversation.OtherParticipantOnline ? "Đang hoạt động" : "Offline")
+                    </MudText>
+                </div>
+                @if (!string.IsNullOrEmpty(_activeConversation.PropertyTitle))
+                {
+                    <MudChip T="string" Size="Size.Small" Style="background:#FEE2E2; color:#B91C1C;" Icon="@Icons.Material.Filled.Apartment">
+                        @_activeConversation.PropertyTitle
+                    </MudChip>
+                }
+                <ChatConversationActions Conversation="@_activeConversation" OnAction="@(action => HandleConversationAction((_activeConversation, action)))" />
+            </div>
+
+            @if (IsConversationBlocked)
+            {
+                <MudAlert Severity="Severity.Warning" Dense="true" Style="border-radius:0; margin:0;">
+                    @GetBlockedMessage()
+                </MudAlert>
+            }
+
+            <!-- Messages -->
+            <div class="chat-messages" style="flex:1; overflow-y:auto; padding:16px 20px; min-width:0;" @ref="_messageContainer">
+                @if (_loadingMessages)
+                {
+                    <div style="text-align:center; padding:40px;">
+                        <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Small" />
+                    </div>
+                }
+                else
+                {
+                    @foreach (var message in _messages)
+                    {
+                        <ChatMessageBubble Message="@message"
+                                           SenderName="@(message.IsOwn ? null : _activeConversation.OtherParticipantName)"
+                                           SenderAvatarUrl="@(message.IsOwn ? null : (message.SenderAvatarUrl ?? _activeConversation.OtherParticipantAvatarUrl))"
+                                           SenderInitial="@GetInitials(_activeConversation.OtherParticipantName)" />
+                    }
+                }
+            </div>
+
+            <!-- Input -->
+            <div style="padding:16px 20px; border-top:1px solid #E2E8F0; background:#fff; display:flex; gap:12px; align-items:flex-end;">
+                <MudTextField @bind-Value="_messageInput" Placeholder="@GetInputPlaceholder()"
+                              Variant="Variant.Outlined" Lines="1" MaxLines="4"
+                              Style="flex:1;" Immediate="true"
+                              @onkeydown="@OnKeyDown" Disabled="@(_sendingMessage || IsConversationBlocked)" />
+                <MudIconButton Icon="@Icons.Material.Filled.Send" Color="Color.Primary"
+                               Size="Size.Medium" Style="background:#B91C1C; color:#fff; border-radius:12px; width:48px; height:48px; flex-shrink:0;"
+                               OnClick="@SendMessage" Disabled="@(string.IsNullOrWhiteSpace(_messageInput) || _sendingMessage || IsConversationBlocked)" />
+            </div>
+        }
+    </div>
+</MudPaper>
+
+@code {
+    [SupplyParameterFromQuery(Name = "conversation")]
+    public Guid? ConversationId { get; set; }
+
+    private PaginatedList<ConversationDto>? _conversations;
+    private ConversationDto? _activeConversation;
+    private List<MessageDto> _messages = [];
+    private bool _loadingMessages;
+    private bool _sendingMessage;
+    private string _messageInput = "";
+    private ElementReference _messageContainer;
+
+    private bool IsConversationBlocked =>
+        _activeConversation?.IsBlockedByMe == true || _activeConversation?.IsBlockedByOther == true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _conversations = await ChatClient.GetConversationsAsync();
+
+        if (ConversationId.HasValue)
+        {
+            var target = _conversations?.Items.FirstOrDefault(c => c.Id == ConversationId.Value);
+            if (target is not null)
+            {
+                await SelectConversation(target);
+                return;
+            }
+        }
+
+        if (_conversations?.Items.Count > 0)
+            await SelectConversation(_conversations.Items[0]);
+    }
+
+    private async Task SelectConversation(ConversationDto conversation)
+    {
+        _activeConversation = conversation;
+        _messages = [];
+        _loadingMessages = true;
+        StateHasChanged();
+
+        var result = await ChatClient.GetMessagesAsync(conversation.Id);
+        _messages = result?.Items.ToList() ?? [];
+        _loadingMessages = false;
+
+        await ChatClient.MarkAsReadAsync(conversation.Id);
+        await RefreshUnreadBadgeAsync();
+
+        _conversations = await ChatClient.GetConversationsAsync();
+        _activeConversation = _conversations?.Items.FirstOrDefault(c => c.Id == conversation.Id) ?? conversation;
+    }
+
+    private async Task HandleConversationAction((ConversationDto Conversation, string Action) args)
+    {
+        var (conv, action) = args;
+
+        switch (action)
+        {
+            case "pin":
+                await UpdateSettingsAsync(conv, isPinned: !conv.IsPinned,
+                    successMessage: conv.IsPinned ? "Đã bỏ ghim cuộc trò chuyện" : "Đã ghim cuộc trò chuyện");
+                break;
+            case "mute":
+                await UpdateSettingsAsync(conv, isMuted: !conv.IsMuted,
+                    successMessage: conv.IsMuted ? "Đã bật thông báo" : "Đã tắt thông báo cuộc trò chuyện này");
+                break;
+            case "block":
+            {
+                var parameters = new DialogParameters<ConfirmDialog>
+                {
+                    { x => x.Title, "Chặn người dùng" },
+                    { x => x.Message, $"Bạn có chắc muốn chặn {conv.OtherParticipantName ?? "người dùng này"}? Họ sẽ không thể gửi tin nhắn cho bạn." },
+                    { x => x.ConfirmText, "Chặn" },
+                    { x => x.Icon, Icons.Material.Outlined.Block }
+                };
+                var dialog = await DialogService.ShowAsync<ConfirmDialog>("", parameters);
+                var result = await dialog.Result;
+                if (result is null or { Canceled: true }) break;
+
+                await ChatClient.BlockUserAsync(conv.Id);
+                Snackbar.Add("Đã chặn người dùng", Severity.Success);
+                await ReloadConversationsAsync(conv.Id);
+                break;
+            }
+            case "unblock":
+                await ChatClient.UnblockUserAsync(conv.Id);
+                Snackbar.Add("Đã bỏ chặn người dùng", Severity.Success);
+                await ReloadConversationsAsync(conv.Id);
+                break;
+        }
+    }
+
+    private async Task UpdateSettingsAsync(
+        ConversationDto conv, bool? isPinned = null, bool? isMuted = null, string? successMessage = null)
+    {
+        var updated = await ChatClient.UpdateSettingsAsync(conv.Id, isPinned, isMuted);
+        if (updated is null)
+        {
+            Snackbar.Add("Không thể cập nhật cài đặt", Severity.Error);
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(successMessage))
+            Snackbar.Add(successMessage, Severity.Success);
+
+        await ReloadConversationsAsync(conv.Id);
+    }
+
+    private async Task ReloadConversationsAsync(Guid conversationId)
+    {
+        _conversations = await ChatClient.GetConversationsAsync();
+        _activeConversation = _conversations?.Items.FirstOrDefault(c => c.Id == conversationId)
+            ?? _activeConversation;
+        StateHasChanged();
+    }
+
+    private async Task SendMessage()
+    {
+        if (string.IsNullOrWhiteSpace(_messageInput) || _activeConversation == null || IsConversationBlocked) return;
+
+        var content = _messageInput.Trim();
+        _messageInput = "";
+        _sendingMessage = true;
+
+        var sent = await ChatClient.SendMessageAsync(_activeConversation.Id, content);
+        if (sent != null)
+            _messages.Add(sent);
+        else
+            Snackbar.Add("Không thể gửi tin nhắn", Severity.Error);
+
+        _sendingMessage = false;
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !e.ShiftKey)
+            await SendMessage();
+    }
+
+    private string GetInputPlaceholder() =>
+        IsConversationBlocked ? "Không thể gửi tin nhắn" : "Nhập tin nhắn...";
+
+    private string GetBlockedMessage()
+    {
+        if (_activeConversation?.IsBlockedByMe == true)
+            return $"Bạn đã chặn {_activeConversation.OtherParticipantName ?? "người dùng này"}. Bỏ chặn để tiếp tục nhắn tin.";
+        return $"{_activeConversation?.OtherParticipantName ?? "Người dùng này"} đã chặn bạn. Bạn không thể gửi tin nhắn.";
+    }
+
+    private static string GetOnlineStatusStyle(bool isOnline) =>
+        isOnline ? "color:#16A34A;" : "color:#94A3B8;";
+
+    private static string GetInitials(string? name)
+    {
+        if (string.IsNullOrEmpty(name)) return "?";
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length >= 2 ? $"{parts[0][0]}{parts[^1][0]}" : name[..1].ToUpper();
+    }
+
+    private async Task RefreshUnreadBadgeAsync()
+    {
+        var counts = await NotificationsClient.GetUnreadCountsAsync();
+        NotificationState.SetCounts(counts.Messages, counts.Notifications);
+    }
+}

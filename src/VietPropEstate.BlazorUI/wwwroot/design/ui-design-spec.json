@@ -1,0 +1,75 @@
+{
+  "brand": {
+    "name": "VietPropEstate",
+    "tagline": "Tìm bất động sản phù hợp với bạn",
+    "style": "premium Vietnamese real estate platform",
+    "tone": "trustworthy, modern, professional"
+  },
+  "colors": {
+    "primary": "#B91C1C",
+    "primaryDark": "#7F1D1D",
+    "primaryLight": "#FEE2E2",
+    "secondary": "#D97706",
+    "accent": "#F59E0B",
+    "background": "#F8FAFC",
+    "surface": "#FFFFFF",
+    "surfaceVariant": "#F1F5F9",
+    "textPrimary": "#0F172A",
+    "textSecondary": "#64748B",
+    "textMuted": "#94A3B8",
+    "border": "#E2E8F0",
+    "success": "#16A34A",
+    "warning": "#F59E0B",
+    "error": "#DC2626",
+    "info": "#2563EB"
+  },
+  "typography": {
+    "fontFamily": "Inter, system-ui, -apple-system, sans-serif",
+    "h1": { "size": "40px", "lineHeight": "48px", "weight": "700" },
+    "h2": { "size": "32px", "lineHeight": "40px", "weight": "700" },
+    "h3": { "size": "24px", "lineHeight": "32px", "weight": "600" },
+    "h4": { "size": "20px", "lineHeight": "28px", "weight": "600" },
+    "body": { "size": "16px", "lineHeight": "24px", "weight": "400" },
+    "bodySmall": { "size": "14px", "lineHeight": "20px", "weight": "400" },
+    "caption": { "size": "13px", "lineHeight": "18px", "weight": "400" },
+    "price": { "size": "22px", "lineHeight": "30px", "weight": "700" }
+  },
+  "spacing": {
+    "xs": "4px",
+    "sm": "8px",
+    "md": "16px",
+    "lg": "24px",
+    "xl": "32px",
+    "xxl": "48px",
+    "section": "64px",
+    "cardPadding": "24px",
+    "containerMaxWidth": "1200px"
+  },
+  "radius": {
+    "xs": "4px",
+    "sm": "8px",
+    "md": "12px",
+    "lg": "20px",
+    "xl": "28px",
+    "full": "9999px"
+  },
+  "shadow": {
+    "sm": "0 2px 8px rgba(15, 23, 42, 0.06)",
+    "card": "0 8px 24px rgba(15, 23, 42, 0.08)",
+    "floating": "0 16px 40px rgba(15, 23, 42, 0.16)",
+    "header": "0 2px 12px rgba(15, 23, 42, 0.10)"
+  },
+  "layout": {
+    "headerHeight": "72px",
+    "sidebarWidth": "280px",
+    "adminSidebarWidth": "300px",
+    "dashboardTopbarHeight": "64px"
+  },
+  "breakpoints": {
+    "xs": "0px",
+    "sm": "600px",
+    "md": "900px",
+    "lg": "1200px",
+    "xl": "1536px"
+  }
+}

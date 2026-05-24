@@ -1,0 +1,171 @@
+@inject AuthState AuthState
+@inject IAuthApiClient AuthClient
+@inject IMediaUrlResolver MediaUrls
+@inject NavigationManager Nav
+@inject NotificationState NotificationState
+@implements IDisposable
+
+@if (AuthState.IsAuthenticated)
+{
+    <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight"
+             Class="user-avatar-menu" PopoverClass="user-avatar-menu-popover"
+             LockScroll="false" PopoverFixed="true" Open="_menuOpen" OpenChanged="OnMenuOpenChanged">
+        <ActivatorContent>
+            <MudButton Variant="Variant.Text" Color="Color.Inherit"
+                       Class="user-menu-activator" Style="text-transform:none; padding:4px 8px; min-width:0;"
+                       OnClick="@context.ToggleAsync">
+                <span class="d-flex align-items-center" style="gap:8px;">
+                    <MudAvatar Class="user-menu-avatar">
+                        @if (!string.IsNullOrEmpty(GetAvatarUrl()))
+                        {
+                            <MudImage Src="@GetAvatarUrl()" Alt="@GetDisplayName()" ObjectFit="ObjectFit.Cover" />
+                        }
+                        else
+                        {
+                            @GetInitials()
+                        }
+                    </MudAvatar>
+                    <span class="d-none d-sm-flex flex-column" style="line-height:1.2; text-align:left;">
+                        <span class="user-menu-name">@GetDisplayName()</span>
+                        <span class="user-menu-role">@GetRoleLabel()</span>
+                    </span>
+                    <MudIcon Icon="@Icons.Material.Filled.KeyboardArrowDown" Size="Size.Small"
+                             Style="color:#64748B;" Class="d-none d-sm-flex" />
+                </span>
+            </MudButton>
+        </ActivatorContent>
+        <ChildContent>
+            <div class="user-menu-header">
+                <MudAvatar Class="user-menu-header-avatar">
+                    @if (!string.IsNullOrEmpty(GetAvatarUrl()))
+                    {
+                        <MudImage Src="@GetAvatarUrl()" Alt="@GetDisplayName()" ObjectFit="ObjectFit.Cover" />
+                    }
+                    else
+                    {
+                        @GetInitials()
+                    }
+                </MudAvatar>
+                <div class="user-menu-header-info">
+                    <span class="user-menu-header-name">@GetDisplayName()</span>
+                    <span class="user-menu-header-email">@(AuthState.CurrentUser?.Email ?? "")</span>
+                    <span class="user-menu-header-badge">@GetRoleLabel()</span>
+                </div>
+            </div>
+
+            <MudMenuItem Icon="@Icons.Material.Outlined.Person" OnClick="@(() => NavigateTo("/dashboard/ho-so"))">
+                Hồ sơ cá nhân
+            </MudMenuItem>
+            <MudMenuItem Icon="@Icons.Material.Outlined.Chat" OnClick="@(() => NavigateTo("/dashboard/tin-nhan"))">
+                <div class="d-flex align-items-center justify-content-between" style="width:100%;">
+                    <span>Tin nhắn</span>
+                    @if (NotificationState.UnreadMessages > 0)
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Error" Style="height:20px; font-size:11px;">
+                            @NotificationState.UnreadMessages
+                        </MudChip>
+                    }
+                </div>
+            </MudMenuItem>
+            <MudMenuItem Icon="@Icons.Material.Outlined.Notifications" OnClick="@(() => NavigateTo("/dashboard/thong-bao"))">
+                <div class="d-flex align-items-center justify-content-between" style="width:100%;">
+                    <span>Thông báo</span>
+                    @if (NotificationState.UnreadNotifications > 0)
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Error" Style="height:20px; font-size:11px;">
+                            @NotificationState.UnreadNotifications
+                        </MudChip>
+                    }
+                </div>
+            </MudMenuItem>
+            @if (AuthState.CanBuyVipPackage)
+            {
+                <MudMenuItem Icon="@Icons.Material.Outlined.CreditCard" OnClick="@(() => NavigateTo("/dashboard/thanh-toan"))">
+                    Lịch sử thanh toán
+                </MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Outlined.Star" OnClick="@(() => NavigateTo("/dashboard/goi-vip"))">
+                    Gói VIP
+                </MudMenuItem>
+            }
+
+            @if (AuthState.CanManageSystem || AuthState.CanAccessAdminPanel)
+            {
+                <MudDivider Class="my-1" />
+                @if (AuthState.CanManageSystem)
+                {
+                    <MudMenuItem Icon="@Icons.Material.Filled.Shield"
+                                 OnClick="@(() => NavigateTo("/sysadmin"))">
+                        Quản trị hệ thống
+                    </MudMenuItem>
+                }
+                @if (AuthState.CanAccessAdminPanel)
+                {
+                    <MudMenuItem Icon="@Icons.Material.Filled.AdminPanelSettings"
+                                 OnClick="@(() => NavigateTo(AuthState.IsStaff && !AuthState.CanManageUsers ? "/admin/bat-dong-san" : "/admin"))">
+                        @(AuthState.IsStaff && !AuthState.CanManageUsers ? "Kiểm duyệt tin" : "Quản trị vận hành")
+                    </MudMenuItem>
+                }
+            }
+
+            <MudDivider Class="my-1" />
+            <MudMenuItem Icon="@Icons.Material.Filled.Logout" OnClick="@LogoutAsync" Class="user-menu-logout">
+                Đăng xuất
+            </MudMenuItem>
+        </ChildContent>
+    </MudMenu>
+}
+
+@code {
+    private bool _menuOpen;
+
+    private Task OnMenuOpenChanged(bool open)
+    {
+        _menuOpen = open;
+        return Task.CompletedTask;
+    }
+
+    private void NavigateTo(string url)
+    {
+        _menuOpen = false;
+        Nav.NavigateTo(url);
+    }
+
+    private string GetInitials()
+    {
+        var name = AuthState.CurrentUser?.FullName ?? AuthState.CurrentUser?.Email ?? "U";
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length >= 2 ? $"{parts[0][0]}{parts[^1][0]}" : name[..1].ToUpper();
+    }
+
+    private string GetDisplayName() => AuthState.CurrentUser?.FullName ?? AuthState.CurrentUser?.Email ?? "Người dùng";
+
+    private string? GetAvatarUrl() => MediaUrls.Resolve(AuthState.CurrentUser?.AvatarUrl);
+
+    private string GetRoleLabel()
+    {
+        if (AuthState.IsSysAdmin) return "Quản trị hệ thống";
+        if (AuthState.IsAdmin) return "Quản trị viên";
+        if (AuthState.IsBroker) return "Môi giới";
+        if (AuthState.IsStaff) return "Nhân viên";
+        return "Khách hàng";
+    }
+
+    private async Task LogoutAsync()
+    {
+        _menuOpen = false;
+        await AuthClient.LogoutAsync();
+        Nav.NavigateTo("/dang-nhap");
+    }
+
+    protected override void OnInitialized()
+    {
+        AuthState.OnChange += StateHasChanged;
+        NotificationState.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        AuthState.OnChange -= StateHasChanged;
+        NotificationState.OnChange -= StateHasChanged;
+    }
+}

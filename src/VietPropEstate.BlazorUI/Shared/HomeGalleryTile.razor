@@ -1,0 +1,32 @@
+@inject NavigationManager Nav
+
+<div class="home-gallery-tile" @onclick="Navigate">
+    <PropertyImage Url="@Property.PrimaryImageUrl" Alt="@Property.Title" />
+    <div class="home-gallery-tile-overlay">
+        <span class="home-gallery-tile-price">@FormatPrice(Property.PriceAmount)</span>
+        <span class="home-gallery-tile-title">@Property.Title</span>
+        @if (!string.IsNullOrEmpty(Property.ProvinceName))
+        {
+            <span class="home-gallery-tile-loc">@Property.ProvinceName</span>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public PropertyDto Property { get; set; } = default!;
+
+    private void Navigate()
+    {
+        if (!string.IsNullOrEmpty(Property.Slug))
+            Nav.NavigateTo($"/bat-dong-san/{Property.Slug}");
+        else
+            Nav.NavigateTo($"/bat-dong-san/{Property.Id}");
+    }
+
+    private static string FormatPrice(decimal amount)
+    {
+        if (amount >= 1_000_000_000) return $"{amount / 1_000_000_000:N1} tỷ";
+        if (amount >= 1_000_000) return $"{amount / 1_000_000:N0} triệu";
+        return $"{amount:N0} đ";
+    }
+}

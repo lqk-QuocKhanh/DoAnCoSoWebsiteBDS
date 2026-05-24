@@ -1,0 +1,146 @@
+@page "/payment/vnpay-mock"
+@layout PublicLayout
+@inject HttpClient Http
+@inject NavigationManager Nav
+
+<PageTitle>Thanh toán VNPay (Môi trường thử) - VietPropEstate</PageTitle>
+
+<div style="max-width:520px; margin:48px auto; padding:0 24px;">
+    <MudPaper Elevation="2" Style="border-radius:20px; overflow:hidden;">
+        <div style="background:linear-gradient(135deg,#005BAA,#0072CE); padding:24px; text-align:center;">
+            <MudText Typo="Typo.h6" Style="color:#fff; font-weight:700;">Cổng thanh toán VNPay</MudText>
+            <MudText Typo="Typo.caption" Style="color:rgba(255,255,255,0.85);">Môi trường thử nghiệm (Mock)</MudText>
+        </div>
+
+        <MudCardContent Style="padding:28px;">
+            @if (_loading)
+            {
+                <div style="text-align:center; padding:24px 0;">
+                    <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+                </div>
+            }
+            else if (string.IsNullOrWhiteSpace(_paymentRef))
+            {
+                <MudAlert Severity="Severity.Warning">Thiếu thông tin giao dịch. Vui lòng chọn gói VIP và thử lại.</MudAlert>
+                <MudButton Href="/dashboard/goi-vip" Variant="Variant.Filled" Color="Color.Primary"
+                           FullWidth="true" Class="mt-4" StartIcon="@Icons.Material.Filled.ArrowBack"
+                           Style="border-radius:12px; font-weight:700;">
+                    Quay lại chọn gói
+                </MudButton>
+            }
+            else
+            {
+                <div style="background:#F8FAFC; border-radius:16px; padding:20px; margin-bottom:24px;">
+                    <div class="d-flex justify-content-between mb-2">
+                        <MudText Typo="Typo.body2" Style="color:#64748B;">Gói VIP</MudText>
+                        <MudText Typo="Typo.body2" Style="font-weight:600;">@_packageName</MudText>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <MudText Typo="Typo.body2" Style="color:#64748B;">Mã giao dịch</MudText>
+                        <MudText Typo="Typo.body2" Style="font-weight:600; font-family:monospace; font-size:12px;">@_paymentRef[..8]...</MudText>
+                    </div>
+                    <MudDivider Style="margin:12px 0;" />
+                    <div class="d-flex justify-content-between">
+                        <MudText Typo="Typo.subtitle2" Style="font-weight:700;">Số tiền</MudText>
+                        <MudText Typo="Typo.subtitle2" Style="font-weight:700; color:#B91C1C;">@($"{_amount:N0} VND")</MudText>
+                    </div>
+                </div>
+
+                <MudText Typo="Typo.body2" Style="color:#64748B; line-height:1.6; margin-bottom:20px;">
+                    Đây là trang thanh toán giả lập cho môi trường phát triển.
+                    Khi triển khai thật, hãy đăng ký merchant tại
+                    <a href="https://sandbox.vnpayment.vn/devreg" target="_blank" rel="noopener">VNPay Sandbox</a>
+                    và tắt <code>UseMockPayment</code>.
+                </MudText>
+
+                @if (!string.IsNullOrWhiteSpace(_error))
+                {
+                    <MudAlert Severity="Severity.Error" Class="mb-4">@_error</MudAlert>
+                }
+
+                <MudButton Variant="Variant.Filled" Color="Color.Success" FullWidth="true" Size="Size.Large"
+                           Disabled="@_processing" OnClick="@(() => CompleteAsync(true))"
+                           StartIcon="@Icons.Material.Filled.CheckCircle"
+                           Style="border-radius:12px; font-weight:700; margin-bottom:12px;">
+                    @(_processing ? "Đang xử lý..." : "Thanh toán thành công (test)")
+                </MudButton>
+
+                <MudButton Variant="Variant.Outlined" Color="Color.Error" FullWidth="true" Size="Size.Large"
+                           Disabled="@_processing" OnClick="@(() => CompleteAsync(false))"
+                           Style="border-radius:12px; font-weight:600; margin-bottom:12px;">
+                    Hủy thanh toán
+                </MudButton>
+
+                <MudButton Variant="Variant.Text" Color="Color.Default" FullWidth="true" Size="Size.Large"
+                           Disabled="@_processing" Href="/dashboard/goi-vip"
+                           StartIcon="@Icons.Material.Filled.ArrowBack"
+                           Style="font-weight:600;">
+                    Quay lại chọn gói
+                </MudButton>
+            }
+        </MudCardContent>
+    </MudPaper>
+</div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "ref")] public string? PaymentRef { get; set; }
+    [SupplyParameterFromQuery] public decimal Amount { get; set; }
+    [SupplyParameterFromQuery] public string? Package { get; set; }
+
+    private string? _paymentRef;
+    private decimal _amount;
+    private string _packageName = "Gói VIP";
+    private bool _loading = true;
+    private bool _processing;
+    private string? _error;
+
+    protected override void OnInitialized()
+    {
+        _paymentRef = PaymentRef;
+        _amount = Amount;
+        _packageName = string.IsNullOrWhiteSpace(Package) ? "Gói VIP" : Package;
+        _loading = false;
+    }
+
+    private async Task CompleteAsync(bool success)
+    {
+        if (string.IsNullOrWhiteSpace(_paymentRef)) return;
+
+        _processing = true;
+        _error = null;
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/payments/vnpay-mock-complete",
+                new { PaymentReference = _paymentRef, Success = success });
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _error = "Không thể xử lý giao dịch thử. Vui lòng thử lại.";
+                return;
+            }
+
+            var result = await response.Content.ReadFromJsonAsync<MockCompleteResponse>();
+            if (!string.IsNullOrWhiteSpace(result?.RedirectUrl))
+            {
+                Nav.NavigateTo(result.RedirectUrl, forceLoad: true);
+                return;
+            }
+
+            _error = "Không nhận được URL chuyển hướng.";
+        }
+        catch
+        {
+            _error = "Không thể kết nối máy chủ. Hãy đảm bảo WebAPI đang chạy.";
+        }
+        finally
+        {
+            _processing = false;
+        }
+    }
+
+    private sealed class MockCompleteResponse
+    {
+        public string RedirectUrl { get; init; } = string.Empty;
+    }
+}

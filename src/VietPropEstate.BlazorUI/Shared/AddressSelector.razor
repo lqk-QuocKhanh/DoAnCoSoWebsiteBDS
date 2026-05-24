@@ -1,0 +1,157 @@
+@inject IAddressApiClient AddressClient
+
+<div class="d-flex flex-column" style="gap:16px;">
+    <!-- Province -->
+    <MudSelect T="int?" Label="Tỉnh/Thành phố" Variant="Variant.Outlined"
+               Value="_selectedProvinceCode" ValueChanged="OnProvinceCodeChanged"
+               AdornmentIcon="@Icons.Material.Filled.LocationCity"
+               Clearable="true" Dense="@Dense">
+        @if (_loadingProvinces)
+        {
+            <MudSelectItem T="int?" Disabled="true" Value="@((int?)null)">Đang tải...</MudSelectItem>
+        }
+        else
+        {
+            @foreach (var province in _provinces)
+            {
+                <MudSelectItem T="int?" Value="@province.Code">@province.Name</MudSelectItem>
+            }
+        }
+    </MudSelect>
+
+    <!-- Ward -->
+    <MudSelect T="int?" Label="Phường/Xã" Variant="Variant.Outlined"
+               Value="_selectedWardCode" ValueChanged="OnWardCodeChanged"
+               AdornmentIcon="@Icons.Material.Filled.Place"
+               Disabled="@(!_selectedProvinceCode.HasValue || _loadingWards)"
+               Clearable="true" Dense="@Dense">
+        @if (_loadingWards)
+        {
+            <MudSelectItem T="int?" Disabled="true" Value="@((int?)null)">Đang tải...</MudSelectItem>
+        }
+        else if (_wards.Count == 0)
+        {
+            <MudSelectItem T="int?" Disabled="true" Value="@((int?)null)">Chọn tỉnh/thành phố trước</MudSelectItem>
+        }
+        else
+        {
+            @foreach (var ward in _wards)
+            {
+                <MudSelectItem T="int?" Value="@ward.Code">@ward.Name</MudSelectItem>
+            }
+        }
+    </MudSelect>
+
+    <!-- Street address -->
+    @if (ShowStreet)
+    {
+        <MudTextField @bind-Value="_streetAddress" @bind-Value:after="NotifyStreetChanged"
+                      Label="Địa chỉ chi tiết" Variant="Variant.Outlined"
+                      Placeholder="Số nhà, tên đường..."
+                      Margin="@(Dense ? Margin.Dense : Margin.None)"
+                      AdornmentIcon="@Icons.Material.Filled.Home"
+                      Adornment="Adornment.Start" />
+    }
+</div>
+
+@code {
+    [Parameter] public int? ProvinceCode { get; set; }
+    [Parameter] public string? ProvinceName { get; set; }
+    [Parameter] public int? WardCode { get; set; }
+    [Parameter] public string? WardName { get; set; }
+    [Parameter] public string? StreetAddress { get; set; }
+    [Parameter] public EventCallback<(int? Code, string? Name)> ProvinceChanged { get; set; }
+    [Parameter] public EventCallback<(int? Code, string? Name)> WardChanged { get; set; }
+    [Parameter] public EventCallback<string?> StreetAddressChanged { get; set; }
+    [Parameter] public bool ShowStreet { get; set; } = true;
+    [Parameter] public bool Dense { get; set; } = false;
+
+    private List<AddressProvince> _provinces = [];
+    private List<AddressWard> _wards = [];
+    private int? _selectedProvinceCode;
+    private int? _selectedWardCode;
+    private string? _streetAddress;
+    private bool _loadingProvinces;
+    private bool _loadingWards;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _loadingProvinces = true;
+        _provinces = await AddressClient.GetProvincesAsync();
+        _loadingProvinces = false;
+        await SyncFromParametersAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await SyncFromParametersAsync();
+    }
+
+    private async Task SyncFromParametersAsync()
+    {
+        _streetAddress = StreetAddress;
+
+        if (ProvinceCode == _selectedProvinceCode && WardCode == _selectedWardCode)
+            return;
+
+        if (ProvinceCode.HasValue)
+        {
+            _selectedProvinceCode = ProvinceCode;
+            await LoadWardsAsync(ProvinceCode.Value, WardCode);
+        }
+        else
+        {
+            _selectedProvinceCode = null;
+            _selectedWardCode = null;
+            _wards = [];
+        }
+    }
+
+    private async Task OnProvinceCodeChanged(int? provinceCode)
+    {
+        _selectedProvinceCode = provinceCode;
+        _selectedWardCode = null;
+        _wards = [];
+
+        var province = _provinces.FirstOrDefault(p => p.Code == provinceCode);
+        await ProvinceChanged.InvokeAsync((provinceCode, province?.Name));
+
+        if (provinceCode.HasValue)
+            await LoadWardsAsync(provinceCode.Value);
+        else
+            await WardChanged.InvokeAsync((null, null));
+
+        StateHasChanged();
+    }
+
+    private async Task OnWardCodeChanged(int? wardCode)
+    {
+        _selectedWardCode = wardCode;
+        var ward = _wards.FirstOrDefault(w => w.Code == wardCode);
+        await WardChanged.InvokeAsync((wardCode, ward?.Name));
+    }
+
+    private async Task NotifyStreetChanged()
+    {
+        await StreetAddressChanged.InvokeAsync(_streetAddress);
+    }
+
+    private async Task LoadWardsAsync(int provinceCode, int? selectWardCode = null)
+    {
+        _loadingWards = true;
+        StateHasChanged();
+
+        _wards = await AddressClient.GetWardsAsync(provinceCode);
+        _loadingWards = false;
+        _selectedWardCode = selectWardCode;
+
+        if (selectWardCode.HasValue)
+        {
+            var ward = _wards.FirstOrDefault(w => w.Code == selectWardCode);
+            if (ward != null)
+                await WardChanged.InvokeAsync((ward.Code, ward.Name));
+        }
+
+        StateHasChanged();
+    }
+}

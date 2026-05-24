@@ -1,0 +1,133 @@
+@using VietPropEstate.BlazorUI.Helpers
+@inject NotificationState NotificationState
+@inject INotificationsApiClient NotificationsClient
+@implements IDisposable
+
+<MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight"
+         PopoverClass="notification-menu-popover" LockScroll="false" PopoverFixed="true"
+         Open="_menuOpen" OpenChanged="OnMenuOpenChanged">
+    <ActivatorContent>
+        <MudBadge Content="@GetBadgeText()" Color="Color.Error" Overlap="true"
+                  Visible="@(NotificationState.TotalUnread > 0)" Class="notification-badge">
+            <MudIconButton Icon="@Icons.Material.Outlined.Notifications" Color="Color.Default"
+                           OnClick="@context.ToggleAsync" aria-label="Thông báo" />
+        </MudBadge>
+    </ActivatorContent>
+    <ChildContent>
+        <div style="width:340px; max-height:400px; overflow-y:auto;">
+            <div class="d-flex align-items-center justify-content-between pa-3" style="border-bottom:1px solid #E2E8F0;">
+                <MudText Typo="Typo.subtitle2" Style="font-weight:700;">Thông báo</MudText>
+                @if (NotificationState.UnreadNotifications > 0)
+                {
+                    <MudChip T="string" Size="Size.Small" Color="Color.Error">@NotificationState.UnreadNotifications chưa đọc</MudChip>
+                }
+            </div>
+            @if (_loading)
+            {
+                <div class="pa-4 text-center">
+                    <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+                </div>
+            }
+            else if (_notifications.Count == 0)
+            {
+                <MudText Class="pa-4" Style="color:#94A3B8; text-align:center;">Không có thông báo mới</MudText>
+            }
+            else
+            {
+                @foreach (var notif in _notifications)
+                {
+                    <MudMenuItem Style="@(notif.IsRead ? "" : "background:#FEF2F2;")" OnClick="@(() => OpenNotification(notif))">
+                        <div class="d-flex" style="gap:12px; padding:4px 0;">
+                            <div style="width:40px; height:40px; background:#FEE2E2; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                <MudIcon Icon="@GetIcon(notif.Type)" Style="color:#B91C1C;" Size="Size.Small" />
+                            </div>
+                            <div style="flex:1; min-width:0;">
+                                <MudText Typo="Typo.body2" Style="font-weight:600; font-size:13px;" Class="line-clamp-1">@notif.Title</MudText>
+                                <MudText Typo="Typo.caption" Style="color:#64748B;" Class="line-clamp-2">@notif.Content</MudText>
+                                <MudText Typo="Typo.caption" Style="color:#94A3B8; margin-top:2px;">@FormatTimeAgo(notif.CreatedAt)</MudText>
+                            </div>
+                        </div>
+                    </MudMenuItem>
+                }
+            }
+            <MudMenuItem OnClick="@ViewAllNotifications" Style="border-top:1px solid #E2E8F0; text-align:center;">
+                <MudText Style="color:#B91C1C; font-weight:600; font-size:13px; text-align:center; width:100%;">Xem tất cả</MudText>
+            </MudMenuItem>
+        </div>
+    </ChildContent>
+</MudMenu>
+
+@code {
+    [Inject] private NavigationManager Nav { get; set; } = default!;
+
+    private List<VietPropEstate.Application.Features.Notifications.DTOs.NotificationDto> _notifications = [];
+    private bool _loading;
+    private bool _menuOpen;
+
+    protected override async Task OnInitializedAsync()
+    {
+        NotificationState.OnChange += StateHasChanged;
+        await LoadNotifications();
+    }
+
+    private async Task OnMenuOpenChanged(bool open)
+    {
+        _menuOpen = open;
+        if (open)
+            await LoadNotifications();
+    }
+
+    public void Dispose() => NotificationState.OnChange -= StateHasChanged;
+
+    private async Task LoadNotifications()
+    {
+        _loading = true;
+        StateHasChanged();
+        var result = await NotificationsClient.GetNotificationsAsync(unreadOnly: false);
+        _notifications = result?.Items.Take(8).ToList() ?? [];
+        _loading = false;
+    }
+
+    private async Task OpenNotification(VietPropEstate.Application.Features.Notifications.DTOs.NotificationDto notif)
+    {
+        _menuOpen = false;
+
+        if (!notif.IsRead)
+        {
+            await NotificationsClient.MarkAsReadAsync(notif.Id);
+            NotificationState.DecrementNotification();
+        }
+
+        var url = NotificationNavigation.GetUrl(notif);
+        if (!string.IsNullOrEmpty(url))
+            Nav.NavigateTo(url);
+    }
+
+    private void ViewAllNotifications()
+    {
+        _menuOpen = false;
+        Nav.NavigateTo("/dashboard/thong-bao");
+    }
+
+    private string? GetBadgeText() =>
+        NotificationState.TotalUnread > 9 ? "9+" : NotificationState.TotalUnread.ToString();
+
+    private static string GetIcon(VietPropEstate.Domain.Enums.NotificationType type) => type switch
+    {
+        VietPropEstate.Domain.Enums.NotificationType.MessageReceived => Icons.Material.Filled.Message,
+        VietPropEstate.Domain.Enums.NotificationType.PaymentConfirmation => Icons.Material.Filled.CreditCard,
+        VietPropEstate.Domain.Enums.NotificationType.VIPPackageActivated => Icons.Material.Filled.Star,
+        VietPropEstate.Domain.Enums.NotificationType.PropertyApproved => Icons.Material.Filled.CheckCircle,
+        _ => Icons.Material.Filled.Notifications
+    };
+
+    private static string FormatTimeAgo(DateTime date)
+    {
+        var diff = DateTime.UtcNow - date;
+        if (diff.TotalMinutes < 1) return "Vừa xong";
+        if (diff.TotalHours < 1) return $"{(int)diff.TotalMinutes} phút trước";
+        if (diff.TotalDays < 1) return $"{(int)diff.TotalHours} giờ trước";
+        if (diff.TotalDays < 7) return $"{(int)diff.TotalDays} ngày trước";
+        return date.ToLocalTime().ToString("dd/MM/yyyy");
+    }
+}

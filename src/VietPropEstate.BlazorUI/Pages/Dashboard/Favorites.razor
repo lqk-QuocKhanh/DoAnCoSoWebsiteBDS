@@ -1,0 +1,61 @@
+@page "/dashboard/yeu-thich"
+@layout DashboardLayout
+@inject IDashboardApiClient DashboardClient
+@inject IFavoritesApiClient FavoritesClient
+@inject ISnackbar Snackbar
+
+<PageTitle>Tin yêu thích - VietPropEstate</PageTitle>
+
+<MudText Typo="Typo.h5" Style="font-weight:700; margin-bottom:8px;">Tin yêu thích</MudText>
+<MudText Typo="Typo.body2" Style="color:#64748B; margin-bottom:32px;">Các bất động sản bạn đã lưu</MudText>
+
+@if (_loading)
+{
+    <MudGrid>
+        <LoadingSkeleton Count="6" Type="card" Xs="12" Sm="6" Md="4" />
+    </MudGrid>
+}
+else if (_favorites?.Items.Count == 0)
+{
+    <EmptyState Icon="@Icons.Material.Outlined.FavoriteBorder"
+                Title="Chưa có tin yêu thích"
+                Subtitle="Nhấn nút tim trên các bất động sản để lưu vào danh sách yêu thích"
+                ActionText="Tìm bất động sản" ActionHref="/bat-dong-san" />
+}
+else
+{
+    <MudGrid>
+        @foreach (var item in _favorites!.Items)
+        {
+            <MudItem xs="12" sm="6" md="4">
+                <PropertyCard Property="@item"
+                              IsFavorited="true"
+                              OnFavoriteToggled="@HandleFavoriteToggled" />
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+@code {
+    private VietPropEstate.Application.Common.Models.PaginatedList<PropertyDto>? _favorites;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync() => await LoadFavorites();
+
+    private async Task LoadFavorites()
+    {
+        _loading = true;
+        _favorites = await DashboardClient.GetFavoritesAsync();
+        _loading = false;
+    }
+
+    private async Task HandleFavoriteToggled(Guid propertyId)
+    {
+        var added = await FavoritesClient.ToggleFavoriteAsync(propertyId);
+        if (!added)
+        {
+            Snackbar.Add("Đã xóa khỏi danh sách yêu thích", Severity.Normal);
+            await LoadFavorites();
+        }
+    }
+}

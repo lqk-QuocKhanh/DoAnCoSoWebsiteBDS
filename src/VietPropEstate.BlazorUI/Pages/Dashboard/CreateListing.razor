@@ -1,0 +1,450 @@
+@page "/dashboard/tin-dang/them-moi"
+@layout DashboardLayout
+@using Microsoft.AspNetCore.Components.Forms
+@using VietPropEstate.Application.Features.Properties.Commands.CreateProperty
+@using VietPropEstate.Application.Features.Properties.DTOs
+@using VietPropEstate.Domain.Enums
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
+@inject IPropertyApiService PropertyService
+@inject IAuthApiClient AuthClient
+@inject AuthState AuthState
+
+<PageTitle>Đăng tin mới - VietPropEstate</PageTitle>
+
+@if (!AuthState.CanPostListings)
+{
+    <MudAlert Severity="Severity.Warning" Class="mb-4">
+        Tài khoản của bạn không có quyền đăng tin. Khách hàng cần xác thực SĐT; Môi giới có thể đăng tin trực tiếp.
+    </MudAlert>
+    <MudButton Href="/dashboard" Variant="Variant.Filled" Color="Color.Primary">Về tổng quan</MudButton>
+}
+else if (_checkingPhone)
+{
+    <div class="d-flex justify-center pa-8">
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+    </div>
+}
+else if (!_phoneVerified)
+{
+    <div class="mb-6">
+        <MudText Typo="Typo.h5" Style="font-weight:700;">Đăng tin mới</MudText>
+        <MudText Typo="Typo.body2" Style="color:#64748B;">Xác thực số điện thoại để tiếp tục</MudText>
+    </div>
+    <PhoneVerificationGate OnVerified="@OnPhoneVerified" />
+}
+else
+{
+
+<div class="mb-6">
+    <MudText Typo="Typo.h5" Style="font-weight:700;">Đăng tin mới</MudText>
+    <MudText Typo="Typo.body2" Style="color:#64748B;">Điền thông tin để đăng tin bất động sản của bạn</MudText>
+</div>
+
+<!-- Step indicator -->
+<div class="step-indicator mb-6">
+    @for (int i = 0; i < _steps.Length; i++)
+    {
+        var idx = i;
+        <div class="step-dot @(idx == _step ? "active" : idx < _step ? "completed" : "pending")">
+            @if (idx < _step)
+            {
+                <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" />
+            }
+            else
+            {
+                <span>@(idx + 1)</span>
+            }
+        </div>
+        @if (i < _steps.Length - 1)
+        {
+            <div class="step-line @(i < _step ? "completed" : "")"></div>
+        }
+    }
+</div>
+
+<!-- Step label -->
+<MudText Typo="Typo.h6" Style="font-weight:700; margin-bottom:24px;">
+    Bước @(_step + 1): @_steps[_step]
+</MudText>
+
+<MudPaper Elevation="0" Style="border:1px solid #E2E8F0; border-radius:20px; padding:32px;">
+
+    @if (_step == 0)
+    {
+        <!-- Step 1: Basic info -->
+        <MudGrid Spacing="3">
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.Title" Label="Tiêu đề tin đăng *" Variant="Variant.Outlined"
+                              Placeholder="VD: Căn hộ 2 phòng ngủ tại Quận 1, TP. HCM"
+                              HelperText="Tiêu đề hấp dẫn giúp tin đăng hiển thị nhiều hơn" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSelect T="Guid" @bind-Value="_form.PropertyTypeId" Label="Loại bất động sản *" Variant="Variant.Outlined">
+                    @foreach (var type in _propertyTypes)
+                    {
+                        <MudSelectItem Value="@type.Id">@GetPropertyTypeLabel(type.Name)</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSelect T="string" @bind-Value="_form.ListingType" Label="Hình thức *" Variant="Variant.Outlined">
+                    <MudSelectItem Value="@("ForSale")">Bán</MudSelectItem>
+                    <MudSelectItem Value="@("ForRent")">Cho thuê</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.Description" Label="Mô tả chi tiết" Variant="Variant.Outlined"
+                              Lines="6" Placeholder="Mô tả chi tiết về bất động sản, vị trí, nội thất, tiện ích..." />
+            </MudItem>
+        </MudGrid>
+    }
+    else if (_step == 1)
+    {
+        <!-- Step 2: Address -->
+        <MudGrid Spacing="3">
+            <MudItem xs="12">
+                <AddressSelector ShowStreet="true"
+                                 ProvinceCode="@_form.ProvinceCode"
+                                 WardCode="@_form.WardCode"
+                                 StreetAddress="@_form.Street"
+                                 ProvinceChanged="@(e => { _form.ProvinceCode = e.Code; _form.ProvinceName = e.Name; })"
+                                 WardChanged="@(e => { _form.WardCode = e.Code; _form.WardName = e.Name; })"
+                                 StreetAddressChanged="@(v => _form.Street = v)" />
+            </MudItem>
+        </MudGrid>
+    }
+    else if (_step == 2)
+    {
+        <!-- Step 3: Price & specs -->
+        <MudGrid Spacing="3">
+            <MudItem xs="12" sm="6">
+                <MudNumericField T="decimal" @bind-Value="_form.Price" Label="Giá (VND) *" Variant="Variant.Outlined"
+                                 Min="0" Format="N0" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField T="decimal" @bind-Value="_form.Area" Label="Diện tích (m²) *" Variant="Variant.Outlined"
+                                 Min="0" />
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudNumericField T="int?" @bind-Value="_form.Bedrooms" Label="Phòng ngủ" Variant="Variant.Outlined" Min="0" />
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudNumericField T="int?" @bind-Value="_form.Bathrooms" Label="Phòng tắm" Variant="Variant.Outlined" Min="0" />
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudNumericField T="int?" @bind-Value="_form.Floors" Label="Số tầng" Variant="Variant.Outlined" Min="0" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSelect T="string" @bind-Value="_form.Direction" Label="Hướng nhà" Variant="Variant.Outlined" Clearable="true">
+                    @foreach (var d in new[] { "Bắc", "Nam", "Đông", "Tây", "Đông Bắc", "Đông Nam", "Tây Bắc", "Tây Nam" })
+                    {
+                        <MudSelectItem Value="@d">@d</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+        </MudGrid>
+    }
+    else if (_step == 3)
+    {
+        <!-- Step 4: Images -->
+        <div style="border:2px dashed #E2E8F0; border-radius:16px; padding:40px; text-align:center;">
+            <MudIcon Icon="@Icons.Material.Outlined.CloudUpload" Style="font-size:56px; color:#B91C1C; margin-bottom:16px;" />
+            <MudText Typo="Typo.subtitle1" Style="font-weight:700; margin-bottom:8px;">Tải ảnh lên</MudText>
+            <MudText Style="color:#64748B; margin-bottom:24px; font-size:14px;">
+                Ảnh đầu tiên sẽ là ảnh đại diện. Chấp nhận JPG, PNG, WebP. Tối đa 10 ảnh.
+            </MudText>
+            <InputFile OnChange="OnFilesSelected" multiple accept="image/jpeg,image/png,image/webp"
+                       style="max-width:280px; margin:0 auto;" />
+            @if (_form.ImageUrls.Count > 0)
+            {
+                <div class="d-flex flex-wrap mt-4" style="gap:8px; justify-content:center;">
+                    @foreach (var url in _form.ImageUrls)
+                    {
+                        <img src="@url" style="width:100px;height:75px;object-fit:cover;border-radius:8px;" alt="" />
+                    }
+                </div>
+            }
+        </div>
+        <MudTextField @bind-Value="_form.VideoUrl" Label="Link video (YouTube/TikTok)" Variant="Variant.Outlined"
+                      Class="mt-4" Placeholder="https://youtube.com/..." />
+    }
+    else
+    {
+        <!-- Step 5: Preview -->
+        <div style="text-align:center; padding:20px 0;">
+            <div style="width:72px;height:72px;background:#DCFCE7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Style="color:#16A34A; font-size:40px;" />
+            </div>
+            <MudText Typo="Typo.h6" Style="font-weight:700; margin-bottom:12px;">Sẵn sàng đăng tin!</MudText>
+            <MudText Style="color:#64748B; margin-bottom:24px;">Kiểm tra lại thông tin trước khi đăng</MudText>
+
+            <MudPaper Elevation="0" Style="background:#F8FAFC; border-radius:16px; padding:20px; text-align:left;">
+                <MudText Typo="Typo.subtitle2" Style="font-weight:700;">@_form.Title</MudText>
+                <MudText Typo="Typo.body2" Style="color:#B91C1C; font-weight:700; font-size:18px; margin:8px 0;">@($"{_form.Price:N0} VND")</MudText>
+                <MudText Typo="Typo.caption" Style="color:#64748B;">@_form.ProvinceName</MudText>
+            </MudPaper>
+        </div>
+    }
+</MudPaper>
+
+<!-- Navigation buttons -->
+<div class="d-flex justify-content-between mt-6">
+    <MudButton Variant="Variant.Outlined" OnClick="@PreviousStep" Disabled="@(_step == 0)"
+               Style="border-radius:10px; font-weight:600;">
+        ← Quay lại
+    </MudButton>
+    @if (_step < _steps.Length - 1)
+    {
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@NextStep"
+                   Style="border-radius:10px; font-weight:600;">
+            Tiếp theo →
+        </MudButton>
+    }
+    else
+    {
+        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="@Submit"
+                   Disabled="@_submitting" StartIcon="@Icons.Material.Filled.Publish"
+                   Style="border-radius:10px; font-weight:600;">
+            @(_submitting ? "Đang đăng..." : "Đăng tin ngay")
+        </MudButton>
+    }
+</div>
+
+}
+
+@code {
+    private int _step;
+    private bool _submitting;
+    private bool _checkingPhone = true;
+    private bool _phoneVerified = true;
+    private readonly string[] _steps = ["Thông tin cơ bản", "Địa chỉ", "Giá & thông số", "Hình ảnh", "Xem trước & đăng"];
+    private List<PropertyTypeDto> _propertyTypes = [];
+    private readonly List<PendingImage> _pendingImages = [];
+
+    private readonly ListingForm _form = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckPhoneVerificationAsync();
+
+        _propertyTypes = await PropertyService.GetPropertyTypesAsync();
+        if (_propertyTypes.Count > 0)
+            _form.PropertyTypeId = _propertyTypes[0].Id;
+    }
+
+    private async Task CheckPhoneVerificationAsync()
+    {
+        _checkingPhone = true;
+
+        if (!AuthState.IsAuthenticated || !AuthState.RequiresPhoneVerificationToPost)
+        {
+            _phoneVerified = true;
+            _checkingPhone = false;
+            return;
+        }
+
+        var profile = await AuthClient.GetProfileAsync();
+        _phoneVerified = profile?.PhoneNumberConfirmed == true;
+        _checkingPhone = false;
+    }
+
+    private async Task OnPhoneVerified()
+    {
+        await CheckPhoneVerificationAsync();
+    }
+
+    private void NextStep()
+    {
+        if (!ValidateCurrentStep())
+            return;
+
+        if (_step < _steps.Length - 1)
+            _step++;
+    }
+
+    private void PreviousStep()
+    {
+        if (_step > 0)
+            _step--;
+    }
+
+    private bool ValidateCurrentStep()
+    {
+        switch (_step)
+        {
+            case 0 when string.IsNullOrWhiteSpace(_form.Title):
+                Snackbar.Add("Vui lòng nhập tiêu đề tin đăng.", Severity.Warning);
+                return false;
+            case 0 when _form.PropertyTypeId == Guid.Empty:
+                Snackbar.Add("Vui lòng chọn loại bất động sản.", Severity.Warning);
+                return false;
+            case 1 when !_form.ProvinceCode.HasValue:
+                Snackbar.Add("Vui lòng chọn tỉnh/thành phố.", Severity.Warning);
+                return false;
+            case 1 when !_form.WardCode.HasValue:
+                Snackbar.Add("Vui lòng chọn phường/xã.", Severity.Warning);
+                return false;
+            case 1 when string.IsNullOrWhiteSpace(_form.Street):
+                Snackbar.Add("Vui lòng nhập địa chỉ chi tiết.", Severity.Warning);
+                return false;
+            case 2 when _form.Price <= 0:
+                Snackbar.Add("Vui lòng nhập giá hợp lệ.", Severity.Warning);
+                return false;
+            case 2 when _form.Area <= 0:
+                Snackbar.Add("Vui lòng nhập diện tích hợp lệ.", Severity.Warning);
+                return false;
+        }
+
+        return true;
+    }
+
+    private async Task OnFilesSelected(InputFileChangeEventArgs e)
+    {
+        foreach (var file in e.GetMultipleFiles(10 - _pendingImages.Count))
+        {
+            if (file.Size > 5 * 1024 * 1024)
+            {
+                Snackbar.Add($"Ảnh {file.Name} vượt quá 5MB.", Severity.Warning);
+                continue;
+            }
+
+            await using var stream = file.OpenReadStream(5 * 1024 * 1024);
+            using var memory = new MemoryStream();
+            await stream.CopyToAsync(memory);
+
+            var bytes = memory.ToArray();
+            _pendingImages.Add(new PendingImage(bytes, file.Name, file.ContentType));
+            _form.ImageUrls.Add($"data:{file.ContentType};base64,{Convert.ToBase64String(bytes)}");
+        }
+    }
+
+    private async Task Submit()
+    {
+        if (!ValidateCurrentStep())
+            return;
+
+        _submitting = true;
+
+        try
+        {
+            var command = new CreatePropertyCommand
+            {
+                Title = _form.Title.Trim(),
+                Description = _form.Description,
+                Price = _form.Price,
+                Currency = "VND",
+                Area = _form.Area,
+                ListingType = Enum.Parse<ListingType>(_form.ListingType),
+                NumberOfBedrooms = _form.Bedrooms,
+                NumberOfBathrooms = _form.Bathrooms,
+                NumberOfFloors = _form.Floors,
+                Direction = ParseDirection(_form.Direction),
+                Street = _form.Street ?? "",
+                Province = _form.ProvinceName ?? "",
+                Ward = _form.WardName ?? _form.ProvinceName ?? "N/A",
+                District = _form.ProvinceName ?? "N/A",
+                ProvinceCode = _form.ProvinceCode,
+                ProvinceName = _form.ProvinceName,
+                WardCode = _form.WardCode,
+                WardName = _form.WardName,
+                PropertyTypeId = _form.PropertyTypeId,
+                VideoUrl = _form.VideoUrl,
+                AgentId = Guid.Empty
+            };
+
+            var propertyId = await PropertyService.CreatePropertyAsync(command);
+            if (!propertyId.HasValue)
+            {
+                Snackbar.Add("Không thể tạo tin đăng. Vui lòng kiểm tra đăng nhập và thử lại.", Severity.Error);
+                return;
+            }
+
+            if (_pendingImages.Count > 0)
+            {
+                var uploads = _pendingImages.Select(p => new PropertyImageUpload
+                {
+                    Content = new MemoryStream(p.Bytes, writable: false),
+                    FileName = p.FileName,
+                    ContentType = p.ContentType
+                }).ToList();
+
+                var uploaded = await PropertyService.UploadPropertyImagesAsync(propertyId.Value, uploads);
+                if (!uploaded)
+                {
+                    Snackbar.Add("Tin đã tạo nhưng tải ảnh thất bại.", Severity.Warning);
+                    return;
+                }
+            }
+
+            var submitted = await PropertyService.SubmitPropertyAsync(propertyId.Value);
+            if (!submitted)
+            {
+                Snackbar.Add("Tin đã tạo nhưng không thể gửi duyệt. Vui lòng thử lại từ trang tin đăng.", Severity.Warning);
+                return;
+            }
+
+            Snackbar.Add("Tin đăng đã gửi và đang chờ Admin duyệt.", Severity.Success);
+            Nav.NavigateTo("/dashboard/tin-dang");
+        }
+        catch (UnauthorizedAccessException)
+        {
+            Snackbar.Add("Tài khoản của bạn chưa có quyền đăng tin. Vui lòng đăng nhập lại hoặc liên hệ hỗ trợ.", Severity.Error);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Không thể tạo tin đăng. Vui lòng kiểm tra đăng nhập và thử lại.", Severity.Error);
+        }
+        finally
+        {
+            _submitting = false;
+        }
+    }
+
+    private static PropertyDirection? ParseDirection(string? label) => label switch
+    {
+        "Bắc" => PropertyDirection.North,
+        "Nam" => PropertyDirection.South,
+        "Đông" => PropertyDirection.East,
+        "Tây" => PropertyDirection.West,
+        "Đông Bắc" => PropertyDirection.NorthEast,
+        "Đông Nam" => PropertyDirection.SouthEast,
+        "Tây Bắc" => PropertyDirection.NorthWest,
+        "Tây Nam" => PropertyDirection.SouthWest,
+        _ => null
+    };
+
+    private static string GetPropertyTypeLabel(string name) => name switch
+    {
+        "Apartment" => "Căn hộ",
+        "House" => "Nhà phố",
+        "Villa" => "Biệt thự",
+        "Land" => "Đất nền",
+        "Office" => "Văn phòng",
+        "Motel" => "Phòng trọ",
+        _ => name
+    };
+
+    private sealed class ListingForm
+    {
+        public string Title { get; set; } = "";
+        public string? Description { get; set; }
+        public Guid PropertyTypeId { get; set; }
+        public string ListingType { get; set; } = "ForSale";
+        public string? Street { get; set; }
+        public int? ProvinceCode { get; set; }
+        public string? ProvinceName { get; set; }
+        public int? WardCode { get; set; }
+        public string? WardName { get; set; }
+        public decimal Price { get; set; }
+        public decimal Area { get; set; }
+        public int? Bedrooms { get; set; }
+        public int? Bathrooms { get; set; }
+        public int? Floors { get; set; }
+        public string? Direction { get; set; }
+        public string? VideoUrl { get; set; }
+        public List<string> ImageUrls { get; set; } = [];
+    }
+
+    private sealed record PendingImage(byte[] Bytes, string FileName, string ContentType);
+}

@@ -1,0 +1,48 @@
+@for (int i = 0; i < Count; i++)
+{
+    <MudItem xs="@Xs" sm="@Sm" md="@Md" lg="@Lg">
+        @if (Type == "card")
+        {
+            <MudCard Style="border-radius:20px; overflow:hidden;">
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="220px" />
+                <MudCardContent>
+                    <MudSkeleton Width="40%" Height="14px" Class="mb-2" />
+                    <MudSkeleton Width="90%" Height="18px" Class="mb-1" />
+                    <MudSkeleton Width="75%" Height="18px" Class="mb-3" />
+                    <MudSkeleton Width="60%" Height="14px" />
+                </MudCardContent>
+                <MudCardActions>
+                    <MudSkeleton Width="30%" Height="14px" />
+                    <MudSpacer />
+                    <MudSkeleton Width="20%" Height="14px" />
+                </MudCardActions>
+            </MudCard>
+        }
+        else if (Type == "list")
+        {
+            <div style="display:flex; gap:16px; padding:16px; background:#fff; border-radius:12px; margin-bottom:12px;">
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="120px" Height="90px" Style="border-radius:8px; flex-shrink:0;" />
+                <div style="flex:1;">
+                    <MudSkeleton Width="80%" Height="16px" Class="mb-2" />
+                    <MudSkeleton Width="50%" Height="20px" Class="mb-2" />
+                    <MudSkeleton Width="70%" Height="14px" />
+                </div>
+            </div>
+        }
+        else
+        {
+            <MudSkeleton Height="@Height" Width="@Width" />
+        }
+    </MudItem>
+}
+
+@code {
+    [Parameter] public int Count { get; set; } = 6;
+    [Parameter] public string Type { get; set; } = "card"; // "card" | "list" | "text"
+    [Parameter] public int Xs { get; set; } = 12;
+    [Parameter] public int Sm { get; set; } = 6;
+    [Parameter] public int Md { get; set; } = 4;
+    [Parameter] public int Lg { get; set; } = 4;
+    [Parameter] public string Height { get; set; } = "200px";
+    [Parameter] public string Width { get; set; } = "100%";
+}

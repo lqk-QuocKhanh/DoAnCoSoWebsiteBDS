@@ -1,0 +1,59 @@
+@inherits LayoutComponentBase
+@inject AuthState AuthState
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+
+<div class="public-layout">
+    <!-- Header -->
+    <AppHeader OnMobileMenuToggle="@ToggleMobileDrawer" />
+
+    <!-- Mobile drawer -->
+    <MudDrawer @bind-Open="_mobileOpen" Anchor="Anchor.Left" Elevation="4"
+               Variant="DrawerVariant.Temporary" ClipMode="DrawerClipMode.Never"
+               Style="z-index:1300;">
+        <MudDrawerHeader Class="d-flex align-items-center pa-4" Style="background: linear-gradient(135deg,#7F1D1D,#B91C1C);">
+            <MudIcon Icon="@Icons.Material.Filled.Home" Style="color:#fff;" Class="mr-2" />
+            <MudText Typo="Typo.h6" Style="color:#fff; font-weight:700;">VietPropEstate</MudText>
+            <MudSpacer />
+            <MudIconButton Icon="@Icons.Material.Filled.Close" Style="color:#fff;" OnClick="@(() => _mobileOpen = false)" />
+        </MudDrawerHeader>
+        <MudNavMenu Class="pa-2">
+            <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home" OnClick="@CloseMobileDrawer">Trang chủ</MudNavLink>
+            <MudNavLink Href="/bat-dong-san" Icon="@Icons.Material.Filled.Apartment" OnClick="@CloseMobileDrawer">Bất động sản</MudNavLink>
+            <MudNavLink Href="/bat-dong-san?listingType=1" Icon="@Icons.Material.Filled.Sell" OnClick="@CloseMobileDrawer">Mua bán</MudNavLink>
+            <MudNavLink Href="/bat-dong-san?listingType=2" Icon="@Icons.Material.Filled.House" OnClick="@CloseMobileDrawer">Cho thuê</MudNavLink>
+            <MudDivider Class="my-2" />
+            @if (AuthState.IsAuthenticated)
+            {
+                <MudNavLink Href="/dashboard" Icon="@Icons.Material.Filled.Dashboard" OnClick="@CloseMobileDrawer">Bảng điều khiển</MudNavLink>
+                <MudNavLink Href="/dashboard/tin-dang/them-moi" Icon="@Icons.Material.Filled.AddHome" OnClick="@CloseMobileDrawer">Đăng tin</MudNavLink>
+            }
+            else
+            {
+                <MudNavLink Href="/dang-nhap" Icon="@Icons.Material.Filled.Login" OnClick="@CloseMobileDrawer">Đăng nhập</MudNavLink>
+                <MudNavLink Href="/dang-ky" Icon="@Icons.Material.Filled.PersonAdd" OnClick="@CloseMobileDrawer">Đăng ký</MudNavLink>
+            }
+        </MudNavMenu>
+    </MudDrawer>
+
+    <!-- Main content -->
+    <main class="public-main">
+        @Body
+    </main>
+
+    <!-- Footer -->
+    <AppFooter />
+
+    <SupportChatBubble />
+</div>
+
+<style>
+    .public-layout { display: flex; flex-direction: column; min-height: 100vh; }
+    .public-main { flex: 1; }
+</style>
+
+@code {
+    private bool _mobileOpen;
+    private void ToggleMobileDrawer() => _mobileOpen = !_mobileOpen;
+    private void CloseMobileDrawer() => _mobileOpen = false;
+}

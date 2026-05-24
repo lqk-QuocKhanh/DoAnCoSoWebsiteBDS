@@ -1,0 +1,85 @@
+@inject ISnackbar Snackbar
+
+<div class="package-card @(IsSelected ? "selected" : "") @(IsRecommended ? "recommended" : "")"
+     @onclick="@OnSelect">
+    @if (IsRecommended)
+    {
+        <div class="package-recommended-badge">Phổ biến nhất</div>
+    }
+
+    <!-- Icon -->
+    <div style="width:56px;height:56px;border-radius:16px;background:@($"{(IsRecommended ? "#D97706" : "#B91C1C")}20");display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+        <MudIcon Icon="@GetIcon()" Style="@($"color:{(IsRecommended ? "#D97706" : "#B91C1C")}; font-size:28px;")" />
+    </div>
+
+    <!-- Name -->
+    <MudText Typo="Typo.h6" Style="font-weight:700; margin-bottom:8px;">@Package.Name</MudText>
+
+    <!-- Price -->
+    <div Style="margin-bottom:8px;">
+        <span style="font-size:28px; font-weight:800; color:@(IsRecommended ? "#D97706" : "#B91C1C");">
+            @FormatPrice(Package.Price)
+        </span>
+    </div>
+
+    <MudText Typo="Typo.caption" Style="color:#64748B; display:block; margin-bottom:16px;">
+        @Package.DurationDays ngày · @GetListingLabel()
+    </MudText>
+
+    @if (!string.IsNullOrEmpty(Package.Description))
+    {
+        <MudText Typo="Typo.body2" Style="color:#64748B; font-size:13px; margin-bottom:20px; line-height:1.5;">
+            @Package.Description
+        </MudText>
+    }
+
+    <!-- Features list -->
+    <div class="d-flex flex-column" style="gap:8px; margin-bottom:24px;">
+        <div class="d-flex align-items-center" style="gap:8px;">
+            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Style="color:#16A34A;" />
+            <MudText Typo="Typo.caption" Style="color:#374151;">@GetListingLabel()</MudText>
+        </div>
+        <div class="d-flex align-items-center" style="gap:8px;">
+            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Style="color:#16A34A;" />
+            <MudText Typo="Typo.caption" Style="color:#374151;">Hiệu lực @Package.DurationDays ngày</MudText>
+        </div>
+        <div class="d-flex align-items-center" style="gap:8px;">
+            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Style="color:#16A34A;" />
+            <MudText Typo="Typo.caption" Style="color:#374151;">Hỗ trợ 24/7</MudText>
+        </div>
+    </div>
+
+    <!-- Button -->
+    <MudButton Variant="Variant.Filled" FullWidth="true"
+               Style="@($"background:{(IsRecommended ? "#D97706" : "#B91C1C")}; color:#fff; border-radius:12px; font-weight:700;")"
+               OnClick="@OnBuyClick">
+        Mua ngay
+    </MudButton>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public VIPPackageDto Package { get; set; } = default!;
+    [Parameter] public bool IsRecommended { get; set; }
+    [Parameter] public bool IsSelected { get; set; }
+    [Parameter] public EventCallback<VIPPackageDto> OnSelected { get; set; }
+    [Parameter] public EventCallback<VIPPackageDto> OnBuyClicked { get; set; }
+
+    private async Task OnSelect() => await OnSelected.InvokeAsync(Package);
+
+    private async Task OnBuyClick()
+    {
+        await OnBuyClicked.InvokeAsync(Package);
+    }
+
+    private string GetIcon() => Package.MaxListings >= 99 ? Icons.Material.Filled.Star
+        : Package.MaxListings >= 30 ? Icons.Material.Filled.WorkspacePremium
+        : Package.MaxListings >= 10 ? Icons.Material.Filled.Verified
+        : Icons.Material.Filled.CheckBox;
+
+    private string GetListingLabel() => Package.MaxListings >= 99
+        ? "Không giới hạn tin"
+        : $"Tối đa {Package.MaxListings} tin đăng";
+
+    private static string FormatPrice(decimal price) =>
+        price >= 1_000_000 ? $"{price / 1_000_000:N0}đ/gói" : $"{price:N0}đ";
+}

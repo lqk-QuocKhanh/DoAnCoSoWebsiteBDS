@@ -1,0 +1,456 @@
+@page "/bat-dong-san/{Slug}"
+@layout PublicLayout
+@inject IPropertyApiService PropertyService
+@inject IFavoritesApiClient FavoritesClient
+@inject IChatApiClient ChatClient
+@inject AuthState AuthState
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
+@inject IDialogService DialogService
+
+<PageTitle>@(_property?.Title ?? "Đang tải...") - VietPropEstate</PageTitle>
+
+@if (_loading)
+{
+    <div style="max-width:1200px; margin:0 auto; padding:32px 24px;">
+        <MudGrid>
+            <MudItem xs="12" md="8">
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="480px" Style="border-radius:20px; margin-bottom:24px;" />
+                <MudSkeleton Width="80%" Height="32px" Class="mb-2" />
+                <MudSkeleton Width="60%" Height="24px" Class="mb-4" />
+                <MudSkeleton Height="120px" />
+            </MudItem>
+            <MudItem xs="12" md="4">
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="280px" Style="border-radius:20px;" />
+            </MudItem>
+        </MudGrid>
+    </div>
+    return;
+}
+
+@if (_property == null)
+{
+    <div style="max-width:1200px; margin:0 auto; padding:32px 24px;">
+        <EmptyState Icon="@Icons.Material.Outlined.HomeWork"
+                    Title="Không tìm thấy bất động sản"
+                    Subtitle="Bất động sản bạn đang tìm không tồn tại hoặc đã bị xóa"
+                    ActionText="Xem danh sách BĐS" ActionHref="/bat-dong-san" />
+    </div>
+    return;
+}
+
+<div class="urbn-detail-page">
+    <MudBreadcrumbs Items="@_breadcrumbs" Class="mb-4 pa-0" />
+
+    @if (_images.Count > 0)
+    {
+        <div class="urbn-gallery-grid">
+            <div class="urbn-gallery-main urbn-gallery-cell" role="button" tabindex="0" @onclick="OpenGallery" @onkeydown="OnGalleryKeyDown">
+                <PropertyImage Url="@_images[0]" Alt="@_property.Title" />
+            </div>
+            @if (_images.Count > 1)
+            {
+                <div class="urbn-gallery-stack">
+                    <div class="urbn-gallery-cell" role="button" tabindex="0" @onclick="OpenGallery" @onkeydown="OnGalleryKeyDown">
+                        <PropertyImage Url="@_images[Math.Min(1, _images.Count - 1)]" Alt="@_property.Title" />
+                    </div>
+                    @if (_images.Count > 2)
+                    {
+                        <div class="urbn-gallery-cell" role="button" tabindex="0" @onclick="OpenGallery" @onkeydown="OnGalleryKeyDown">
+                            <PropertyImage Url="@_images[Math.Min(2, _images.Count - 1)]" Alt="@_property.Title" />
+                        </div>
+                    }
+                </div>
+            }
+            @if (_images.Count > 3)
+            {
+                <div class="urbn-gallery-side urbn-gallery-cell" role="button" tabindex="0" @onclick="OpenGallery" @onkeydown="OnGalleryKeyDown">
+                    <PropertyImage Url="@_images[3]" Alt="@_property.Title" />
+                </div>
+            }
+            @if (_images.Count > 1)
+            {
+                <button type="button" class="urbn-gallery-all-btn" @onclick="OpenGallery">Xem tất cả @_images.Count ảnh</button>
+            }
+        </div>
+    }
+
+    <div class="urbn-detail-layout">
+        <div>
+            <div class="d-flex align-items-center" style="gap:12px; margin-bottom:16px;">
+                <MudIconButton Icon="@(_isFavorited ? Icons.Material.Filled.Favorite : Icons.Material.Outlined.FavoriteBorder)"
+                               OnClick="@ToggleFavorite" Style="border:1px solid #E2E8F0;" />
+                <MudIconButton Icon="@Icons.Material.Outlined.Share" Style="border:1px solid #E2E8F0;" />
+            </div>
+
+            <p class="urbn-detail-price">@FormatPrice(_property.PriceAmount, _property.PriceCurrency)</p>
+            @if (_property.Area > 0 && _property.PriceAmount > 0)
+            {
+                <p style="color:#64748B; font-size:14px; margin:0 0 8px;">
+                    @FormatPricePerM2(_property.PriceAmount, _property.Area) / m²
+                </p>
+            }
+            <p style="color:#64748B; font-size:14px; margin:0;">
+                <MudIcon Icon="@Icons.Material.Outlined.LocationOn" Size="Size.Small" Style="vertical-align:middle;" />
+                @(_property.FullAddress ?? $"{_property.WardName}, {_property.ProvinceName}")
+            </p>
+
+            <div class="urbn-detail-specs">
+                @if (_property.Area > 0)
+                {
+                    <div class="urbn-detail-spec">
+                        <span class="urbn-detail-spec-value">@_property.Area</span>
+                        <span class="urbn-detail-spec-label">m²</span>
+                    </div>
+                }
+                @if (_property.NumberOfFloors.HasValue)
+                {
+                    <div class="urbn-detail-spec">
+                        <span class="urbn-detail-spec-value">@_property.NumberOfFloors</span>
+                        <span class="urbn-detail-spec-label">Tầng</span>
+                    </div>
+                }
+                @if (_property.NumberOfBedrooms.HasValue)
+                {
+                    <div class="urbn-detail-spec">
+                        <span class="urbn-detail-spec-value">@_property.NumberOfBedrooms</span>
+                        <span class="urbn-detail-spec-label">Phòng ngủ</span>
+                    </div>
+                }
+                @if (_property.NumberOfBathrooms.HasValue)
+                {
+                    <div class="urbn-detail-spec">
+                        <span class="urbn-detail-spec-value">@_property.NumberOfBathrooms</span>
+                        <span class="urbn-detail-spec-label">Phòng tắm</span>
+                    </div>
+                }
+            </div>
+
+            <h2 class="urbn-detail-section-title">@_property.Title</h2>
+            @if (!string.IsNullOrEmpty(_property.Description))
+            {
+                <p class="urbn-detail-desc mb-6">@_property.Description</p>
+            }
+
+            <h3 class="urbn-detail-section-title">Thông tin chi tiết</h3>
+            <MudGrid>
+                @foreach (var detail in GetDetails())
+                {
+                    <MudItem xs="12" sm="6">
+                        <div class="d-flex justify-content-between" style="padding:12px 0; border-bottom:1px solid #F1F5F9;">
+                            <span style="color:#64748B; font-size:14px;">@detail.Label</span>
+                            <span style="font-weight:600; font-size:14px;">@detail.Value</span>
+                        </div>
+                    </MudItem>
+                }
+            </MudGrid>
+        </div>
+
+        <aside>
+            <div class="urbn-agent-card">
+                    <div style="text-align:center; margin-bottom:20px; padding-bottom:20px; border-bottom:1px solid #E2E8F0;">
+                        @if (!string.IsNullOrEmpty(_property.AgentUserId))
+                        {
+                            <div role="button" tabindex="0" class="poster-profile-link"
+                                 style="cursor:pointer; border-radius:12px; padding:4px; transition:background 0.15s; display:inline-block;"
+                                 @onclick="GoToPosterProfile"
+                                 @onkeydown="OnPosterProfileKeyDown">
+                                @if (!string.IsNullOrEmpty(_property.AgentAvatarUrl))
+                                {
+                                    <MudAvatar Style="width:64px; height:64px; margin:0 auto 12px; display:block;">
+                                        <MudImage Src="@_property.AgentAvatarUrl" Alt="@(_property.AgentName ?? "Người đăng")" ObjectFit="ObjectFit.Cover" />
+                                    </MudAvatar>
+                                }
+                                else
+                                {
+                                    <MudAvatar Style="background:linear-gradient(135deg,#B91C1C,#D97706); color:#fff; width:64px; height:64px; font-size:24px; font-weight:700; margin:0 auto 12px;">
+                                        @GetAgentInitials()
+                                    </MudAvatar>
+                                }
+                                <MudText Typo="Typo.subtitle1" Style="font-weight:700; color:#0F172A;">
+                                    @(_property.AgentName ?? "Người đăng tin")
+                                </MudText>
+                                <MudText Typo="Typo.caption" Style="color:#B91C1C; margin-top:4px; text-decoration:underline;">
+                                    Xem trang cá nhân & tin đã đăng
+                                </MudText>
+                            </div>
+                        }
+                        else
+                        {
+                            <MudAvatar Style="background:linear-gradient(135deg,#B91C1C,#D97706); color:#fff; width:64px; height:64px; font-size:24px; font-weight:700; margin:0 auto 12px;">
+                                @GetAgentInitials()
+                            </MudAvatar>
+                            <MudText Typo="Typo.subtitle1" Style="font-weight:700;">@(_property.AgentName ?? "Nhà môi giới")</MudText>
+                        }
+                        @if (!string.IsNullOrEmpty(_property.AgentEmail))
+                        {
+                            <MudText Typo="Typo.caption" Style="color:#64748B;">@_property.AgentEmail</MudText>
+                        }
+                    </div>
+
+                    <div class="d-flex flex-column" style="gap:0;">
+                        @if (!string.IsNullOrEmpty(_property.AgentPhone))
+                        {
+                            <a class="urbn-btn-black" href="@($"tel:{_property.AgentPhone}")">
+                                <MudIcon Icon="@Icons.Material.Filled.Phone" Size="Size.Small" /> Gọi điện
+                            </a>
+                        }
+                        <button type="button" class="urbn-btn-black" @onclick="@StartChat">
+                            <MudIcon Icon="@Icons.Material.Filled.Chat" Size="Size.Small" /> Nhắn tin
+                        </button>
+                        <button type="button" class="urbn-btn-outline" @onclick="@ToggleFavorite">
+                            @(_isFavorited ? "Đã lưu yêu thích" : "Lưu tin yêu thích")
+                        </button>
+                    </div>
+
+                <div style="margin-top:20px; padding-top:16px; border-top:1px solid #E2E8F0;">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span style="font-size:13px; color:#64748B;">@_property.ViewCount lượt xem</span>
+                        <span style="font-size:13px; color:#94A3B8;">@FormatDate(_property.CreatedAt)</span>
+                    </div>
+                    <MudChip T="string" Size="Size.Small" Style="@GetStatusStyle()">@GetStatusLabel()</MudChip>
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>
+
+<!-- Mobile sticky contact bar -->
+<div class="property-contact-sticky d-flex d-md-none" style="gap:8px;">
+    @if (!string.IsNullOrEmpty(_property?.AgentPhone))
+    {
+        <MudButton Variant="Variant.Filled" Color="Color.Success" Style="flex:1; border-radius:10px; font-weight:700;"
+                   StartIcon="@Icons.Material.Filled.Phone" Href="@($"tel:{_property.AgentPhone}")">
+            Gọi
+        </MudButton>
+    }
+    <MudButton Variant="Variant.Filled" Class="auth-btn-primary" Style="flex:1;"
+               StartIcon="@Icons.Material.Filled.Chat" OnClick="@StartChat">
+        Nhắn tin
+    </MudButton>
+    <MudIconButton Icon="@(_isFavorited ? Icons.Material.Filled.Favorite : Icons.Material.Outlined.FavoriteBorder)"
+                   Style="@($"border:2px solid {(_isFavorited ? "#0F172A" : "#E2E8F0")}; color:{(_isFavorited ? "#0F172A" : "#64748B")}; border-radius:10px;")"
+                   OnClick="@ToggleFavorite" />
+</div>
+
+@code {
+    [Parameter] public string Slug { get; set; } = default!;
+
+    private PropertyDetailDto? _property;
+    private bool _loading = true;
+    private bool _isFavorited;
+    private List<string> _images = [];
+
+    private List<BreadcrumbItem> _breadcrumbs = [
+        new BreadcrumbItem("Trang chủ", href: "/"),
+        new BreadcrumbItem("Bất động sản", href: "/bat-dong-san"),
+        new BreadcrumbItem("Chi tiết", href: null, disabled: true)
+    ];
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _property = null;
+
+        if (Guid.TryParse(Slug, out var id))
+            _property = await PropertyService.GetPropertyByIdAsync(id);
+        else
+            _property = await PropertyService.GetPropertyBySlugAsync(Slug);
+
+        if (_property == null)
+        {
+            _loading = false;
+            return;
+        }
+
+        _images = _property.Images.Select(i => i.Url).ToList();
+
+        if (AuthState.IsAuthenticated)
+            _isFavorited = await FavoritesClient.IsFavoritedAsync(_property.Id);
+
+        _loading = false;
+    }
+
+    private async Task StartChat()
+    {
+        if (!AuthState.IsAuthenticated)
+        {
+            Nav.NavigateTo("/dang-nhap");
+            return;
+        }
+
+        if (_property == null)
+            return;
+
+        if (string.IsNullOrEmpty(_property.AgentUserId))
+        {
+            Snackbar.Add("Không tìm thấy thông tin môi giới để nhắn tin.", Severity.Warning);
+            Nav.NavigateTo("/dashboard/tin-nhan");
+            return;
+        }
+
+        var conversation = await ChatClient.StartConversationAsync(
+            _property.Id,
+            _property.AgentUserId,
+            $"Xin chào, tôi quan tâm đến tin: {_property.Title}");
+
+        if (conversation is null)
+        {
+            Snackbar.Add("Không thể bắt đầu cuộc trò chuyện.", Severity.Error);
+            return;
+        }
+
+        Nav.NavigateTo($"/dashboard/tin-nhan?conversation={conversation.Id}");
+    }
+
+    private void GoToPosterProfile()
+    {
+        if (string.IsNullOrEmpty(_property?.AgentUserId))
+            return;
+
+        Nav.NavigateTo($"/nguoi-dang/{_property.AgentUserId}");
+    }
+
+    private void OnPosterProfileKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key is "Enter" or " ")
+            GoToPosterProfile();
+    }
+
+    private async Task ToggleFavorite()
+    {
+        if (!AuthState.IsAuthenticated)
+        {
+            Nav.NavigateTo("/dang-nhap");
+            return;
+        }
+
+        if (_property == null)
+            return;
+
+        var added = await FavoritesClient.ToggleFavoriteAsync(_property.Id);
+        _isFavorited = added;
+        Snackbar.Add(_isFavorited ? "Đã lưu vào yêu thích" : "Đã xóa khỏi yêu thích",
+            _isFavorited ? Severity.Success : Severity.Normal);
+    }
+
+    private async Task OpenGallery()
+    {
+        if (_images.Count == 0 || _property is null)
+            return;
+
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Large,
+            FullWidth = true,
+            CloseButton = true
+        };
+
+        await DialogService.ShowAsync<PropertyGalleryDialog>(
+            $"Hình ảnh ({_images.Count})",
+            new DialogParameters
+            {
+                [nameof(PropertyGalleryDialog.Title)] = _property.Title,
+                [nameof(PropertyGalleryDialog.Images)] = _images
+            },
+            options);
+    }
+
+    private void OnGalleryKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key is "Enter" or " ")
+            _ = OpenGallery();
+    }
+
+    private string GetAgentInitials()
+    {
+        var name = _property?.AgentName ?? "A";
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length >= 2 ? $"{parts[0][0]}{parts[^1][0]}" : name[..1].ToUpper();
+    }
+
+    private IEnumerable<(string Label, string Value)> GetDetails()
+    {
+        if (_property == null) yield break;
+        if (!string.IsNullOrEmpty(_property.PropertyTypeName)) yield return ("Loại BĐS", _property.PropertyTypeName);
+        if (!string.IsNullOrEmpty(_property.TransactionTypeName)) yield return ("Hình thức", _property.TransactionTypeName);
+        if (_property.Area > 0) yield return ("Diện tích", $"{_property.Area} m²");
+        if (_property.NumberOfBedrooms.HasValue) yield return ("Phòng ngủ", _property.NumberOfBedrooms.ToString()!);
+        if (_property.NumberOfBathrooms.HasValue) yield return ("Phòng tắm", _property.NumberOfBathrooms.ToString()!);
+        if (_property.NumberOfFloors.HasValue) yield return ("Số tầng", _property.NumberOfFloors.ToString()!);
+        if (_property.Direction.HasValue) yield return ("Hướng nhà", GetDirectionLabel(_property.Direction.Value));
+        if (_property.PublishedAt.HasValue) yield return ("Ngày đăng", _property.PublishedAt.Value.ToString("dd/MM/yyyy"));
+    }
+
+    private static string GetDirectionLabel(PropertyDirection d) => d switch
+    {
+        PropertyDirection.North => "Bắc",
+        PropertyDirection.South => "Nam",
+        PropertyDirection.East => "Đông",
+        PropertyDirection.West => "Tây",
+        PropertyDirection.NorthEast => "Đông Bắc",
+        PropertyDirection.NorthWest => "Tây Bắc",
+        PropertyDirection.SouthEast => "Đông Nam",
+        PropertyDirection.SouthWest => "Tây Nam",
+        _ => d.ToString()
+    };
+
+    private string GetListingTypeBadgeStyle() => _property?.ListingType switch
+    {
+        Domain.Enums.ListingType.ForSale => "background:#B91C1C; color:#fff;",
+        Domain.Enums.ListingType.ForRent => "background:#2563EB; color:#fff;",
+        _ => "background:#16A34A; color:#fff;"
+    };
+
+    private string GetListingTypeLabel() => _property?.ListingType switch
+    {
+        Domain.Enums.ListingType.ForSale => "Bán",
+        Domain.Enums.ListingType.ForRent => "Cho thuê",
+        _ => "BĐS"
+    };
+
+    private string GetStatusStyle() => _property?.Status switch
+    {
+        PropertyStatus.Active => "background:#DCFCE7; color:#16A34A;",
+        PropertyStatus.Sold => "background:#FEE2E2; color:#B91C1C;",
+        PropertyStatus.Rented => "background:#DBEAFE; color:#2563EB;",
+        _ => "background:#F1F5F9; color:#64748B;"
+    };
+
+    private string GetStatusLabel() => _property?.Status switch
+    {
+        PropertyStatus.Active => "Đang bán",
+        PropertyStatus.Sold => "Đã bán",
+        PropertyStatus.Rented => "Đã cho thuê",
+        PropertyStatus.Draft => "Bản nháp",
+        PropertyStatus.Withdrawn => "Đã ẩn",
+        _ => "Không xác định"
+    };
+
+    private static string FormatPrice(decimal amount, string currency)
+    {
+        if (currency == "VND")
+        {
+            if (amount >= 1_000_000_000) return $"{amount / 1_000_000_000:N2} tỷ đồng";
+            if (amount >= 1_000_000) return $"{amount / 1_000_000:N0} triệu đồng";
+            return $"{amount:N0} đồng";
+        }
+        return $"{amount:N0} {currency}";
+    }
+
+    private static string FormatPricePerM2(decimal price, decimal area)
+    {
+        if (area <= 0) return "";
+        var perM2 = price / area;
+        if (perM2 >= 1_000_000) return $"{perM2 / 1_000_000:N1} triệu";
+        return $"{perM2:N0} đ";
+    }
+
+    private static string FormatDate(DateTime date)
+    {
+        var diff = DateTime.UtcNow - date;
+        if (diff.TotalDays < 1) return "Hôm nay";
+        if (diff.TotalDays < 7) return $"{(int)diff.TotalDays} ngày trước";
+        return date.ToString("dd/MM/yyyy");
+    }
+}

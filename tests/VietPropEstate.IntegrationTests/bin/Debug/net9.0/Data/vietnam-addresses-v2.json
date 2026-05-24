@@ -1,0 +1,34 @@
+{
+  "_comment": "Vietnam administrative units — post-2025 merger structure (Province → Ward, no District). Fetch fresh data from https://provinces.open-api.vn/api/v2/",
+  "provinces": [
+    { "code": 1,  "name": "Hà Nội",             "codename": "ha_noi",              "division_type": "thành phố trung ương", "phone_code": 24 },
+    { "code": 79, "name": "Thành phố Hồ Chí Minh","codename": "thanh_pho_ho_chi_minh","division_type": "thành phố trung ương", "phone_code": 28 },
+    { "code": 48, "name": "Đà Nẵng",             "codename": "da_nang",             "division_type": "thành phố trung ương", "phone_code": 236 },
+    { "code": 92, "name": "Cần Thơ",             "codename": "can_tho",             "division_type": "thành phố trung ương", "phone_code": 292 },
+    { "code": 31, "name": "Hải Phòng",           "codename": "hai_phong",           "division_type": "thành phố trung ương", "phone_code": 225 },
+    { "code": 77, "name": "Bà Rịa – Vũng Tàu",  "codename": "ba_ria_vung_tau",     "division_type": "tỉnh",                 "phone_code": 254 },
+    { "code": 74, "name": "Bình Dương",           "codename": "binh_duong",          "division_type": "tỉnh",                 "phone_code": 274 },
+    { "code": 75, "name": "Đồng Nai",             "codename": "dong_nai",            "division_type": "tỉnh",                 "phone_code": 251 },
+    { "code": 56, "name": "Khánh Hòa",           "codename": "khanh_hoa",           "division_type": "tỉnh",                 "phone_code": 258 },
+    { "code": 46, "name": "Thừa Thiên Huế",      "codename": "thua_thien_hue",      "division_type": "tỉnh",                 "phone_code": 234 }
+  ],
+  "wards": [
+    { "code": 10000, "name": "Phường Ba Đình",          "codename": "phuong_ba_dinh",          "division_type": "phường", "province_code": 1  },
+    { "code": 10001, "name": "Phường Hoàn Kiếm",        "codename": "phuong_hoan_kiem",        "division_type": "phường", "province_code": 1  },
+    { "code": 10002, "name": "Phường Đống Đa",          "codename": "phuong_dong_da",          "division_type": "phường", "province_code": 1  },
+    { "code": 10003, "name": "Phường Hai Bà Trưng",     "codename": "phuong_hai_ba_trung",     "division_type": "phường", "province_code": 1  },
+    { "code": 10004, "name": "Phường Cầu Giấy",         "codename": "phuong_cau_giay",         "division_type": "phường", "province_code": 1  },
+    { "code": 20000, "name": "Phường Bến Nghé",         "codename": "phuong_ben_nghe",         "division_type": "phường", "province_code": 79 },
+    { "code": 20001, "name": "Phường Bến Thành",        "codename": "phuong_ben_thanh",        "division_type": "phường", "province_code": 79 },
+    { "code": 20002, "name": "Phường Phú Nhuận",        "codename": "phuong_phu_nhuan",        "division_type": "phường", "province_code": 79 },
+    { "code": 20003, "name": "Phường Thủ Đức",          "codename": "phuong_thu_duc",          "division_type": "phường", "province_code": 79 },
+    { "code": 20004, "name": "Phường Bình Thạnh",       "codename": "phuong_binh_thanh",       "division_type": "phường", "province_code": 79 },
+    { "code": 30000, "name": "Phường Hải Châu",         "codename": "phuong_hai_chau",         "division_type": "phường", "province_code": 48 },
+    { "code": 30001, "name": "Phường Thanh Khê",        "codename": "phuong_thanh_khe",        "division_type": "phường", "province_code": 48 },
+    { "code": 30002, "name": "Phường Sơn Trà",          "codename": "phuong_son_tra",          "division_type": "phường", "province_code": 48 },
+    { "code": 40000, "name": "Phường Ninh Kiều",        "codename": "phuong_ninh_kieu",        "division_type": "phường", "province_code": 92 },
+    { "code": 40001, "name": "Phường Cái Răng",         "codename": "phuong_cai_rang",         "division_type": "phường", "province_code": 92 },
+    { "code": 50000, "name": "Phường Hồng Bàng",        "codename": "phuong_hong_bang",        "division_type": "phường", "province_code": 31 },
+    { "code": 50001, "name": "Phường Lê Chân",          "codename": "phuong_le_chan",          "division_type": "phường", "province_code": 31 }
+  ]
+}

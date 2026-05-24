@@ -1,0 +1,390 @@
+@using VietPropEstate.Application.Common.Authorization
+@page "/sysadmin/nguoi-dung"
+@page "/sysadmin/quan-tri-vien"
+@layout SysAdminLayout
+@inject IAdminApiClient AdminClient
+@inject ISnackbar Snackbar
+@inject AuthState AuthState
+
+<PageTitle>Quản lý tài khoản - SysAdmin</PageTitle>
+
+<div class="ap-page">
+    <div class="ap-page-header">
+        <div>
+            <h1 class="ap-page-title">Quản lý tài khoản</h1>
+            <p class="ap-page-subtitle">
+                Quản lý toàn bộ tài khoản: khách hàng, môi giới, nhân viên, quản trị viên và phân quyền hệ thống
+            </p>
+        </div>
+        <div class="d-flex flex-wrap" style="gap:8px;">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PersonAdd"
+                       Href="/dang-ky?role=Broker" Class="ap-btn-primary">
+                Thêm môi giới
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Outlined.PersonAdd"
+                       Href="/dang-ky?role=Customer" Style="border-radius:10px;">
+                Thêm khách hàng
+            </MudButton>
+        </div>
+    </div>
+
+    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="ap-info-banner">
+        Khu vực <strong>Quản trị hệ thống</strong> quản lý mọi tài khoản trên nền tảng.
+        Chỉ SysAdmin mới có thể gán vai trò <strong>Admin</strong> và <strong>SysAdmin</strong>.
+    </MudAlert>
+
+    <div class="ap-stat-grid">
+        <div class="ap-stat-card">
+            <div class="ap-stat-value" style="color:#2563EB;">@(_userStats?.Total.ToString("N0") ?? "0")</div>
+            <div class="ap-stat-label">Tổng tài khoản</div>
+        </div>
+        <div class="ap-stat-card ap-stat-card--clickable @(_roleFilter == AppRoles.Broker ? "ap-stat-card--active" : "")"
+             @onclick="@(() => ToggleRoleFilter(AppRoles.Broker))">
+            <div class="ap-stat-value" style="color:#2563EB;">@(_userStats?.Brokers.ToString("N0") ?? "0")</div>
+            <div class="ap-stat-label">Môi giới</div>
+        </div>
+        <div class="ap-stat-card ap-stat-card--clickable @(_roleFilter == AppRoles.Customer ? "ap-stat-card--active" : "")"
+             @onclick="@(() => ToggleRoleFilter(AppRoles.Customer))">
+            <div class="ap-stat-value" style="color:#0891B2;">@(_userStats?.Customers.ToString("N0") ?? "0")</div>
+            <div class="ap-stat-label">Khách hàng</div>
+        </div>
+        <div class="ap-stat-card">
+            <div class="ap-stat-value" style="color:#10B981;">@(_userStats?.Active.ToString("N0") ?? "0")</div>
+            <div class="ap-stat-label">Đang hoạt động</div>
+        </div>
+    </div>
+
+    <div class="ap-stat-grid" style="grid-template-columns: repeat(3, 1fr); margin-top:-8px;">
+        <div class="ap-stat-card">
+            <div class="ap-stat-value" style="color:#EF4444; font-size:1.35rem;">@(_userStats?.Locked ?? 0)</div>
+            <div class="ap-stat-label">Bị khóa</div>
+        </div>
+        <div class="ap-stat-card">
+            <div class="ap-stat-value" style="color:#F59E0B; font-size:1.35rem;">@(_userStats?.NewThisMonth ?? 0)</div>
+            <div class="ap-stat-label">Mới tháng này</div>
+        </div>
+        <div class="ap-stat-card ap-stat-card--clickable @(_roleFilter == AppRoles.Admin ? "ap-stat-card--active" : "")"
+             @onclick="@(() => ToggleRoleFilter(AppRoles.Admin))">
+            <div class="ap-stat-value" style="color:#9333EA; font-size:1.35rem;">@(_userStats?.Admins ?? 0)</div>
+            <div class="ap-stat-label">Quản trị / nhân viên</div>
+        </div>
+    </div>
+
+    <div class="ap-filter-bar">
+        <div class="ap-filter-grid">
+            <MudTextField @bind-Value="_search" Placeholder="Tìm theo tên, email, số điện thoại..."
+                          Variant="Variant.Outlined" Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true"
+                          OnKeyUp="@ApplyFilters" />
+            <MudSelect T="string" Value="@_roleFilter" Label="Vai trò" Variant="Variant.Outlined"
+                       Clearable="true" ValueChanged="@((string v) => { _roleFilter = v; ApplyFilters(); })">
+                @foreach (var role in AppRoles.All)
+                {
+                    <MudSelectItem Value="@role">@GetRoleLabel(role)</MudSelectItem>
+                }
+            </MudSelect>
+            <MudSelect T="string" Value="@_statusFilter" Label="Trạng thái" Variant="Variant.Outlined"
+                       Clearable="true" ValueChanged="@((string v) => { _statusFilter = v; ApplyFilters(); })">
+                <MudSelectItem Value="@("active")">Đang hoạt động</MudSelectItem>
+                <MudSelectItem Value="@("locked")">Bị khóa</MudSelectItem>
+                <MudSelectItem Value="@("unconfirmed")">Chưa xác thực</MudSelectItem>
+            </MudSelect>
+            <MudButton Variant="Variant.Text" OnClick="ClearFilters" Class="ap-filter-clear">Xóa lọc</MudButton>
+        </div>
+    </div>
+
+    <div class="ap-data-panel">
+        <div class="ap-data-panel__toolbar">
+            Hiển thị @_filtered.Count / @_allUsers.Count tài khoản
+        </div>
+
+        @if (_loading)
+        {
+            @for (var i = 0; i < 6; i++)
+            {
+                <div style="padding:16px 20px; border-bottom:1px solid #F1F5F9;">
+                    <MudSkeleton Width="100%" Height="14px" />
+                </div>
+            }
+        }
+        else if (_filtered.Count == 0)
+        {
+            <div class="ap-data-panel__empty">
+                <MudIcon Icon="@Icons.Material.Outlined.SearchOff" Class="ap-data-panel__empty-icon" />
+                <MudText Style="color:#64748B; font-weight:600;">Không tìm thấy tài khoản nào</MudText>
+            </div>
+        }
+        else
+        {
+            <div class="ap-users-table">
+                <div class="ap-users-table__head">
+                    <span>Người dùng</span>
+                    <span class="col-phone">Điện thoại</span>
+                    <span class="col-roles">Vai trò</span>
+                    <span>Trạng thái</span>
+                    <span class="col-date">Ngày tạo</span>
+                    <span class="col-listings">Tin đăng</span>
+                    <span></span>
+                </div>
+
+                @foreach (var user in _filtered)
+                {
+                    <div class="ap-users-table__row">
+                        <div class="ap-user-cell">
+                            <div class="ap-user-cell__avatar" style="@($"background:{GetAvatarColor(user.Roles)};")">
+                                @GetInitials(user.FullName)
+                            </div>
+                            <div class="ap-user-cell__info">
+                                <div class="ap-user-cell__name">
+                                    @user.FullName
+                                    @if (!user.EmailConfirmed)
+                                    {
+                                        <MudTooltip Text="Email chưa xác thực">
+                                            <MudIcon Icon="@Icons.Material.Filled.MarkEmailUnread" Style="color:#F59E0B; font-size:14px;" />
+                                        </MudTooltip>
+                                    }
+                                </div>
+                                <div class="ap-user-cell__email">@user.Email</div>
+                            </div>
+                        </div>
+
+                        <span class="ap-cell-text ap-cell-text--mono col-phone">
+                            @(string.IsNullOrWhiteSpace(user.PhoneNumber) ? "—" : user.PhoneNumber)
+                        </span>
+
+                        <div class="ap-cell-roles col-roles">
+                            @foreach (var role in user.Roles)
+                            {
+                                <span class="ap-badge @GetRoleBadgeClass(role)">@GetRoleLabel(role)</span>
+                            }
+                        </div>
+
+                        <div>
+                            @if (user.IsLockedOut)
+                            {
+                                <span class="ap-badge ap-badge--locked">Bị khóa</span>
+                            }
+                            else
+                            {
+                                <span class="ap-badge ap-badge--active">Hoạt động</span>
+                            }
+                        </div>
+
+                        <span class="ap-cell-text ap-cell-text--mono col-date">
+                            @user.CreatedAt.ToString("dd/MM/yyyy")
+                        </span>
+
+                        <div class="ap-cell-listings col-listings">
+                            @if (user.ListingCount > 0)
+                            {
+                                <span class="ap-badge ap-badge--listings">@user.ListingCount tin</span>
+                            }
+                            else
+                            {
+                                <span class="ap-badge ap-badge--muted">—</span>
+                            }
+                        </div>
+
+                        <div class="ap-cell-actions">
+                            @if (CanManageUser(user))
+                            {
+                                <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small"
+                                         AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                                    <MudMenuItem Icon="@Icons.Material.Outlined.ManageAccounts"
+                                                 OnClick="@(() => OpenRoleDialog(user))">Đổi vai trò</MudMenuItem>
+                                    @if (user.IsLockedOut)
+                                    {
+                                        <MudMenuItem Icon="@Icons.Material.Outlined.LockOpen" Style="color:#10B981;"
+                                                     OnClick="@(() => ToggleLockUser(user))">Mở khóa</MudMenuItem>
+                                    }
+                                    else
+                                    {
+                                        <MudMenuItem Icon="@Icons.Material.Outlined.Lock" Style="color:#F59E0B;"
+                                                     OnClick="@(() => ToggleLockUser(user))">Khóa tài khoản</MudMenuItem>
+                                    }
+                                </MudMenu>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<MudDialog @bind-Visible="_roleDialogOpen" Options="@(new DialogOptions { MaxWidth = MaxWidth.ExtraSmall, FullWidth = true })">
+    <TitleContent>
+        <MudText Typo="Typo.h6" Style="font-weight:700;">Thay đổi vai trò</MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (_editingUser != null)
+        {
+            <MudText Class="mb-4">
+                Chọn vai trò mới cho <strong>@_editingUser.FullName</strong>:
+            </MudText>
+            <MudRadioGroup T="string" @bind-Value="_newRole">
+                @foreach (var role in AppRoles.All)
+                {
+                    <MudRadio T="string" Value="@role" Color="Color.Primary" Style="margin-bottom:8px; display:block;">
+                        @GetRoleLabel(role)
+                    </MudRadio>
+                }
+            </MudRadioGroup>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" OnClick="@(() => _roleDialogOpen = false)">Hủy</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@SaveRole">Lưu thay đổi</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private List<AdminUserDto> _allUsers = [];
+    private List<AdminUserDto> _filtered = [];
+    private AdminUserStats? _userStats;
+    private bool _loading = true;
+    private string _search = "";
+    private string? _roleFilter;
+    private string? _statusFilter;
+    private bool _roleDialogOpen;
+    private AdminUserDto? _editingUser;
+    private string _newRole = AppRoles.Customer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ReloadUsersAsync();
+        _loading = false;
+    }
+
+    private async Task ReloadUsersAsync()
+    {
+        _allUsers = await AdminClient.GetUsersAsync();
+        _userStats = await AdminClient.GetUserStatsAsync();
+        ApplyFilters();
+    }
+
+    private void ApplyFilters()
+    {
+        _filtered = _allUsers.Where(u =>
+        {
+            var matchSearch = string.IsNullOrEmpty(_search) ||
+                u.FullName.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+                u.Email.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+                (u.PhoneNumber?.Contains(_search) ?? false);
+
+            var matchRole = string.IsNullOrEmpty(_roleFilter) || u.Roles.Contains(_roleFilter);
+
+            var matchStatus = _statusFilter switch
+            {
+                "active" => !u.IsLockedOut,
+                "locked" => u.IsLockedOut,
+                "unconfirmed" => !u.EmailConfirmed,
+                _ => true
+            };
+
+            return matchSearch && matchRole && matchStatus;
+        }).ToList();
+    }
+
+    private void ClearFilters()
+    {
+        _search = "";
+        _roleFilter = null;
+        _statusFilter = null;
+        ApplyFilters();
+    }
+
+    private void ToggleRoleFilter(string role)
+    {
+        _roleFilter = _roleFilter == role ? null : role;
+        ApplyFilters();
+    }
+
+    private void OpenRoleDialog(AdminUserDto user)
+    {
+        _editingUser = user;
+        _newRole = user.Roles.FirstOrDefault() ?? AppRoles.Customer;
+        _roleDialogOpen = true;
+    }
+
+    private async Task SaveRole()
+    {
+        if (_editingUser == null) return;
+        if (!CanManageUser(_editingUser))
+        {
+            Snackbar.Add("Bạn không có quyền thay đổi tài khoản này.", Severity.Warning);
+            _roleDialogOpen = false;
+            return;
+        }
+
+        if (!RolePermissions.CanAssignRole(AuthState.Roles, _newRole))
+        {
+            Snackbar.Add("Bạn không có quyền gán vai trò này.", Severity.Warning);
+            return;
+        }
+
+        var success = await AdminClient.UpdateUserRoleAsync(_editingUser.Id, _newRole);
+        if (success)
+        {
+            Snackbar.Add($"Đã cập nhật vai trò cho {_editingUser.FullName}", Severity.Success);
+            await ReloadUsersAsync();
+        }
+        _roleDialogOpen = false;
+    }
+
+    private async Task ToggleLockUser(AdminUserDto user)
+    {
+        if (!CanManageUser(user))
+        {
+            Snackbar.Add("Bạn không có quyền thay đổi trạng thái tài khoản này.", Severity.Warning);
+            return;
+        }
+
+        var success = user.IsLockedOut
+            ? await AdminClient.UnlockUserAsync(user.Id)
+            : await AdminClient.LockUserAsync(user.Id);
+
+        if (success)
+        {
+            Snackbar.Add(user.IsLockedOut
+                ? $"Đã mở khóa tài khoản {user.FullName}"
+                : $"Đã khóa tài khoản {user.FullName}",
+                user.IsLockedOut ? Severity.Success : Severity.Warning);
+            await ReloadUsersAsync();
+        }
+        else
+        {
+            Snackbar.Add("Không thể cập nhật trạng thái tài khoản.", Severity.Error);
+        }
+    }
+
+    private bool CanManageUser(AdminUserDto user) =>
+        !string.Equals(user.Id, AuthState.CurrentUser?.UserId, StringComparison.Ordinal);
+
+    private static string GetInitials(string name)
+    {
+        if (string.IsNullOrEmpty(name)) return "?";
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length >= 2 ? $"{parts[0][0]}{parts[^1][0]}" : name[..1].ToUpper();
+    }
+
+    private static string GetAvatarColor(IList<string> roles)
+    {
+        if (roles.Contains(AppRoles.SysAdmin)) return "linear-gradient(135deg,#312E81,#4F46E5)";
+        if (roles.Contains(AppRoles.Admin)) return "linear-gradient(135deg,#B91C1C,#DC2626)";
+        if (roles.Contains(AppRoles.Staff)) return "linear-gradient(135deg,#9333EA,#A855F7)";
+        if (roles.Contains(AppRoles.Broker)) return "linear-gradient(135deg,#2563EB,#3B82F6)";
+        return "linear-gradient(135deg,#0891B2,#06B6D4)";
+    }
+
+    private static string GetRoleLabel(string role) => RolePermissions.GetDisplayName(role);
+
+    private static string GetRoleBadgeClass(string role) => role switch
+    {
+        AppRoles.SysAdmin => "ap-badge--sysadmin",
+        AppRoles.Admin => "ap-badge--admin",
+        AppRoles.Staff => "ap-badge--staff",
+        AppRoles.Broker => "ap-badge--broker",
+        _ => "ap-badge--customer"
+    };
+}

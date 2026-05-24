@@ -1,0 +1,7 @@
+@page "/admin/nhat-ky"
+@inject NavigationManager Nav
+
+@code {
+    protected override void OnInitialized() =>
+        Nav.NavigateTo("/sysadmin/nhat-ky", replace: true);
+}

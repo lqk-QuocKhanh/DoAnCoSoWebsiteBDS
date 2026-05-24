@@ -1,0 +1,239 @@
+@page "/dashboard/tin-dang"
+@layout DashboardLayout
+@inject IDashboardApiClient DashboardClient
+@inject IPropertyApiService PropertyService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<PageTitle>Tin đăng của tôi - VietPropEstate</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-6">
+    <div>
+        <MudText Typo="Typo.h5" Style="font-weight:700;">Tin đăng của tôi</MudText>
+        <MudText Typo="Typo.body2" Style="color:#64748B;">Quản lý tất cả các tin đăng bất động sản</MudText>
+    </div>
+    <MudButton Href="/dashboard/tin-dang/them-moi" Variant="Variant.Filled" Color="Color.Primary"
+               StartIcon="@Icons.Material.Filled.Add" Style="border-radius:10px; font-weight:600;">
+        Đăng tin mới
+    </MudButton>
+</div>
+
+<!-- Status filters -->
+<div class="d-flex flex-wrap mb-4" style="gap:8px;">
+    @foreach (var (status, label, count) in _statusFilters)
+    {
+        <MudChip T="string"
+                 Variant="@(_activeStatus == status ? Variant.Filled : Variant.Outlined)"
+                 Color="@(_activeStatus == status ? Color.Primary : Color.Default)"
+                 OnClick="@(() => SetFilter(status))">
+            @label @(count > 0 ? $"({count})" : "")
+        </MudChip>
+    }
+</div>
+
+@if (_loading)
+{
+    <MudPaper Elevation="0" Style="border:1px solid #E2E8F0; border-radius:16px; overflow:hidden;">
+        @for (int i = 0; i < 5; i++)
+        {
+            <div style="padding:16px; border-bottom:1px solid #F1F5F9; display:flex; gap:16px;">
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="80px" Height="60px" Style="border-radius:8px; flex-shrink:0;" />
+                <div style="flex:1;">
+                    <MudSkeleton Width="60%" Height="16px" Class="mb-2" />
+                    <MudSkeleton Width="40%" Height="14px" />
+                </div>
+            </div>
+        }
+    </MudPaper>
+}
+else if (_listings.Count == 0)
+{
+    <EmptyState Icon="@Icons.Material.Outlined.Apartment"
+                Title="Chưa có tin đăng nào"
+                Subtitle="Bắt đầu đăng tin để tiếp cận khách hàng tiềm năng"
+                ActionText="Đăng tin đầu tiên" ActionHref="/dashboard/tin-dang/them-moi"
+                ActionIcon="@Icons.Material.Filled.Add" />
+}
+else
+{
+    <MudPaper Elevation="0" Style="border:1px solid #E2E8F0; border-radius:16px; overflow:hidden;">
+        <MudTable Items="@_listings" Elevation="0" Hover="true">
+            <HeaderContent>
+                <MudTh Style="width:50%">Bất động sản</MudTh>
+                <MudTh>Giá</MudTh>
+                <MudTh>Trạng thái</MudTh>
+                <MudTh>Lượt xem</MudTh>
+                <MudTh Style="width:120px;">Thao tác</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>
+                    <div class="d-flex align-items-center" style="gap:12px;">
+                        <img src="@(context.PrimaryImageUrl ?? "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=200&q=70")"
+                             style="width:80px; height:60px; object-fit:cover; border-radius:10px; flex-shrink:0;" alt="" />
+                        <div style="min-width:0;">
+                            <MudText Typo="Typo.body2" Style="font-weight:600;" Class="line-clamp-2">@context.Title</MudText>
+                            <MudText Typo="Typo.caption" Style="color:#94A3B8;">@context.CreatedAt.ToString("dd/MM/yyyy")</MudText>
+                        </div>
+                    </div>
+                </MudTd>
+                <MudTd>
+                    <MudText Style="font-weight:700; color:#B91C1C; font-size:13px; white-space:nowrap;">
+                        @FormatPrice(context.PriceAmount)
+                    </MudText>
+                </MudTd>
+                <MudTd>
+                    <MudChip T="string" Size="Size.Small" Style="@GetStatusStyle(context.Status)">
+                        @GetStatusLabel(context.Status)
+                    </MudChip>
+                </MudTd>
+                <MudTd>
+                    <div class="d-flex align-items-center" style="gap:4px;">
+                        <MudIcon Icon="@Icons.Material.Outlined.RemoveRedEye" Size="Size.Small" Style="color:#94A3B8;" />
+                        <span style="font-size:13px;">@context.ViewCount</span>
+                    </div>
+                </MudTd>
+                <MudTd>
+                    <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" AnchorOrigin="Origin.BottomRight">
+                        <MudMenuItem Icon="@Icons.Material.Outlined.Edit" Href="@($"/dashboard/tin-dang/{context.Id}/chinh-sua")">Chỉnh sửa</MudMenuItem>
+                        @if (context.Status is PropertyStatus.Draft or PropertyStatus.Rejected or PropertyStatus.Withdrawn)
+                        {
+                            <MudMenuItem Icon="@Icons.Material.Outlined.Send" OnClick="@(() => SubmitListing(context))">
+                                @(context.Status == PropertyStatus.Draft ? "Gửi duyệt" : "Gửi duyệt lại")
+                            </MudMenuItem>
+                        }
+                        @if (context.Status == PropertyStatus.Active)
+                        {
+                            <MudMenuItem Icon="@Icons.Material.Outlined.VisibilityOff" OnClick="@(() => WithdrawListing(context))">Ẩn tin</MudMenuItem>
+                        }
+                        <MudMenuItem Icon="@Icons.Material.Outlined.Delete" Style="color:#B91C1C;"
+                                     OnClick="@(() => ConfirmDelete(context))">Xóa</MudMenuItem>
+                    </MudMenu>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudPaper>
+
+    @if (_totalPages > 1)
+    {
+        <div style="display:flex; justify-content:center; margin-top:24px;">
+            <MudPagination Count="@_totalPages" @bind-Selected="_page" Color="Color.Primary" />
+        </div>
+    }
+}
+
+@code {
+    [SupplyParameterFromQuery(Name = "status")]
+    public string? Status { get; set; }
+
+    private List<PropertyDto> _listings = [];
+    private bool _loading = true;
+    private int _page = 1;
+    private int _totalPages;
+    private PropertyStatus? _activeStatus;
+
+    private readonly (PropertyStatus? Status, string Label, int Count)[] _statusFilters =
+    [
+        (null, "Tất cả", 0),
+        (PropertyStatus.Active, "Đang hoạt động", 0),
+        (PropertyStatus.PendingApproval, "Chờ duyệt", 0),
+        (PropertyStatus.Draft, "Bản nháp", 0),
+        (PropertyStatus.Rejected, "Bị từ chối", 0),
+        (PropertyStatus.Withdrawn, "Đã ẩn", 0),
+        (PropertyStatus.Sold, "Đã bán", 0),
+    ];
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(Status) &&
+            Enum.TryParse<PropertyStatus>(Status, true, out var status))
+        {
+            _activeStatus = status;
+        }
+
+        await LoadListings();
+    }
+
+    private async Task LoadListings()
+    {
+        _loading = true;
+        var result = await DashboardClient.GetMyListingsAsync(_page, _activeStatus);
+        _listings = result?.Items.ToList() ?? [];
+        _totalPages = result?.TotalPages ?? 0;
+        _loading = false;
+    }
+
+    private async Task SetFilter(PropertyStatus? status)
+    {
+        _activeStatus = status;
+        _page = 1;
+        await LoadListings();
+    }
+
+    private async Task ConfirmDelete(PropertyDto property)
+    {
+        var parameters = new DialogParameters<ConfirmDialog>
+        {
+            { x => x.Title, "Xóa tin đăng" },
+            { x => x.Message, $"Bạn có chắc chắn muốn xóa \"{property.Title}\"?" },
+            { x => x.ConfirmText, "Xóa" }
+        };
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>("", parameters);
+        var result = await dialog.Result;
+        if (result is null or { Canceled: true }) return;
+
+        var success = await DashboardClient.DeleteListingAsync(property.Id);
+        if (success)
+        {
+            Snackbar.Add("Đã xóa tin đăng thành công", Severity.Success);
+            await LoadListings();
+        }
+        else Snackbar.Add("Không thể xóa tin đăng", Severity.Error);
+    }
+
+    private async Task SubmitListing(PropertyDto property)
+    {
+        if (await PropertyService.SubmitPropertyAsync(property.Id))
+        {
+            Snackbar.Add("Đã gửi tin đăng chờ duyệt", Severity.Success);
+            await LoadListings();
+        }
+        else Snackbar.Add("Không thể gửi tin duyệt", Severity.Error);
+    }
+
+    private async Task WithdrawListing(PropertyDto property)
+    {
+        if (await PropertyService.WithdrawPropertyAsync(property.Id))
+        {
+            Snackbar.Add("Đã ẩn tin đăng", Severity.Success);
+            await LoadListings();
+        }
+        else Snackbar.Add("Không thể ẩn tin", Severity.Error);
+    }
+
+    private static string FormatPrice(decimal amount) =>
+        amount >= 1_000_000_000 ? $"{amount / 1_000_000_000:N1} tỷ" :
+        amount >= 1_000_000 ? $"{amount / 1_000_000:N0} tr" : $"{amount:N0}đ";
+
+    private static string GetStatusLabel(PropertyStatus s) => s switch
+    {
+        PropertyStatus.Active => "Đang hoạt động",
+        PropertyStatus.PendingApproval => "Chờ duyệt",
+        PropertyStatus.Draft => "Bản nháp",
+        PropertyStatus.Rejected => "Bị từ chối",
+        PropertyStatus.Withdrawn => "Đã ẩn",
+        PropertyStatus.Sold => "Đã bán",
+        PropertyStatus.Rented => "Đã thuê",
+        _ => s.ToString()
+    };
+
+    private static string GetStatusStyle(PropertyStatus s) => s switch
+    {
+        PropertyStatus.Active => "background:#DCFCE7; color:#16A34A;",
+        PropertyStatus.PendingApproval => "background:#FEF3C7; color:#D97706;",
+        PropertyStatus.Draft => "background:#F1F5F9; color:#64748B;",
+        PropertyStatus.Rejected => "background:#FEE2E2; color:#B91C1C;",
+        PropertyStatus.Withdrawn => "background:#FEF3C7; color:#D97706;",
+        PropertyStatus.Sold => "background:#FEE2E2; color:#B91C1C;",
+        _ => "background:#F1F5F9; color:#64748B;"
+    };
+}

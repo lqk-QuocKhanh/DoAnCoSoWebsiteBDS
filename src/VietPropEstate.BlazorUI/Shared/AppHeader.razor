@@ -1,0 +1,86 @@
+@inject AuthState AuthState
+@inject NavigationManager Nav
+@inject NotificationState NotificationState
+@using VietPropEstate.Domain.Enums
+@implements IDisposable
+
+<header class="app-header app-header--urbn @(IsHomePage ? "app-header--overlay" : "app-header--solid")">
+    <div class="app-header-inner app-header-inner--urbn">
+
+        <div class="d-flex d-lg-none app-header-menu-btn">
+            <MudIconButton Icon="@Icons.Material.Filled.Menu" OnClick="@OnMobileMenuToggle" />
+        </div>
+
+        <nav class="app-header-left d-none d-lg-flex">
+            @foreach (var link in _categoryLinks)
+            {
+                <button type="button" class="app-header-cat-link" @onclick="@(() => Nav.NavigateTo(link.Href))">
+                    @link.Label
+                </button>
+            }
+        </nav>
+
+        <MudLink Href="/" Underline="Underline.None" Class="app-header-center-logo">
+            VIETPROPESTATE
+        </MudLink>
+
+        <div class="app-header-actions app-header-actions--urbn">
+            @if (AuthState.IsAuthenticated)
+            {
+                <button type="button" class="app-header-text-link d-none d-md-inline"
+                        @onclick="@(() => Nav.NavigateTo("/dashboard/goi-vip"))">Gói VIP</button>
+                <MudButton Href="/dashboard/tin-dang/them-moi" Class="app-header-btn-solid d-none d-sm-flex">
+                    Đăng tin
+                </MudButton>
+                <NotificationMenu />
+                <UserAvatarMenu />
+            }
+            else
+            {
+                <button type="button" class="app-header-text-link d-none d-md-inline"
+                        @onclick="@(() => Nav.NavigateTo("/dashboard/goi-vip"))">Gói VIP</button>
+                <MudButton Href="/dang-nhap" Class="app-header-btn-ghost d-none d-sm-flex">Đăng nhập</MudButton>
+                <MudButton Href="/dang-ky" Class="app-header-btn-solid">Đăng ký</MudButton>
+            }
+        </div>
+    </div>
+</header>
+
+@code {
+    [Parameter] public EventCallback OnMobileMenuToggle { get; set; }
+
+    private readonly (string Label, string Href)[] _categoryLinks =
+    [
+        ("Căn hộ", "/bat-dong-san?searchTerm=Căn%20hộ"),
+        ("Nhà phố", "/bat-dong-san?searchTerm=Nhà%20phố"),
+        ("Đất nền", "/bat-dong-san?searchTerm=Đất%20nền"),
+        ("Mua bán", "/bat-dong-san?listingType=1"),
+        ("Cho thuê", "/bat-dong-san?listingType=2"),
+    ];
+
+    private bool IsHomePage
+    {
+        get
+        {
+            var path = Nav.ToAbsoluteUri(Nav.Uri).AbsolutePath.TrimEnd('/');
+            return path is "" or "/";
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        AuthState.OnChange += StateHasChanged;
+        NotificationState.OnChange += StateHasChanged;
+        Nav.LocationChanged += OnLocationChanged;
+    }
+
+    public void Dispose()
+    {
+        AuthState.OnChange -= StateHasChanged;
+        NotificationState.OnChange -= StateHasChanged;
+        Nav.LocationChanged -= OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+        => InvokeAsync(StateHasChanged);
+}

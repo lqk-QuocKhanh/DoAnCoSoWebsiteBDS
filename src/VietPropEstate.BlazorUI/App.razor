@@ -1,0 +1,29 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using VietPropEstate.BlazorUI.Layout
+
+<CascadingAuthenticationState>
+    <MudProviders DialogMaxWidth="MaxWidth.Medium">
+        <Router AppAssembly="@typeof(App).Assembly">
+            <Found Context="routeData">
+                <RouteView RouteData="@routeData" DefaultLayout="@typeof(PublicLayout)" />
+                <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+            </Found>
+            <NotFound>
+                <PageTitle>404 - Không tìm thấy trang | VietPropEstate</PageTitle>
+                <LayoutView Layout="@typeof(PublicLayout)">
+                    <div style="text-align:center; padding: 80px 24px;">
+                        <MudText Typo="Typo.h1" Style="font-size:96px; font-weight:800; color:#B91C1C; line-height:1;">404</MudText>
+                        <MudText Typo="Typo.h4" Class="mb-3">Trang không tồn tại</MudText>
+                        <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">
+                            Trang bạn đang tìm kiếm không tồn tại hoặc đã bị di chuyển.
+                        </MudText>
+                        <MudButton Href="/" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large"
+                                   StartIcon="@Icons.Material.Filled.Home">
+                            Về trang chủ
+                        </MudButton>
+                    </div>
+                </LayoutView>
+            </NotFound>
+        </Router>
+    </MudProviders>
+</CascadingAuthenticationState>

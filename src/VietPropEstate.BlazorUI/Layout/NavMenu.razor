@@ -1,0 +1,21 @@
+﻿@using MudBlazor
+
+<MudNavMenu>
+    <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">
+        Trang chủ
+    </MudNavLink>
+    <MudNavLink Href="/properties" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Apartment">
+        Danh sách BĐS
+    </MudNavLink>
+    <MudNavGroup Title="Mua / Thuê" Icon="@Icons.Material.Filled.AttachMoney" Expanded="false">
+        <MudNavLink Href="/properties?listingType=1" Icon="@Icons.Material.Filled.Sell">
+            BĐS bán
+        </MudNavLink>
+        <MudNavLink Href="/properties?listingType=2" Icon="@Icons.Material.Filled.House">
+            BĐS cho thuê
+        </MudNavLink>
+    </MudNavGroup>
+    <MudNavLink Href="/about" Icon="@Icons.Material.Filled.Info">
+        Giới thiệu
+    </MudNavLink>
+</MudNavMenu>

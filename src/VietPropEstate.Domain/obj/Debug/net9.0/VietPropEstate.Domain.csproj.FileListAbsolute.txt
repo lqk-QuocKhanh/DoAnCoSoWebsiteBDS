@@ -1,0 +1,11 @@
+c:\Dev\VietPropEstate\src\VietPropEstate.Domain\bin\Debug\net9.0\VietPropEstate.Domain.deps.json
+c:\Dev\VietPropEstate\src\VietPropEstate.Domain\bin\Debug\net9.0\VietPropEstate.Domain.dll
+c:\Dev\VietPropEstate\src\VietPropEstate.Domain\bin\Debug\net9.0\VietPropEstate.Domain.pdb
+c:\Dev\VietPropEstate\src\VietPropEstate.Domain\obj\Debug\net9.0\VietPropEstate.Domain.GeneratedMSBuildEditorConfig.editorconfig
+c:\Dev\VietPropEstate\src\VietPropEstate.Domain\obj\Debug\net9.0\VietPropEstate.Domain.AssemblyInfoInputs.cache
+c:\Dev\VietPropEstate\src\VietPropEstate.Domain\obj\Debug\net9.0\VietPropEstate.Domain.AssemblyInfo.cs
+c:\Dev\VietPropEstate\src\VietPropEstate.Domain\obj\Debug\net9.0\VietPropEstate.Domain.csproj.CoreCompileInputs.cache
+c:\Dev\VietPropEstate\src\VietPropEstate.Domain\obj\Debug\net9.0\VietPropEstate.Domain.dll
+c:\Dev\VietPropEstate\src\VietPropEstate.Domain\obj\Debug\net9.0\refint\VietPropEstate.Domain.dll
+c:\Dev\VietPropEstate\src\VietPropEstate.Domain\obj\Debug\net9.0\VietPropEstate.Domain.pdb
+c:\Dev\VietPropEstate\src\VietPropEstate.Domain\obj\Debug\net9.0\ref\VietPropEstate.Domain.dll

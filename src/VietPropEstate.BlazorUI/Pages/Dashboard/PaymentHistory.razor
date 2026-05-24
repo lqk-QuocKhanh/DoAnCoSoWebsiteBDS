@@ -1,0 +1,159 @@
+@page "/dashboard/thanh-toan"
+@layout DashboardLayout
+@inject IPaymentApiClient PaymentClient
+@inject AuthState AuthState
+@inject NavigationManager Nav
+
+<PageTitle>Lịch sử thanh toán - VietPropEstate</PageTitle>
+
+@if (!AuthState.CanBuyVipPackage)
+{
+    Nav.NavigateTo("/dashboard");
+}
+else
+{
+
+<div class="d-flex justify-content-between align-items-center mb-6">
+    <div>
+        <MudText Typo="Typo.h5" Style="font-weight:700;">Thanh toán</MudText>
+        <MudText Typo="Typo.body2" Style="color:#64748B;">Quản lý gói VIP và lịch sử thanh toán</MudText>
+    </div>
+    <MudButton Href="/dashboard/goi-vip" Variant="Variant.Filled" Color="Color.Warning"
+               StartIcon="@Icons.Material.Filled.Star" Style="border-radius:10px; font-weight:600; color:#fff;">
+        Mua gói VIP
+    </MudButton>
+</div>
+
+<!-- Active subscriptions -->
+@if (_subscriptions.Count > 0)
+{
+    <MudText Typo="Typo.h6" Style="font-weight:700; margin-bottom:16px;">Gói đang hoạt động</MudText>
+    <MudGrid Class="mb-6">
+        @foreach (var sub in _subscriptions)
+        {
+            <MudItem xs="12" sm="6" md="4">
+                <MudCard Elevation="0" Style="border:2px solid #E2E8F0; border-radius:16px; padding:20px;">
+                    <div class="d-flex align-items-center mb-3" style="gap:12px;">
+                        <div style="width:44px;height:44px;background:linear-gradient(135deg,#D97706,#F59E0B);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                            <MudIcon Icon="@Icons.Material.Filled.Star" Style="color:#fff;" Size="Size.Small" />
+                        </div>
+                        <div>
+                            <MudText Typo="Typo.subtitle2" Style="font-weight:700;">Gói @sub.VIPPackageName</MudText>
+                            <MudText Typo="Typo.caption" Style="color:#64748B;">Còn @sub.DaysRemaining ngày</MudText>
+                        </div>
+                    </div>
+                    <MudProgressLinear Value="@GetProgress(sub)" Color="Color.Warning" Rounded="true" Style="margin-bottom:8px;" />
+                    <div class="d-flex justify-content-between">
+                        <MudText Typo="Typo.caption" Style="color:#94A3B8;">@sub.StartDate.ToString("dd/MM/yyyy")</MudText>
+                        <MudText Typo="Typo.caption" Style="color:#94A3B8;">@sub.EndDate.ToString("dd/MM/yyyy")</MudText>
+                    </div>
+                    <MudText Typo="Typo.caption" Style="color:#D97706; font-weight:600; margin-top:8px;">
+                        @sub.RemainingListings tin còn lại
+                    </MudText>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+<!-- Payment history -->
+<MudText Typo="Typo.h6" Style="font-weight:700; margin-bottom:16px;">Lịch sử giao dịch</MudText>
+
+@if (_loading)
+{
+    <MudPaper Elevation="0" Style="border:1px solid #E2E8F0; border-radius:16px; overflow:hidden;">
+        @for (int i = 0; i < 5; i++)
+        {
+            <div style="padding:16px; border-bottom:1px solid #F1F5F9;">
+                <MudSkeleton Width="60%" Height="16px" Class="mb-2" />
+                <MudSkeleton Width="40%" Height="14px" />
+            </div>
+        }
+    </MudPaper>
+}
+else if (_payments?.Items.Count == 0)
+{
+    <EmptyState Icon="@Icons.Material.Outlined.Receipt"
+                Title="Chưa có giao dịch"
+                Subtitle="Mua gói VIP để đăng tin và tiếp cận nhiều khách hàng hơn"
+                ActionText="Mua gói VIP" ActionHref="/dashboard/goi-vip" />
+}
+else
+{
+    <MudPaper Elevation="0" Style="border:1px solid #E2E8F0; border-radius:16px; overflow:hidden;">
+        <MudTable Items="@_payments!.Items" Elevation="0" Hover="true">
+            <HeaderContent>
+                <MudTh>Gói</MudTh>
+                <MudTh>Số tiền</MudTh>
+                <MudTh>Phương thức</MudTh>
+                <MudTh>Trạng thái</MudTh>
+                <MudTh>Ngày</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>
+                    <MudText Typo="Typo.body2" Style="font-weight:600;">@(context.VIPPackageName ?? "Gói VIP")</MudText>
+                    <MudText Typo="Typo.caption" Style="color:#94A3B8;">@FormatPaymentReference(context.PaymentReference)</MudText>
+                </MudTd>
+                <MudTd>
+                    <MudText Style="font-weight:700; color:#B91C1C;">@($"{context.Amount:N0} {context.Currency}")</MudText>
+                </MudTd>
+                <MudTd>@(context.PaymentMethod ?? "VNPay")</MudTd>
+                <MudTd>
+                    <MudChip T="string" Size="Size.Small" Style="@GetPaymentStatusStyle(context.Status)">
+                        @GetPaymentStatusLabel(context.Status)
+                    </MudChip>
+                </MudTd>
+                <MudTd>
+                    <MudText Typo="Typo.caption">@context.CreatedAt.ToString("dd/MM/yyyy HH:mm")</MudText>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudPaper>
+}
+
+}
+
+@code {
+    private VietPropEstate.Application.Common.Models.PaginatedList<PaymentDto>? _payments;
+    private List<UserVIPPackageDto> _subscriptions = [];
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _subscriptions = await PaymentClient.GetMySubscriptionsAsync();
+        _payments = await PaymentClient.GetPaymentHistoryAsync();
+        _loading = false;
+    }
+
+    private static int GetProgress(UserVIPPackageDto sub)
+    {
+        var total = (sub.EndDate - sub.StartDate).TotalDays;
+        var elapsed = (DateTime.UtcNow - sub.StartDate).TotalDays;
+        return (int)(elapsed / total * 100);
+    }
+
+    private static string FormatPaymentReference(string? reference)
+    {
+        if (string.IsNullOrWhiteSpace(reference))
+            return "—";
+        return reference.Length <= 8 ? reference.ToUpperInvariant() : reference[..8].ToUpperInvariant();
+    }
+
+    private static string GetPaymentStatusLabel(VietPropEstate.Domain.Enums.PaymentStatus s) => s switch
+    {
+        VietPropEstate.Domain.Enums.PaymentStatus.Completed => "Thành công",
+        VietPropEstate.Domain.Enums.PaymentStatus.Pending => "Chờ xử lý",
+        VietPropEstate.Domain.Enums.PaymentStatus.Failed => "Thất bại",
+        VietPropEstate.Domain.Enums.PaymentStatus.Cancelled => "Đã hủy",
+        VietPropEstate.Domain.Enums.PaymentStatus.Refunded => "Đã hoàn tiền",
+        _ => s.ToString()
+    };
+
+    private static string GetPaymentStatusStyle(VietPropEstate.Domain.Enums.PaymentStatus s) => s switch
+    {
+        VietPropEstate.Domain.Enums.PaymentStatus.Completed => "background:#DCFCE7; color:#16A34A;",
+        VietPropEstate.Domain.Enums.PaymentStatus.Pending => "background:#FEF3C7; color:#D97706;",
+        VietPropEstate.Domain.Enums.PaymentStatus.Failed => "background:#FEE2E2; color:#B91C1C;",
+        _ => "background:#F1F5F9; color:#64748B;"
+    };
+}

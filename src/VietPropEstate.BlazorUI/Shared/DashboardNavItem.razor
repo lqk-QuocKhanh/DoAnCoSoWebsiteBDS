@@ -1,0 +1,25 @@
+<NavLink href="@Href" Match="@Match" class="dash-nav-link">
+    <span class="dash-nav-icon">
+        <MudIcon Icon="@Icon" Size="Size.Small" />
+    </span>
+    <span class="dash-nav-body">
+        <span class="dash-nav-title">@Title</span>
+        @if (!string.IsNullOrEmpty(Description))
+        {
+            <span class="dash-nav-desc">@Description</span>
+        }
+    </span>
+    @if (BadgeCount > 0)
+    {
+        <span class="dash-nav-badge">@(BadgeCount > 99 ? "99+" : BadgeCount.ToString())</span>
+    }
+</NavLink>
+
+@code {
+    [Parameter, EditorRequired] public string Href { get; set; } = "";
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public string? Description { get; set; }
+    [Parameter] public string Icon { get; set; } = Icons.Material.Outlined.Circle;
+    [Parameter] public NavLinkMatch Match { get; set; } = NavLinkMatch.Prefix;
+    [Parameter] public int BadgeCount { get; set; }
+}

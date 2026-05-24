@@ -1,0 +1,42 @@
+@* Three-dot menu for conversation actions (pin, mute, block, view profile). *@
+<MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" Dense="true"
+         AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight"
+         @onclick:stopPropagation="true">
+    @if (!string.IsNullOrEmpty(Conversation.OtherParticipantId))
+    {
+        <MudMenuItem Icon="@Icons.Material.Outlined.Person"
+                     Href="@($"/nguoi-dang/{Conversation.OtherParticipantId}")">
+            Xem trang cá nhân
+        </MudMenuItem>
+        <MudDivider />
+    }
+    <MudMenuItem Icon="@(Conversation.IsPinned ? Icons.Material.Outlined.PushPin : Icons.Material.Filled.PushPin)"
+                 OnClick="@(() => OnAction.InvokeAsync("pin"))">
+        @(Conversation.IsPinned ? "Bỏ ghim" : "Ghim cuộc trò chuyện")
+    </MudMenuItem>
+    <MudMenuItem Icon="@(Conversation.IsMuted ? Icons.Material.Outlined.Notifications : Icons.Material.Outlined.NotificationsOff)"
+                 OnClick="@(() => OnAction.InvokeAsync("mute"))">
+        @(Conversation.IsMuted ? "Bật thông báo" : "Tắt thông báo")
+    </MudMenuItem>
+    <MudDivider />
+    @if (Conversation.IsBlockedByMe)
+    {
+        <MudMenuItem Icon="@Icons.Material.Outlined.PersonAdd"
+                     OnClick="@(() => OnAction.InvokeAsync("unblock"))">
+            Bỏ chặn người dùng
+        </MudMenuItem>
+    }
+    else
+    {
+        <MudMenuItem Icon="@Icons.Material.Outlined.Block"
+                     Style="color:#DC2626;"
+                     OnClick="@(() => OnAction.InvokeAsync("block"))">
+            Chặn người dùng
+        </MudMenuItem>
+    }
+</MudMenu>
+
+@code {
+    [Parameter, EditorRequired] public ConversationDto Conversation { get; set; } = default!;
+    [Parameter] public EventCallback<string> OnAction { get; set; }
+}

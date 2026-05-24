@@ -1,0 +1,523 @@
+/* ═══════════════════════════════════════════════════════════════
+   Admin & SysAdmin — Premium panel theme (Stripe / Linear style)
+   ═══════════════════════════════════════════════════════════════ */
+
+.admin-panel--urbn {
+    --ap-primary: #0F172A;
+    --ap-accent: #2563EB;
+    --ap-bg: #F8FAFC;
+    --ap-card: #FFFFFF;
+    --ap-text: #0F172A;
+    --ap-muted: #64748B;
+    --ap-border: #E2E8F0;
+    --ap-radius-lg: 16px;
+    --ap-radius-md: 12px;
+    --ap-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.04);
+    font-family: 'Inter', 'Be Vietnam Pro', system-ui, sans-serif;
+}
+
+.admin-panel--urbn .mud-main-content {
+    background: var(--ap-bg) !important;
+}
+
+.admin-panel--urbn .ap-page {
+    max-width: 1280px;
+}
+
+/* ── Page header ── */
+.ap-page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.ap-page-title {
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--ap-text);
+    line-height: 1.25;
+    margin: 0 0 4px;
+}
+
+.ap-page-subtitle {
+    font-size: 0.875rem;
+    color: var(--ap-muted);
+    margin: 0;
+    line-height: 1.5;
+}
+
+.ap-btn-primary {
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    text-transform: none !important;
+}
+
+/* ── Alert info ── */
+.ap-info-banner {
+    border-radius: var(--ap-radius-md) !important;
+    margin-bottom: 20px !important;
+    border-color: #BFDBFE !important;
+    background: #F0F9FF !important;
+}
+
+.ap-info-banner strong {
+    color: var(--ap-text);
+}
+
+/* ── Stat cards ── */
+.ap-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+@media (max-width: 900px) {
+    .ap-stat-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.ap-stat-card {
+    background: var(--ap-card);
+    border: 1px solid var(--ap-border);
+    border-radius: var(--ap-radius-lg);
+    padding: 20px;
+    text-align: center;
+    box-shadow: var(--ap-shadow);
+    transition: border-color 200ms ease, box-shadow 200ms ease;
+}
+
+.ap-stat-card:hover {
+    border-color: #CBD5E1;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+}
+
+.ap-stat-card--clickable {
+    cursor: pointer;
+}
+
+.ap-stat-card--active {
+    border-color: #2563EB !important;
+    box-shadow: 0 0 0 1px #2563EB, 0 4px 16px rgba(37, 99, 235, 0.12) !important;
+}
+
+.ap-stat-value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+}
+
+.ap-stat-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--ap-muted);
+    margin-top: 4px;
+}
+
+/* ── Filter bar ── */
+.ap-filter-bar {
+    background: var(--ap-card);
+    border: 1px solid var(--ap-border);
+    border-radius: var(--ap-radius-lg);
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    box-shadow: var(--ap-shadow);
+}
+
+.ap-filter-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto;
+    gap: 12px;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .ap-filter-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.ap-filter-clear {
+    color: var(--ap-muted) !important;
+    min-width: auto !important;
+    justify-self: end;
+}
+
+/* ── Data panel ── */
+.ap-data-panel {
+    background: var(--ap-card);
+    border: 1px solid var(--ap-border);
+    border-radius: var(--ap-radius-lg);
+    overflow: hidden;
+    box-shadow: var(--ap-shadow);
+}
+
+.ap-data-panel__toolbar {
+    padding: 14px 20px;
+    border-bottom: 1px solid #F1F5F9;
+    font-size: 0.8125rem;
+    color: var(--ap-muted);
+}
+
+.ap-data-panel__empty {
+    padding: 56px 24px;
+    text-align: center;
+}
+
+.ap-data-panel__empty-icon {
+    font-size: 3rem !important;
+    color: #CBD5E1 !important;
+    margin-bottom: 12px;
+}
+
+/* ── Users table (CSS Grid) ── */
+.ap-users-table {
+    --ap-users-cols: minmax(200px, 1.8fr) 112px 148px 96px 88px 72px 36px;
+}
+
+.ap-users-table__head {
+    display: none;
+    background: #F8FAFC;
+    border-bottom: 1px solid var(--ap-border);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ap-muted);
+}
+
+@media (min-width: 768px) {
+    .ap-users-table__head {
+        display: grid;
+        grid-template-columns: var(--ap-users-cols);
+        gap: 12px;
+        align-items: center;
+        padding: 12px 20px;
+    }
+}
+
+.ap-users-table__head,
+.ap-users-table__row {
+    grid-template-columns: var(--ap-users-cols);
+    gap: 12px;
+    align-items: center;
+    padding: 12px 20px;
+}
+
+.ap-users-table__row {
+    display: grid;
+    border-bottom: 1px solid #F1F5F9;
+    transition: background 180ms ease;
+    min-height: 64px;
+}
+
+.ap-users-table__row:last-child {
+    border-bottom: none;
+}
+
+.ap-users-table__row:hover {
+    background: #F8FAFC;
+}
+
+.ap-user-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.ap-user-cell__avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.ap-user-cell__info {
+    min-width: 0;
+}
+
+.ap-user-cell__name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--ap-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ap-user-cell__email {
+    font-size: 0.75rem;
+    color: #94A3B8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ap-cell-text {
+    font-size: 0.8125rem;
+    color: var(--ap-muted);
+}
+
+.ap-cell-text--mono {
+    font-variant-numeric: tabular-nums;
+}
+
+.ap-cell-roles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+    min-height: 28px;
+}
+
+.ap-cell-listings {
+    text-align: center;
+}
+
+.ap-cell-actions {
+    display: flex;
+    justify-content: center;
+}
+
+/* Badges */
+.ap-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+.ap-badge--sysadmin { background: #EEF2FF; color: #4F46E5; }
+.ap-badge--admin { background: #FEE2E2; color: #B91C1C; }
+.ap-badge--staff { background: #F3E8FF; color: #9333EA; }
+.ap-badge--broker { background: #DBEAFE; color: #2563EB; }
+.ap-badge--customer { background: #F1F5F9; color: #64748B; }
+.ap-badge--active { background: #ECFDF5; color: #10B981; }
+.ap-badge--locked { background: #FEE2E2; color: #EF4444; }
+.ap-badge--listings { background: #EFF6FF; color: #2563EB; }
+.ap-badge--muted { background: #F1F5F9; color: #94A3B8; }
+
+@media (max-width: 1100px) {
+    .ap-users-table {
+        --ap-users-cols: minmax(180px, 1.6fr) 148px 96px 72px 36px;
+    }
+    .ap-users-table .col-phone,
+    .ap-users-table .col-date {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .ap-users-table {
+        --ap-users-cols: minmax(160px, 1fr) 96px 36px;
+    }
+    .ap-users-table .col-phone,
+    .ap-users-table .col-date,
+    .ap-users-table .col-roles,
+    .ap-users-table .col-listings {
+        display: none;
+    }
+}
+
+/* ── Activity log rows ── */
+.ap-log-row {
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 16px 24px;
+    border-bottom: 1px solid #F1F5F9;
+    transition: background 180ms ease;
+}
+
+.ap-log-row:hover {
+    background: #F8FAFC;
+}
+
+.ap-log-row:last-child {
+    border-bottom: none;
+}
+
+.ap-log-row__icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.ap-log-row__title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--ap-text);
+    margin-bottom: 2px;
+}
+
+.ap-log-row__meta {
+    font-size: 0.75rem;
+    color: var(--ap-muted);
+}
+
+/* ── Sidebar profile card ── */
+.ap-sidebar-profile {
+    position: absolute;
+    bottom: 16px;
+    left: 12px;
+    right: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.ap-sidebar-profile__inner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.ap-sidebar-profile__avatar {
+    width: 36px !important;
+    height: 36px !important;
+    flex-shrink: 0;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+}
+
+.ap-sidebar-profile__name {
+    color: #E2E8F0;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ap-sidebar-profile__role {
+    color: #64748B;
+    font-size: 11px;
+}
+
+/* SysAdmin drawer uses same dark shell as Admin */
+.admin-panel--urbn.admin-panel--sysadmin .mud-drawer {
+    background: #0F172A !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.admin-panel--urbn .ap-drawer-inner {
+    padding: 16px 12px 88px;
+    position: relative;
+    min-height: calc(100vh - 64px);
+}
+
+.admin-panel--urbn .ap-nav-label {
+    padding: 4px 8px 8px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.admin-panel--urbn .mud-nav-link {
+    color: #94A3B8 !important;
+    border-radius: 10px !important;
+    margin: 2px 0;
+    font-size: 14px;
+}
+
+.admin-panel--urbn .mud-nav-link:hover {
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: #E2E8F0 !important;
+}
+
+.admin-panel--urbn .mud-nav-link.active {
+    background: rgba(37, 99, 235, 0.2) !important;
+    color: #93C5FD !important;
+    font-weight: 600 !important;
+}
+
+.admin-panel--urbn.admin-panel--admin .mud-nav-link.active {
+    background: rgba(185, 28, 28, 0.22) !important;
+    color: #FCA5A5 !important;
+}
+
+.admin-panel--urbn .mud-nav-link .mud-nav-link-icon {
+    color: inherit !important;
+}
+
+/* Quick link cards (SysAdmin index) */
+.ap-quick-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+@media (max-width: 900px) {
+    .ap-quick-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.ap-quick-card {
+    background: var(--ap-card);
+    border: 1px solid var(--ap-border);
+    border-radius: var(--ap-radius-lg);
+    padding: 24px;
+    cursor: pointer;
+    transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+    box-shadow: var(--ap-shadow);
+}
+
+.ap-quick-card:hover {
+    border-color: #CBD5E1;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    transform: translateY(-2px);
+}
+
+.ap-quick-card__icon {
+    width: 48px;
+    height: 48px;
+    background: #EFF6FF;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    color: var(--ap-accent);
+}
+
+.ap-quick-card__title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ap-text);
+    margin-bottom: 4px;
+}
+
+.ap-quick-card__desc {
+    font-size: 0.875rem;
+    color: var(--ap-muted);
+}

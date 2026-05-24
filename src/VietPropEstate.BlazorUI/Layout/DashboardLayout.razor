@@ -1,0 +1,175 @@
+@inherits LayoutComponentBase
+@implements IDisposable
+@inject AuthState AuthState
+@inject NavigationManager Nav
+@inject NotificationState NotificationState
+@inject INotificationsApiClient NotificationsClient
+@inject IMediaUrlResolver MediaUrls
+
+@if (!AuthState.IsAuthenticated)
+{
+    <div class="dash-auth-gate">
+        <div class="dash-auth-gate-inner">
+            <MudIcon Icon="@Icons.Material.Outlined.Lock" Style="font-size:48px; color:#94A3B8; margin-bottom:16px;" />
+            <MudText Typo="Typo.h5" Style="font-weight:700; margin-bottom:8px;">Vui lòng đăng nhập</MudText>
+            <MudText Typo="Typo.body2" Style="color:#64748B; margin-bottom:24px;">Bạn cần đăng nhập để truy cập bảng điều khiển</MudText>
+            <a href="/dang-nhap" class="dash-btn dash-btn--primary">Đăng nhập</a>
+        </div>
+    </div>
+    return;
+}
+
+<MudLayout Class="dashboard-shell">
+    <MudAppBar Elevation="0" Fixed="true" Class="dashboard-appbar">
+        <MudIconButton Icon="@Icons.Material.Outlined.Menu" Color="Color.Inherit"
+                       OnClick="@ToggleDrawer" Class="d-md-none dash-header-icon-btn" />
+        <MudLink Href="/" Class="dashboard-brand">
+            <span class="dashboard-brand-icon">
+                <MudIcon Icon="@Icons.Material.Outlined.Home" Size="Size.Small" />
+            </span>
+            <span class="dashboard-brand-text">VIETPROPESTATE</span>
+        </MudLink>
+        <MudSpacer />
+        <div class="dashboard-header-actions">
+            <MudTooltip Text="Tin nhắn">
+                <MudBadge Content="@GetMessageBadge()" Color="Color.Error"
+                          Visible="@(NotificationState.UnreadMessages > 0)" Overlap="true">
+                    <MudIconButton Icon="@Icons.Material.Outlined.Chat" Href="/dashboard/tin-nhan"
+                                   Class="dash-header-icon-btn" aria-label="Tin nhắn" />
+                </MudBadge>
+            </MudTooltip>
+            <NotificationMenu />
+            <UserAvatarMenu />
+        </div>
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="_drawerOpen" Elevation="0" ClipMode="DrawerClipMode.Always"
+               Variant="DrawerVariant.Responsive" Class="dashboard-drawer">
+        <div class="dashboard-drawer-inner">
+            <MudLink Href="/" Class="dashboard-sidebar-brand">
+                <span class="dashboard-sidebar-brand-icon">
+                    <MudIcon Icon="@Icons.Material.Outlined.Home" Size="Size.Small" />
+                </span>
+                <span class="dashboard-sidebar-brand-text">VietPropEstate</span>
+            </MudLink>
+
+            <div class="dashboard-drawer-section">
+                <p class="dashboard-drawer-label">Menu</p>
+                <nav class="dashboard-nav">
+                    <DashboardNavItem Href="/dashboard" Match="NavLinkMatch.All"
+                                      Title="Tổng quan" Description="Thống kê & hoạt động"
+                                      Icon="@Icons.Material.Outlined.SpaceDashboard" />
+                    @if (AuthState.CanPostListings)
+                    {
+                        <DashboardNavItem Href="/dashboard/tin-dang"
+                                          Title="Tin đăng của tôi" Description="Quản lý bài đăng"
+                                          Icon="@Icons.Material.Outlined.Apartment" />
+                        <DashboardNavItem Href="/dashboard/tin-dang/them-moi"
+                                          Title="Đăng tin mới" Description="Tạo tin rao BĐS"
+                                          Icon="@Icons.Material.Outlined.AddHome" />
+                    }
+                    <DashboardNavItem Href="/dashboard/yeu-thich"
+                                      Title="Tin yêu thích" Description="BĐS đã lưu"
+                                      Icon="@Icons.Material.Outlined.FavoriteBorder" />
+                </nav>
+            </div>
+
+            @if (AuthState.CanBuyVipPackage)
+            {
+                <div class="dashboard-vip-banner">
+                    <div class="dashboard-vip-banner-icon">
+                        <MudIcon Icon="@Icons.Material.Outlined.Star" Size="Size.Small" />
+                    </div>
+                    <div class="dashboard-vip-banner-text">
+                        <p class="dashboard-vip-banner-title">Nâng cấp VIP</p>
+                        <p class="dashboard-vip-banner-desc">Tăng hiển thị tin đăng</p>
+                    </div>
+                    <a href="/dashboard/goi-vip" class="dashboard-vip-banner-btn-link">Xem gói</a>
+                </div>
+            }
+
+            @if (AuthState.CanPostListings)
+            {
+                <a href="/dashboard/tin-dang/them-moi" class="dash-sidebar-cta">
+                    <MudIcon Icon="@Icons.Material.Outlined.Add" Size="Size.Small" />
+                    Đăng tin mới
+                </a>
+            }
+
+            <div class="dashboard-drawer-user">
+                <MudAvatar Class="@($"dashboard-drawer-user-avatar{(HasAvatar() ? " dashboard-drawer-user-avatar--photo" : "")}")">
+                    @if (HasAvatar())
+                    {
+                        <MudImage Src="@GetAvatarUrl()" Alt="@GetDisplayName()" ObjectFit="ObjectFit.Cover" />
+                    }
+                    else
+                    {
+                        @GetUserInitials()
+                    }
+                </MudAvatar>
+                <div class="dashboard-drawer-user-info">
+                    <span class="dashboard-drawer-user-name">@GetDisplayName()</span>
+                    <span class="dashboard-drawer-user-role">@GetRoleLabel()</span>
+                </div>
+            </div>
+        </div>
+    </MudDrawer>
+
+    <MudMainContent Class="dashboard-main">
+        <MudContainer MaxWidth="MaxWidth.False" Class="dashboard-content">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+<SupportChatBubble />
+
+@code {
+    private bool _drawerOpen = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        AuthState.OnChange += HandleAuthChange;
+        NotificationState.OnChange += HandleNotificationChange;
+        var counts = await NotificationsClient.GetUnreadCountsAsync();
+        NotificationState.SetCounts(counts.Messages, counts.Notifications);
+    }
+
+    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+
+    private string? GetMessageBadge() =>
+        NotificationState.UnreadMessages > 9 ? "9+" : NotificationState.UnreadMessages.ToString();
+
+    private void HandleNotificationChange() => InvokeAsync(StateHasChanged);
+
+    private void HandleAuthChange() => InvokeAsync(StateHasChanged);
+
+    private string GetDisplayName() =>
+        AuthState.CurrentUser?.FullName ?? AuthState.CurrentUser?.Email ?? "Người dùng";
+
+    private string? GetAvatarUrl() => MediaUrls.Resolve(AuthState.CurrentUser?.AvatarUrl);
+
+    private bool HasAvatar() => !string.IsNullOrEmpty(GetAvatarUrl());
+
+    private string GetUserInitials()
+    {
+        var name = GetDisplayName();
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length >= 2 ? $"{parts[0][0]}{parts[^1][0]}" : name[..1].ToUpper();
+    }
+
+    private string GetRoleLabel()
+    {
+        if (AuthState.IsSysAdmin) return "Quản trị hệ thống";
+        if (AuthState.IsAdmin) return "Quản trị viên";
+        if (AuthState.IsBroker) return "Môi giới";
+        if (AuthState.IsStaff) return "Nhân viên";
+        return "Khách hàng";
+    }
+
+    public void Dispose()
+    {
+        AuthState.OnChange -= HandleAuthChange;
+        NotificationState.OnChange -= HandleNotificationChange;
+    }
+}

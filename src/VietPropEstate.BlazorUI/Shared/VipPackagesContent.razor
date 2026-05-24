@@ -1,0 +1,193 @@
+@inject IPaymentApiClient PaymentClient
+@inject AuthState AuthState
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+
+@if (_loading)
+{
+    <MudGrid>
+        @for (int i = 0; i < 4; i++)
+        {
+            <MudItem xs="12" sm="6" md="3">
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="360px" Style="border-radius:20px;" />
+            </MudItem>
+        }
+    </MudGrid>
+}
+else if (_packages.Count == 0)
+{
+    <MudAlert Severity="Severity.Warning" Class="mb-4">
+        Không tải được danh sách gói VIP. Vui lòng thử lại sau.
+    </MudAlert>
+}
+else
+{
+    @if (_subscriptions.Count > 0)
+    {
+        <MudText Typo="Typo.h6" Style="font-weight:700; margin-bottom:16px;">Gói đang sử dụng</MudText>
+        <MudGrid Class="mb-6">
+            @foreach (var sub in _subscriptions)
+            {
+                <MudItem xs="12" sm="6" md="4">
+                    <MudPaper Elevation="0" Style="border:2px solid #FDE68A; border-radius:16px; padding:20px; background:#FFFBEB;">
+                        <MudText Typo="Typo.subtitle2" Style="font-weight:700;">@sub.VIPPackageName</MudText>
+                        <MudText Typo="Typo.caption" Style="color:#64748B;">
+                            Còn @sub.DaysRemaining ngày · @sub.RemainingListings tin
+                        </MudText>
+                    </MudPaper>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+
+    <MudGrid>
+        @for (int i = 0; i < _packages.Count; i++)
+        {
+            var pkg = _packages[i];
+            var isRecommended = i == 1;
+            <MudItem xs="12" sm="6" md="3">
+                <PaymentPackageCard Package="@pkg"
+                                    IsRecommended="@isRecommended"
+                                    IsSelected="@(_selectedPackage?.Id == pkg.Id)"
+                                    OnSelected="@(p => _selectedPackage = p)"
+                                    OnBuyClicked="@BuyPackage" />
+            </MudItem>
+        }
+    </MudGrid>
+
+    <MudPaper Elevation="0" Style="border:1px solid #E2E8F0; border-radius:20px; padding:32px; margin-top:48px;">
+        <MudText Typo="Typo.h6" Style="font-weight:700; margin-bottom:24px; text-align:center;">So sánh tính năng</MudText>
+        <MudTable Items="@_features" Elevation="0" Dense="true" Hover="true">
+            <HeaderContent>
+                <MudTh>Tính năng</MudTh>
+                <MudTh Style="text-align:center;">Cơ Bản</MudTh>
+                <MudTh Style="text-align:center;">Tiêu Chuẩn</MudTh>
+                <MudTh Style="text-align:center;">Cao Cấp</MudTh>
+                <MudTh Style="text-align:center;">Gold</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@context.Feature</MudTd>
+                @foreach (var val in context.Values)
+                {
+                    <MudTd Style="text-align:center;">
+                        @if (val == "✓")
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Style="color:#16A34A;" Size="Size.Small" />
+                        }
+                        else if (val == "✗")
+                        {
+                            <MudIcon Icon="@Icons.Material.Outlined.Cancel" Style="color:#CBD5E1;" Size="Size.Small" />
+                        }
+                        else
+                        {
+                            <span style="font-size:13px; font-weight:500;">@val</span>
+                        }
+                    </MudTd>
+                }
+            </RowTemplate>
+        </MudTable>
+    </MudPaper>
+}
+
+<MudDialog @bind-Visible="_checkoutOpen" Options="@(new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true })">
+    <TitleContent>
+        <MudText Typo="Typo.h6" Style="font-weight:700;">Thanh toán VNPay</MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (_selectedPackage != null)
+        {
+            <div style="text-align:center; padding:16px 0;">
+                <div style="background:#F8FAFC; border-radius:16px; padding:20px; margin-bottom:20px; text-align:left;">
+                    <div class="d-flex justify-content-between mb-2">
+                        <MudText Typo="Typo.body2" Style="color:#64748B;">Gói</MudText>
+                        <MudText Typo="Typo.body2" Style="font-weight:600;">@_selectedPackage.Name</MudText>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <MudText Typo="Typo.body2" Style="color:#64748B;">Thời hạn</MudText>
+                        <MudText Typo="Typo.body2" Style="font-weight:600;">@_selectedPackage.DurationDays ngày</MudText>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <MudText Typo="Typo.body2" Style="color:#64748B;">Số tin đăng</MudText>
+                        <MudText Typo="Typo.body2" Style="font-weight:600;">
+                            @(_selectedPackage.MaxListings >= 99 ? "Không giới hạn" : $"{_selectedPackage.MaxListings} tin")
+                        </MudText>
+                    </div>
+                    <MudDivider Style="margin:12px 0;" />
+                    <div class="d-flex justify-content-between">
+                        <MudText Typo="Typo.subtitle2" Style="font-weight:700;">Tổng cộng</MudText>
+                        <MudText Typo="Typo.subtitle2" Style="font-weight:700; color:#B91C1C;">@($"{_selectedPackage.Price:N0} VND")</MudText>
+                    </div>
+                </div>
+                <MudText Typo="Typo.body2" Style="color:#64748B; line-height:1.6;">
+                    Bạn sẽ được chuyển đến cổng thanh toán VNPay. Giao dịch được bảo mật SSL.
+                </MudText>
+            </div>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" OnClick="@(() => _checkoutOpen = false)"
+                   StartIcon="@Icons.Material.Filled.ArrowBack" Style="color:#64748B; font-weight:600;">
+            Quay lại
+        </MudButton>
+        <MudSpacer />
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@ConfirmPaymentAsync"
+                   Disabled="@_paying" Style="border-radius:10px; font-weight:700;">
+            @(_paying ? "Đang xử lý..." : "Thanh toán ngay")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private List<VIPPackageDto> _packages = [];
+    private List<UserVIPPackageDto> _subscriptions = [];
+    private VIPPackageDto? _selectedPackage;
+    private bool _loading = true;
+    private bool _checkoutOpen;
+    private bool _paying;
+
+    private readonly (string Feature, string[] Values)[] _features =
+    [
+        ("Số tin đăng", ["3", "10", "30", "Không giới hạn"]),
+        ("Thời hạn", ["30 ngày", "30 ngày", "90 ngày", "180 ngày"]),
+        ("Hiển thị ưu tiên", ["✗", "✓", "✓", "✓"]),
+        ("Nổi bật trang chủ", ["✗", "✗", "✓", "✓"]),
+        ("Huy hiệu VIP", ["✗", "✗", "✓", "✓"]),
+        ("Hỗ trợ 24/7", ["✗", "✓", "✓", "✓"]),
+    ];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _packages = await PaymentClient.GetVipPackagesAsync();
+        if (AuthState.IsAuthenticated)
+            _subscriptions = await PaymentClient.GetMySubscriptionsAsync();
+        _loading = false;
+    }
+
+    private void BuyPackage(VIPPackageDto package)
+    {
+        if (!AuthState.IsAuthenticated)
+        {
+            Nav.NavigateTo("/dang-nhap?returnUrl=/dashboard/goi-vip");
+            return;
+        }
+        _selectedPackage = package;
+        _checkoutOpen = true;
+    }
+
+    private async Task ConfirmPaymentAsync()
+    {
+        if (_selectedPackage == null) return;
+        _paying = true;
+
+        var (result, error) = await PaymentClient.InitiatePaymentAsync(_selectedPackage.Id);
+        if (!string.IsNullOrWhiteSpace(result?.PaymentUrl))
+        {
+            Nav.NavigateTo(result.PaymentUrl, forceLoad: true);
+            return;
+        }
+
+        Snackbar.Add(error ?? "Không thể khởi tạo thanh toán. Vui lòng thử lại.", Severity.Error);
+        _paying = false;
+        _checkoutOpen = false;
+    }
+}

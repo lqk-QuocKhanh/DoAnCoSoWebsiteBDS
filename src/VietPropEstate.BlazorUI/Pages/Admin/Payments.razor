@@ -1,0 +1,303 @@
+@page "/admin/thanh-toan"
+@layout AdminLayout
+@inject IAdminApiClient AdminClient
+@inject ISnackbar Snackbar
+
+<PageTitle>Quản lý thanh toán - Admin</PageTitle>
+
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-start mb-6">
+    <div>
+        <MudText Typo="Typo.h5" Style="font-weight:800; color:#0F172A;">Quản lý thanh toán</MudText>
+        <MudText Typo="Typo.body2" Style="color:#64748B;">Thống kê doanh thu và quản lý giao dịch VNPay</MudText>
+    </div>
+    <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Download"
+               Style="border-radius:10px; border-color:#E2E8F0; font-weight:600;">
+        Xuất báo cáo
+    </MudButton>
+</div>
+
+@if (_loadingStats)
+{
+    <MudGrid Class="mb-6">
+        @for (int i = 0; i < 4; i++) { <MudItem xs="12" sm="6" lg="3"><MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="100px" Style="border-radius:16px;" /></MudItem> }
+    </MudGrid>
+}
+else if (_revenue != null)
+{
+    <!-- Revenue KPI cards -->
+    <MudGrid Class="mb-6">
+        <MudItem xs="12" sm="6" lg="3">
+            <MudPaper Elevation="0" Style="background:linear-gradient(135deg,#166534,#16A34A); border-radius:16px; padding:20px; color:#fff;">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <MudText Style="font-size:12px; opacity:0.8; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">Tổng doanh thu</MudText>
+                    <MudIcon Icon="@Icons.Material.Filled.AccountBalance" Style="opacity:0.7;" Size="Size.Small" />
+                </div>
+                <MudText Style="font-size:26px; font-weight:800;">@FormatMoney(_revenue.TotalRevenue)</MudText>
+                <MudText Style="font-size:11px; opacity:0.7; margin-top:4px;">Tích lũy từ trước đến nay</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="6" lg="3">
+            <MudPaper Elevation="0" Style="background:linear-gradient(135deg,#1E3A8A,#2563EB); border-radius:16px; padding:20px; color:#fff;">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <MudText Style="font-size:12px; opacity:0.8; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">Tháng này</MudText>
+                    <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Style="opacity:0.7;" Size="Size.Small" />
+                </div>
+                <MudText Style="font-size:26px; font-weight:800;">@FormatMoney(_revenue.MonthRevenue)</MudText>
+                <div class="d-flex align-items-center mt-1" style="gap:4px;">
+                    <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Style="color:#86EFAC; font-size:14px;" />
+                    <MudText Style="font-size:11px; opacity:0.7;">+18% so với tháng trước</MudText>
+                </div>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="6" lg="3">
+            <MudPaper Elevation="0" Style="background:linear-gradient(135deg,#92400E,#D97706); border-radius:16px; padding:20px; color:#fff;">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <MudText Style="font-size:12px; opacity:0.8; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">Hôm nay</MudText>
+                    <MudIcon Icon="@Icons.Material.Filled.Today" Style="opacity:0.7;" Size="Size.Small" />
+                </div>
+                <MudText Style="font-size:26px; font-weight:800;">@FormatMoney(_revenue.TodayRevenue)</MudText>
+                <MudText Style="font-size:11px; opacity:0.7; margin-top:4px;">@_revenue.DailyTransactions.LastOrDefault() giao dịch hôm nay</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="6" lg="3">
+            <MudPaper Elevation="0" Style="background:linear-gradient(135deg,#7F1D1D,#B91C1C); border-radius:16px; padding:20px; color:#fff;">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <MudText Style="font-size:12px; opacity:0.8; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">Tỉ lệ thành công</MudText>
+                    <MudIcon Icon="@Icons.Material.Filled.VerifiedUser" Style="opacity:0.7;" Size="Size.Small" />
+                </div>
+                <MudText Style="font-size:26px; font-weight:800;">@_revenue.SuccessRate%</MudText>
+                <MudText Style="font-size:11px; opacity:0.7; margin-top:4px;">@_revenue.TotalTransactions tổng giao dịch</MudText>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+    <!-- Charts row -->
+    <MudGrid Class="mb-6">
+        <MudItem xs="12" md="8">
+            <MudPaper Elevation="0" Style="background:#fff; border:1px solid #E2E8F0; border-radius:20px; padding:24px;">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <div>
+                        <MudText Typo="Typo.subtitle1" Style="font-weight:700; color:#0F172A;">Doanh thu theo tháng</MudText>
+                        <MudText Typo="Typo.caption" Style="color:#94A3B8;">Đơn vị: triệu đồng</MudText>
+                    </div>
+                    <MudChip T="string" Size="Size.Small" Style="background:#DCFCE7; color:#16A34A; font-weight:600;">2024</MudChip>
+                </div>
+                <MudChart T="double" ChartType="ChartType.Line"
+                          ChartSeries="@_revenueSeries"
+                          ChartLabels="@_revenue.MonthLabels"
+                          Width="100%" Height="260px"
+                          ChartOptions="@_lineOptions" />
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" md="4">
+            <MudPaper Elevation="0" Style="background:#fff; border:1px solid #E2E8F0; border-radius:20px; padding:24px;">
+                <MudText Typo="Typo.subtitle1" Style="font-weight:700; color:#0F172A; margin-bottom:4px;">Giao dịch theo ngày</MudText>
+                <MudText Typo="Typo.caption" Style="color:#94A3B8; margin-bottom:16px;">7 ngày gần nhất</MudText>
+                <MudChart T="double" ChartType="ChartType.Bar"
+                          ChartSeries="@_txnSeries"
+                          ChartLabels="@_revenue.DayLabels"
+                          Width="100%" Height="200px"
+                          ChartOptions="@_barOptions" />
+
+                <!-- Payment method breakdown -->
+                <MudDivider Class="my-4" />
+                <MudText Typo="Typo.body2" Style="font-weight:600; color:#0F172A; margin-bottom:12px;">Phương thức</MudText>
+                @foreach (var (method, pct, color) in _paymentMethods)
+                {
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <MudText Typo="Typo.caption" Style="color:#374151;">@method</MudText>
+                            <MudText Typo="Typo.caption" Style="font-weight:700; color:#0F172A;">@pct%</MudText>
+                        </div>
+                        <MudProgressLinear Value="@pct" Color="Color.Primary" Rounded="true"
+                                           Style="@($"--mud-palette-primary:{color};")" />
+                    </div>
+                }
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+}
+
+<!-- Transaction table -->
+<MudPaper Elevation="0" Style="background:#fff; border:1px solid #E2E8F0; border-radius:20px; overflow:hidden;">
+    <div class="d-flex align-items-center justify-content-between" style="padding:20px 24px; border-bottom:1px solid #F1F5F9;">
+        <MudText Typo="Typo.subtitle1" Style="font-weight:700;">Lịch sử giao dịch</MudText>
+        <div class="d-flex" style="gap:8px;">
+                    @foreach (var s in _statusFilters)
+                    {
+                        <MudChip T="string" Size="Size.Small"
+                                 Variant="@(_selectedStatus == s.Key ? Variant.Filled : Variant.Outlined)"
+                                 Color="@(_selectedStatus == s.Key ? Color.Primary : Color.Default)"
+                                 OnClick="@(() => SetStatusFilter(s.Key))">
+                            @s.Label
+                        </MudChip>
+                    }
+        </div>
+    </div>
+
+    @if (_loadingPayments)
+    {
+        @for (int i = 0; i < 5; i++)
+        {
+            <div style="padding:16px 24px; border-bottom:1px solid #F8FAFC; display:flex; gap:16px;">
+                <MudSkeleton Width="60%" Height="14px" />
+                <MudSpacer />
+                <MudSkeleton Width="80px" Height="14px" />
+            </div>
+        }
+    }
+    else
+    {
+        @foreach (var payment in FilteredPayments)
+        {
+            <div style="padding:14px 24px; border-bottom:1px solid #F8FAFC; display:flex; align-items:center; gap:16px; transition:background 0.15s;"
+                 onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='transparent'">
+                <!-- Status icon -->
+                <div style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:@GetPaymentStatusBg(payment.Status);">
+                    <MudIcon Icon="@GetPaymentStatusIcon(payment.Status)"
+                             Style="@($"color:{GetPaymentStatusColor(payment.Status)}; font-size:18px;")" />
+                </div>
+
+                <!-- User info -->
+                <div style="flex:1; min-width:0;">
+                    <MudText Style="font-weight:600; font-size:13px; color:#0F172A;">@payment.UserName</MudText>
+                    <MudText Style="font-size:11px; color:#94A3B8;">@payment.UserEmail · @payment.CreatedAt.ToString("dd/MM/yyyy HH:mm")</MudText>
+                </div>
+
+                <!-- Package -->
+                <MudChip T="string" Size="Size.Small" Style="background:#FEF3C7; color:#D97706; font-weight:600; min-width:80px;">
+                    @payment.PackageName
+                </MudChip>
+
+                <!-- Amount -->
+                <MudText Style="font-weight:800; color:#0F172A; font-size:15px; min-width:100px; text-align:right; white-space:nowrap;">
+                    @($"{payment.Amount:N0}đ")
+                </MudText>
+
+                <!-- Method + bank -->
+                <div style="min-width:80px; text-align:center;" Class="d-none d-md-block">
+                    <MudText Style="font-size:12px; font-weight:600; color:#374151;">@payment.PaymentMethod</MudText>
+                    @if (!string.IsNullOrEmpty(payment.BankCode))
+                    {
+                        <MudText Style="font-size:11px; color:#94A3B8;">@payment.BankCode</MudText>
+                    }
+                </div>
+
+                <!-- Status badge -->
+                <MudChip T="string" Size="Size.Small"
+                         Style="@(GetPaymentChipStyle(payment.Status) + " min-width:100px; text-align:center;")">
+                    @GetPaymentStatusLabel(payment.Status)
+                </MudChip>
+
+                <!-- Actions -->
+                <MudIconButton Icon="@Icons.Material.Outlined.OpenInNew" Size="Size.Small"
+                               Style="color:#94A3B8; flex-shrink:0;" />
+            </div>
+        }
+    }
+</MudPaper>
+
+@code {
+    private RevenueStats? _revenue;
+    private List<AdminPaymentDto> _payments = [];
+    private bool _loadingStats = true;
+    private bool _loadingPayments = true;
+    private string? _selectedStatus;
+
+    private List<ChartSeries<double>> _revenueSeries = [];
+    private List<ChartSeries<double>> _txnSeries = [];
+
+    private readonly ChartOptions _lineOptions = new()
+    {
+        ChartPalette = ["#16A34A"]
+    };
+
+    private readonly ChartOptions _barOptions = new()
+    {
+        ChartPalette = ["#2563EB"]
+    };
+
+    private readonly (string? Key, string Label)[] _statusFilters =
+    [
+        (null, "Tất cả"),
+        ("completed", "Thành công"),
+        ("pending", "Chờ xử lý"),
+        ("failed", "Thất bại"),
+    ];
+
+    private readonly (string Method, double Pct, string Color)[] _paymentMethods =
+    [
+        ("VNPay ATM", 62.0, "#2563EB"),
+        ("VNPay QR", 28.0, "#16A34A"),
+        ("Ngân hàng trực tiếp", 10.0, "#D97706"),
+    ];
+
+    private IEnumerable<AdminPaymentDto> FilteredPayments => _selectedStatus switch
+    {
+        "completed" => _payments.Where(p => p.Status == PaymentStatus.Completed),
+        "pending"   => _payments.Where(p => p.Status == PaymentStatus.Pending),
+        "failed"    => _payments.Where(p => p.Status == PaymentStatus.Failed),
+        _           => _payments
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        _revenue = await AdminClient.GetRevenueStatsAsync();
+        _loadingStats = false;
+
+        _revenueSeries = [new ChartSeries<double> { Name = "Doanh thu", Data = _revenue.MonthlyRevenue }];
+        _txnSeries = [new ChartSeries<double> { Name = "Giao dịch", Data = _revenue.DailyTransactions }];
+
+        _payments = await AdminClient.GetPaymentsAsync();
+        _loadingPayments = false;
+    }
+
+    private void SetStatusFilter(string? status) => _selectedStatus = status;
+
+    private static string FormatMoney(decimal amount) =>
+        amount >= 1_000_000_000 ? $"{amount / 1_000_000_000:N1} tỷđ" :
+        amount >= 1_000_000 ? $"{amount / 1_000_000:N0} tr" : $"{amount:N0}đ";
+
+    private static string GetPaymentStatusLabel(PaymentStatus s) => s switch
+    {
+        PaymentStatus.Completed  => "✓ Thành công",
+        PaymentStatus.Pending    => "⏳ Chờ xử lý",
+        PaymentStatus.Processing => "🔄 Đang xử lý",
+        PaymentStatus.Failed     => "✗ Thất bại",
+        PaymentStatus.Refunded   => "↩ Hoàn tiền",
+        PaymentStatus.Cancelled  => "✗ Đã hủy",
+        _ => s.ToString()
+    };
+
+    private static string GetPaymentChipStyle(PaymentStatus s) => s switch
+    {
+        PaymentStatus.Completed  => "background:#DCFCE7; color:#16A34A; font-weight:600;",
+        PaymentStatus.Pending    => "background:#FEF3C7; color:#D97706; font-weight:600;",
+        PaymentStatus.Processing => "background:#DBEAFE; color:#2563EB; font-weight:600;",
+        PaymentStatus.Failed     => "background:#FEE2E2; color:#B91C1C; font-weight:600;",
+        PaymentStatus.Refunded   => "background:#F3E8FF; color:#9333EA; font-weight:600;",
+        _ => "background:#F1F5F9; color:#64748B;"
+    };
+
+    private static string GetPaymentStatusBg(PaymentStatus s) => s switch
+    {
+        PaymentStatus.Completed => "#DCFCE7", PaymentStatus.Pending => "#FEF3C7",
+        PaymentStatus.Failed => "#FEE2E2", _ => "#F1F5F9"
+    };
+
+    private static string GetPaymentStatusColor(PaymentStatus s) => s switch
+    {
+        PaymentStatus.Completed => "#16A34A", PaymentStatus.Pending => "#D97706",
+        PaymentStatus.Failed => "#B91C1C", _ => "#64748B"
+    };
+
+    private static string GetPaymentStatusIcon(PaymentStatus s) => s switch
+    {
+        PaymentStatus.Completed => Icons.Material.Filled.CheckCircle,
+        PaymentStatus.Pending => Icons.Material.Filled.Schedule,
+        PaymentStatus.Failed => Icons.Material.Filled.Cancel,
+        PaymentStatus.Refunded => Icons.Material.Filled.Undo,
+        _ => Icons.Material.Filled.HelpOutline
+    };
+}

@@ -1,0 +1,22 @@
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6" Style="font-weight:700;">@Title</MudText>
+    </TitleContent>
+    <DialogContent>
+        <div class="urbn-gallery-dialog-grid">
+            @foreach (var (url, index) in Images.Select((u, i) => (u, i)))
+            {
+                <div class="urbn-gallery-dialog-item">
+                    <PropertyImage Url="@url" Alt="@($"{Title} - ảnh {index + 1}")" Loading="lazy" />
+                </div>
+            }
+        </div>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter] public string Title { get; set; } = "Hình ảnh";
+    [Parameter] public List<string> Images { get; set; } = [];
+}

@@ -1,0 +1,69 @@
+@using VietPropEstate.Domain.Enums
+
+<div class="chat-message-row @(Message.IsOwn ? "own" : "other")">
+    @if (!Message.IsOwn)
+    {
+        <UserAvatar AvatarUrl="@SenderAvatarUrl"
+                    Name="@SenderName"
+                    Initials="@SenderInitial"
+                    Size="32"
+                    BackgroundColor="#E2E8F0"
+                    TextColor="#64748B"
+                    ExtraStyle="font-size:12px; margin-right:8px; align-self:flex-end; flex-shrink:0;" />
+    }
+
+    <div class="chat-message-body">
+        @if (!Message.IsOwn && !string.IsNullOrEmpty(SenderName))
+        {
+            <MudText Typo="Typo.caption" Style="color:#94A3B8; margin-bottom:4px; margin-left:12px;">@SenderName</MudText>
+        }
+
+        <div class="chat-message-bubble @(Message.IsOwn ? "own" : "other")">
+            @if (Message.Status == MessageStatus.Deleted || Message.Content == "[Message deleted]")
+            {
+                <p class="chat-message-text deleted">Tin nhắn đã bị xóa</p>
+            }
+            else
+            {
+                <p class="chat-message-text">@Message.Content</p>
+            }
+        </div>
+
+        @if (!string.IsNullOrEmpty(Message.AttachmentUrl))
+        {
+            <div style="margin-top:6px;">
+                <img src="@Message.AttachmentUrl" alt="Attachment"
+                     style="max-width:200px; border-radius:12px; display:block;" />
+            </div>
+        }
+
+        <!-- Timestamp + status -->
+        <div class="d-flex align-items-center @(Message.IsOwn ? "justify-end" : "justify-start")" style="gap:4px; margin-top:4px; padding:0 4px;">
+            <MudText Typo="Typo.caption" Style="color:#94A3B8; font-size:11px;">
+                @Message.SentAt.ToLocalTime().ToString("HH:mm")
+            </MudText>
+            @if (Message.IsOwn)
+            {
+                @if (Message.Status == MessageStatus.Read)
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.DoneAll" Style="color:#2563EB; font-size:14px;" />
+                }
+                else if (Message.Status == MessageStatus.Delivered)
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.DoneAll" Style="color:#94A3B8; font-size:14px;" />
+                }
+                else
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.Done" Style="color:#94A3B8; font-size:14px;" />
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public MessageDto Message { get; set; } = default!;
+    [Parameter] public string? SenderName { get; set; }
+    [Parameter] public string? SenderAvatarUrl { get; set; }
+    [Parameter] public string SenderInitial { get; set; } = "?";
+}

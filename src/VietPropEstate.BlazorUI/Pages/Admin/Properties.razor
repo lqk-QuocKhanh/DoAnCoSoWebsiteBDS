@@ -1,0 +1,494 @@
+@page "/admin/bat-dong-san"
+@layout AdminLayout
+@inject IPropertyApiService PropertyService
+@inject IAdminApiClient AdminClient
+@inject AdminState AdminState
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<PageTitle>Quản lý bất động sản - Admin</PageTitle>
+
+<div class="ap-page">
+<div class="ap-page-header">
+    <div>
+        <h1 class="ap-page-title">Quản lý bất động sản</h1>
+        <p class="ap-page-subtitle">Xét duyệt và quản lý toàn bộ tin đăng trên hệ thống</p>
+    </div>
+    <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Download"
+               Style="border-radius:10px; border-color:#E2E8F0; font-weight:600;">
+        Xuất CSV
+    </MudButton>
+</div>
+
+<!-- Status stat cards -->
+<MudGrid Class="mb-5">
+    @foreach (var stat in _statusStats)
+    {
+        <MudItem xs="6" sm="3">
+            <MudPaper Elevation="0" Class="cursor-pointer"
+                      Style="@($"background:#fff; border:2px solid {(_statusFilter == stat.Filter ? stat.Color : "#E2E8F0")}; border-radius:14px; padding:16px; cursor:pointer;")"
+                      @onclick="@(() => SetStatusFilter(stat.Filter))">
+                <div class="d-flex align-items-center" style="gap:10px;">
+                    <div style="@($"width:36px;height:36px;background:{stat.Bg};border-radius:10px;display:flex;align-items:center;justify-content:center;")">
+                        <MudIcon Icon="@stat.Icon" Style="@($"color:{stat.Color}; font-size:18px;")" />
+                    </div>
+                    <div>
+                        <MudText Style="@($"font-size:22px; font-weight:800; color:{stat.Color}; line-height:1;")">@stat.Count</MudText>
+                        <MudText Typo="Typo.caption" Style="color:#64748B;">@stat.Label</MudText>
+                    </div>
+                </div>
+            </MudPaper>
+        </MudItem>
+    }
+</MudGrid>
+
+<!-- Filters -->
+<div class="ap-filter-bar">
+    <div class="ap-filter-grid" style="grid-template-columns: 2fr 1fr auto;">
+            <MudTextField @bind-Value="_searchTerm" Placeholder="Tìm theo tiêu đề, địa chỉ, tên môi giới..."
+                          Variant="Variant.Outlined" Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" />
+            <MudSelect T="string" @bind-Value="_sortBy" Label="Sắp xếp" Variant="Variant.Outlined">
+                <MudSelectItem Value="@("newest")">Mới nhất</MudSelectItem>
+                <MudSelectItem Value="@("oldest")">Cũ nhất</MudSelectItem>
+                <MudSelectItem Value="@("views")">Lượt xem cao nhất</MudSelectItem>
+                <MudSelectItem Value="@("price-high")">Giá cao nhất</MudSelectItem>
+            </MudSelect>
+            <div class="d-flex" style="gap:8px;">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@ApplyFilters"
+                           Style="border-radius:10px; flex:1;">Lọc</MudButton>
+                <MudButton Variant="Variant.Text" OnClick="@ClearFilters" Class="ap-filter-clear">Xóa</MudButton>
+            </div>
+    </div>
+</div>
+
+<!-- Properties table -->
+<MudPaper Elevation="0" Style="background:#fff; border:1px solid #E2E8F0; border-radius:16px; overflow:hidden;">
+    <div style="padding:16px 20px; border-bottom:1px solid #F1F5F9; display:flex; align-items:center; justify-content:space-between;">
+        <MudText Typo="Typo.body2" Style="color:#64748B;">
+            Hiển thị @FilteredProperties.Count() / @_properties.Count tin đăng
+        </MudText>
+        @if (_selectedProperties.Any())
+        {
+            <div class="d-flex" style="gap:8px;">
+                <MudText Typo="Typo.body2" Style="color:#2563EB; font-weight:600;">@_selectedProperties.Count đã chọn</MudText>
+                <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Success"
+                           StartIcon="@Icons.Material.Filled.CheckCircle"
+                           Style="border-radius:8px;" OnClick="@BulkApprove">
+                    Duyệt tất cả
+                </MudButton>
+                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Error"
+                           Style="border-radius:8px;" OnClick="@BulkReject">
+                    Từ chối tất cả
+                </MudButton>
+            </div>
+        }
+    </div>
+
+    @if (_loading)
+    {
+        @for (int i = 0; i < 6; i++)
+        {
+            <div style="padding:16px 20px; border-bottom:1px solid #F8FAFC; display:flex; gap:16px; align-items:center;">
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="80px" Height="60px" Style="border-radius:8px;" />
+                <div style="flex:1;"><MudSkeleton Width="60%" Height="14px" Class="mb-1" /><MudSkeleton Width="35%" Height="12px" /></div>
+                <MudSkeleton Width="80px" Height="24px" Style="border-radius:8px;" />
+                <MudSkeleton Width="80px" Height="30px" Style="border-radius:8px;" />
+            </div>
+        }
+    }
+    else if (!FilteredProperties.Any())
+    {
+        <div style="padding:48px; text-align:center;">
+            <MudIcon Icon="@Icons.Material.Outlined.Apartment" Style="font-size:56px; color:#CBD5E1; margin-bottom:16px;" />
+            <MudText Style="color:#64748B; font-weight:600;">Không có tin đăng nào</MudText>
+        </div>
+    }
+    else
+    {
+        @foreach (var property in FilteredProperties)
+        {
+            var isSelected = _selectedProperties.Contains(property.Id);
+            <div style="@($"padding:14px 20px; border-bottom:1px solid #F8FAFC; display:flex; align-items:center; gap:14px; transition:background 0.15s; {(isSelected ? "background:#EFF6FF;" : "")}")"
+                 onmouseover="@(!isSelected ? "this.style.background='#F8FAFC'" : "")"
+                 onmouseout="@(!isSelected ? "this.style.background='transparent'" : "")">
+
+                <!-- Checkbox -->
+                <MudCheckBox T="bool" Value="@isSelected"
+                             ValueChanged="@(v => ToggleSelect(property.Id, v))"
+                             Color="Color.Primary" Style="flex-shrink:0;" />
+
+                <!-- Thumbnail -->
+                <img src="@(property.PrimaryImageUrl ?? "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=120&q=70")"
+                     style="width:80px;height:56px;object-fit:cover;border-radius:10px;flex-shrink:0;"
+                     alt="" />
+
+                <!-- Main info -->
+                <div style="flex:1; min-width:0;">
+                    <MudText Style="font-weight:600; font-size:13px; color:#0F172A;" Class="line-clamp-1">@property.Title</MudText>
+                    <div class="d-flex align-items-center flex-wrap" style="gap:8px; margin-top:4px;">
+                        <div class="d-flex align-items-center" style="gap:4px;">
+                            <MudIcon Icon="@Icons.Material.Filled.LocationOn" Style="color:#B91C1C; font-size:13px;" />
+                            <MudText Style="font-size:11px; color:#64748B;">@(property.ProvinceName ?? "N/A")</MudText>
+                        </div>
+                        @if (!string.IsNullOrEmpty(property.AgentName))
+                        {
+                            <span style="color:#CBD5E1;">·</span>
+                            <MudText Style="font-size:11px; color:#64748B;">@property.AgentName</MudText>
+                        }
+                        <span style="color:#CBD5E1;">·</span>
+                        <MudText Style="font-size:11px; color:#94A3B8;">@property.CreatedAt.ToString("dd/MM/yyyy")</MudText>
+                    </div>
+                </div>
+
+                <!-- Price -->
+                <MudText Style="font-weight:700; color:#B91C1C; font-size:14px; min-width:90px; text-align:right; white-space:nowrap; flex-shrink:0;">
+                    @FormatPrice(property.PriceAmount)
+                </MudText>
+
+                <!-- Area -->
+                @if (property.Area > 0)
+                {
+                    <MudText Style="font-size:12px; color:#64748B; min-width:60px; text-align:center; flex-shrink:0;" Class="d-none d-lg-block">
+                        @property.Area m²
+                    </MudText>
+                }
+
+                <!-- Views -->
+                <div class="d-flex align-items-center d-none d-md-flex" style="gap:4px; min-width:55px; flex-shrink:0;">
+                    <MudIcon Icon="@Icons.Material.Outlined.RemoveRedEye" Style="color:#94A3B8; font-size:13px;" />
+                    <MudText Style="font-size:12px; color:#64748B;">@property.ViewCount</MudText>
+                </div>
+
+                <!-- Status badge -->
+                <MudChip T="string" Size="Size.Small" Style="@(GetStatusStyle(property.Status) + " flex-shrink:0; min-width:90px; text-align:center;")">
+                    @GetStatusLabel(property.Status)
+                </MudChip>
+
+                <!-- Action buttons -->
+                <div class="d-flex" style="gap:4px; flex-shrink:0;">
+                    @if (property.Status == PropertyStatus.PendingApproval)
+                    {
+                        <MudTooltip Text="Duyệt tin">
+                            <MudIconButton Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small"
+                                           Style="color:#16A34A; background:#DCFCE7; border-radius:8px;"
+                                           OnClick="@(() => ApproveProperty(property))" />
+                        </MudTooltip>
+                        <MudTooltip Text="Từ chối">
+                            <MudIconButton Icon="@Icons.Material.Filled.Cancel" Size="Size.Small"
+                                           Style="color:#B91C1C; background:#FEE2E2; border-radius:8px;"
+                                           OnClick="@(() => OpenRejectDialog(property))" />
+                        </MudTooltip>
+                    }
+                    else
+                    {
+                        <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small">
+                            @if (property.Status == PropertyStatus.Withdrawn)
+                            {
+                                <MudMenuItem Icon="@Icons.Material.Outlined.Visibility"
+                                             OnClick="@(() => RestoreProperty(property))">
+                                    Hiện lại tin
+                                </MudMenuItem>
+                            }
+                            else if (property.Status == PropertyStatus.Active)
+                            {
+                                <MudMenuItem Icon="@Icons.Material.Outlined.Block"
+                                             OnClick="@(() => HideProperty(property))">
+                                    Ẩn tin
+                                </MudMenuItem>
+                            }
+                            <MudMenuItem Icon="@Icons.Material.Outlined.DeleteForever" Style="color:#B91C1C;"
+                                         OnClick="@(() => DeleteProperty(property))">
+                                Xóa
+                            </MudMenuItem>
+                        </MudMenu>
+                    }
+                </div>
+            </div>
+        }
+    }
+</MudPaper>
+
+<!-- Reject dialog -->
+<MudDialog @bind-Visible="_rejectDialogOpen" Options="@(new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true })">
+    <TitleContent>
+        <div class="d-flex align-items-center" style="gap:12px;">
+            <div style="width:40px;height:40px;background:#FEE2E2;border-radius:10px;display:flex;align-items:center;justify-content:center;">
+                <MudIcon Icon="@Icons.Material.Filled.Cancel" Style="color:#B91C1C;" Size="Size.Small" />
+            </div>
+            <MudText Typo="Typo.h6" Style="font-weight:700;">Từ chối tin đăng</MudText>
+        </div>
+    </TitleContent>
+    <DialogContent>
+        @if (_rejectingProperty != null)
+        {
+            <MudText Class="mb-4">
+                Nhập lý do từ chối tin <strong class="line-clamp-1">@_rejectingProperty.Title</strong>:
+            </MudText>
+            <MudTextField @bind-Value="_rejectReason" Label="Lý do từ chối *" Variant="Variant.Outlined"
+                          Lines="4" Placeholder="VD: Thông tin không chính xác, ảnh vi phạm chính sách..." />
+            <MudText Typo="Typo.caption" Style="color:#94A3B8; margin-top:8px;">
+                Lý do này sẽ được gửi đến người đăng tin qua email.
+            </MudText>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" OnClick="@(() => _rejectDialogOpen = false)" Style="color:#64748B;">Hủy</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="@ConfirmReject"
+                   Disabled="@string.IsNullOrWhiteSpace(_rejectReason)"
+                   Style="border-radius:10px;">Từ chối tin</MudButton>
+    </DialogActions>
+</MudDialog>
+</div>
+
+@code {
+    [Inject] private NavigationManager Nav { get; set; } = default!;
+
+    private List<PropertyDto> _properties = [];
+    private bool _loading = true;
+    private string _searchTerm = "";
+    private string? _statusFilter = "pending";
+    private string _sortBy = "newest";
+    private HashSet<Guid> _selectedProperties = [];
+
+    private bool _rejectDialogOpen;
+    private PropertyDto? _rejectingProperty;
+    private string _rejectReason = "";
+
+    private readonly List<(string? Filter, string Label, string Color, string Bg, string Icon)> _statusStatDefs =
+    [
+        ("pending",  "Chờ duyệt",       "#D97706", "#FEF3C7", Icons.Material.Filled.Pending),
+        ("active",   "Đang hoạt động",  "#16A34A", "#DCFCE7", Icons.Material.Filled.CheckCircle),
+        ("hidden",   "Đã ẩn",           "#64748B", "#F1F5F9", Icons.Material.Filled.VisibilityOff),
+        ("sold",     "Đã bán/Thuê",     "#B91C1C", "#FEE2E2", Icons.Material.Filled.Handshake),
+    ];
+
+    private IEnumerable<(string? Filter, string Label, string Color, string Bg, string Icon, int Count)> _statusStats =>
+        _statusStatDefs.Select(s => (s.Filter, s.Label, s.Color, s.Bg, s.Icon, GetStatusCount(s.Filter)));
+
+    private IEnumerable<PropertyDto> FilteredProperties
+    {
+        get
+        {
+            var q = _properties.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(_statusFilter))
+            {
+                q = _statusFilter switch
+                {
+                    "pending" => q.Where(p => p.Status == PropertyStatus.PendingApproval),
+                    "active" => q.Where(p => p.Status == PropertyStatus.Active),
+                    "hidden" => q.Where(p => p.Status is PropertyStatus.Withdrawn or PropertyStatus.Rejected),
+                    "sold" => q.Where(p => p.Status is PropertyStatus.Sold or PropertyStatus.Rented),
+                    _ => q
+                };
+            }
+
+            if (!string.IsNullOrEmpty(_searchTerm))
+                q = q.Where(p => p.Title.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                                 (p.ProvinceName?.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                                 (p.AgentName?.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase) ?? false));
+
+            return _sortBy switch
+            {
+                "oldest" => q.OrderBy(p => p.CreatedAt),
+                "views" => q.OrderByDescending(p => p.ViewCount),
+                "price-high" => q.OrderByDescending(p => p.PriceAmount),
+                _ => q.OrderByDescending(p => p.CreatedAt)
+            };
+        }
+    }
+
+    protected override async Task OnInitializedAsync() => await ReloadPropertiesAsync();
+
+    private async Task ReloadPropertiesAsync()
+    {
+        _loading = true;
+        StateHasChanged();
+
+        var result = await AdminClient.GetAdminPropertiesAsync(pageSize: 100, searchTerm: string.IsNullOrWhiteSpace(_searchTerm) ? null : _searchTerm);
+        _properties = result?.Items.ToList() ?? [];
+        _loading = false;
+
+        await AdminState.RefreshPendingApprovalsAsync(AdminClient);
+    }
+
+    private int GetStatusCount(string? filter) => filter switch
+    {
+        "pending" => _properties.Count(p => p.Status == PropertyStatus.PendingApproval),
+        "active" => _properties.Count(p => p.Status == PropertyStatus.Active),
+        "hidden" => _properties.Count(p => p.Status is PropertyStatus.Withdrawn or PropertyStatus.Rejected),
+        "sold" => _properties.Count(p => p.Status is PropertyStatus.Sold or PropertyStatus.Rented),
+        _ => _properties.Count
+    };
+
+    private void SetStatusFilter(string? filter)
+    {
+        _statusFilter = _statusFilter == filter ? null : filter;
+        _selectedProperties.Clear();
+    }
+
+    private async Task ApplyFilters() => await ReloadPropertiesAsync();
+
+    private async Task ClearFilters()
+    {
+        _searchTerm = "";
+        _sortBy = "newest";
+        _statusFilter = null;
+        _selectedProperties.Clear();
+        await ReloadPropertiesAsync();
+    }
+
+    private void ToggleSelect(Guid id, bool selected)
+    {
+        if (selected) _selectedProperties.Add(id);
+        else _selectedProperties.Remove(id);
+    }
+
+    private async Task ApproveProperty(PropertyDto property)
+    {
+        var parameters = new DialogParameters<ConfirmDialog>
+        {
+            { x => x.Title, "Duyệt tin đăng" },
+            { x => x.Message, $"Duyệt và hiển thị công khai tin \"{property.Title}\"?" },
+            { x => x.ConfirmText, "Duyệt" }
+        };
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>("", parameters);
+        var result = await dialog.Result;
+        if (result is null or { Canceled: true }) return;
+
+        var success = await AdminClient.ApprovePropertyAsync(property.Id);
+        if (success)
+        {
+            Snackbar.Add($"Đã duyệt tin: {property.Title}", Severity.Success);
+            await ReloadPropertiesAsync();
+        }
+        else
+        {
+            Snackbar.Add("Không thể duyệt tin đăng.", Severity.Error);
+        }
+    }
+
+    private void OpenRejectDialog(PropertyDto property)
+    {
+        _rejectingProperty = property;
+        _rejectReason = "";
+        _rejectDialogOpen = true;
+    }
+
+    private async Task ConfirmReject()
+    {
+        if (_rejectingProperty == null || string.IsNullOrWhiteSpace(_rejectReason)) return;
+        var success = await AdminClient.RejectPropertyAsync(_rejectingProperty.Id, _rejectReason);
+        if (success)
+        {
+            Snackbar.Add($"Đã từ chối tin: {_rejectingProperty.Title}", Severity.Warning);
+            await ReloadPropertiesAsync();
+        }
+        _rejectDialogOpen = false;
+    }
+
+    private async Task BulkApprove()
+    {
+        var ids = _selectedProperties.ToList();
+        foreach (var id in ids)
+            await AdminClient.ApprovePropertyAsync(id);
+
+        Snackbar.Add($"Đã duyệt {ids.Count} tin đăng", Severity.Success);
+        _selectedProperties.Clear();
+        await ReloadPropertiesAsync();
+    }
+
+    private async Task HideProperty(PropertyDto property)
+    {
+        var parameters = new DialogParameters<ConfirmDialog>
+        {
+            { x => x.Title, "Ẩn tin đăng" },
+            { x => x.Message, $"Ẩn tin \"{property.Title}\" khỏi trang công khai?" },
+            { x => x.ConfirmText, "Ẩn tin" }
+        };
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>("", parameters);
+        var result = await dialog.Result;
+        if (result is null or { Canceled: true }) return;
+
+        if (await AdminClient.HidePropertyAsync(property.Id))
+        {
+            Snackbar.Add($"Đã ẩn tin: {property.Title}", Severity.Success);
+            await ReloadPropertiesAsync();
+        }
+        else
+        {
+            Snackbar.Add("Không thể ẩn tin đăng.", Severity.Error);
+        }
+    }
+
+    private async Task RestoreProperty(PropertyDto property)
+    {
+        if (await AdminClient.RestorePropertyAsync(property.Id))
+        {
+            Snackbar.Add($"Đã hiện lại tin: {property.Title}", Severity.Success);
+            await ReloadPropertiesAsync();
+        }
+        else
+        {
+            Snackbar.Add("Không thể hiện lại tin đăng.", Severity.Error);
+        }
+    }
+
+    private async Task DeleteProperty(PropertyDto property)
+    {
+        var parameters = new DialogParameters<ConfirmDialog>
+        {
+            { x => x.Title, "Xóa tin đăng" },
+            { x => x.Message, $"Xóa mềm tin \"{property.Title}\"? Tin sẽ không còn hiển thị trên hệ thống." },
+            { x => x.ConfirmText, "Xóa" }
+        };
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>("", parameters);
+        var result = await dialog.Result;
+        if (result is null or { Canceled: true }) return;
+
+        if (await AdminClient.DeletePropertyAsync(property.Id))
+        {
+            Snackbar.Add($"Đã xóa tin: {property.Title}", Severity.Success);
+            await ReloadPropertiesAsync();
+        }
+        else
+        {
+            Snackbar.Add("Không thể xóa tin đăng.", Severity.Error);
+        }
+    }
+
+    private async Task BulkReject()
+    {
+        Snackbar.Add("Chức năng từ chối hàng loạt sẽ sớm ra mắt", Severity.Info);
+        _selectedProperties.Clear();
+        await Task.CompletedTask;
+    }
+
+    private static string FormatPrice(decimal amount) =>
+        amount >= 1_000_000_000 ? $"{amount / 1_000_000_000:N1} tỷ" :
+        amount >= 1_000_000 ? $"{amount / 1_000_000:N0} tr" : $"{amount:N0}đ";
+
+    private static string GetStatusLabel(PropertyStatus s) => s switch
+    {
+        PropertyStatus.Active          => "✓ Hoạt động",
+        PropertyStatus.PendingApproval => "⏳ Chờ duyệt",
+        PropertyStatus.Draft           => "Bản nháp",
+        PropertyStatus.Rejected        => "✗ Từ chối",
+        PropertyStatus.Withdrawn       => "— Đã ẩn",
+        PropertyStatus.Sold      => "✓ Đã bán",
+        PropertyStatus.Rented    => "✓ Đã thuê",
+        _                        => s.ToString()
+    };
+
+    private static string GetStatusStyle(PropertyStatus s) => s switch
+    {
+        PropertyStatus.Active          => "background:#DCFCE7; color:#16A34A; font-weight:600;",
+        PropertyStatus.PendingApproval => "background:#FEF3C7; color:#D97706; font-weight:600;",
+        PropertyStatus.Draft           => "background:#F1F5F9; color:#64748B;",
+        PropertyStatus.Rejected        => "background:#FEE2E2; color:#B91C1C; font-weight:600;",
+        PropertyStatus.Withdrawn       => "background:#F1F5F9; color:#64748B;",
+        PropertyStatus.Sold      => "background:#DBEAFE; color:#2563EB; font-weight:600;",
+        _                        => "background:#F1F5F9; color:#64748B;"
+    };
+}

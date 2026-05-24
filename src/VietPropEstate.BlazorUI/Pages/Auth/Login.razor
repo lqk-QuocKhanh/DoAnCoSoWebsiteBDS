@@ -1,0 +1,108 @@
+@page "/dang-nhap"
+@layout AuthLayout
+@inject IAuthApiClient AuthClient
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+@inject AuthState AuthState
+
+<PageTitle>Đăng nhập - VietPropEstate</PageTitle>
+
+<div class="auth-form">
+    <h1 class="auth-form-title">Đăng nhập</h1>
+    <p class="auth-form-subtitle">Chào mừng trở lại. Nhập thông tin tài khoản của bạn.</p>
+
+    <EditForm Model="@_model" OnValidSubmit="@HandleLogin">
+        <DataAnnotationsValidator />
+        <div class="d-flex flex-column" style="gap:20px;">
+            <MudTextField @bind-Value="_model.Email" Label="Email" Variant="Variant.Outlined"
+                          InputType="InputType.Email" Placeholder="email@example.com"
+                          Disabled="@_loading" />
+
+            <MudTextField @bind-Value="_model.Password" Label="Mật khẩu" Variant="Variant.Outlined"
+                          InputType="@(_showPassword ? InputType.Text : InputType.Password)"
+                          Adornment="Adornment.End"
+                          AdornmentIcon="@(_showPassword ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                          OnAdornmentClick="@(() => _showPassword = !_showPassword)"
+                          Disabled="@_loading" />
+
+            <div class="d-flex justify-content-between align-items-center">
+                <MudCheckBox T="bool" @bind-Value="_rememberMe" Label="Nhớ đăng nhập" Color="Color.Default" />
+                <MudLink Href="/quen-mat-khau" Class="auth-link" Style="font-size:13px;">Quên mật khẩu?</MudLink>
+            </div>
+
+            @if (!string.IsNullOrEmpty(_errorMessage))
+            {
+                <MudAlert Severity="Severity.Error" Dense="true" Variant="Variant.Outlined">@_errorMessage</MudAlert>
+            }
+
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" FullWidth="true"
+                       Disabled="@_loading" Class="auth-btn-primary">
+                @if (_loading)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Color="Color.Inherit" Class="mr-2" />
+                    <span>Đang đăng nhập...</span>
+                }
+                else
+                {
+                    <span>Đăng nhập</span>
+                }
+            </MudButton>
+        </div>
+    </EditForm>
+
+    <p style="text-align:center; margin-top:32px; font-size:14px; color:#64748B;">
+        Chưa có tài khoản?
+        <MudLink Href="/dang-ky" Class="auth-link">Đăng ký</MudLink>
+    </p>
+</div>
+
+@code {
+    [SupplyParameterFromQuery] public string? ReturnUrl { get; set; }
+
+    private LoginRequest _model = new();
+    private bool _loading;
+    private bool _showPassword;
+    private bool _rememberMe;
+    private string? _errorMessage;
+
+    protected override void OnInitialized()
+    {
+        if (AuthState.IsAuthenticated)
+            Nav.NavigateTo(ReturnUrl ?? "/dashboard");
+    }
+
+    private async Task HandleLogin()
+    {
+        _loading = true;
+        _errorMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            var result = await AuthClient.LoginAsync(_model, _rememberMe);
+            if (result.Success && result.User is not null)
+            {
+                Snackbar.Add(result.Message ?? "Đăng nhập thành công", Severity.Success);
+                Nav.NavigateTo(ReturnUrl ?? "/dashboard");
+                return;
+            }
+
+            _errorMessage = result.Message switch
+            {
+                var m when m?.Contains("xác thực", StringComparison.OrdinalIgnoreCase) == true
+                    => "Tài khoản chưa được xác thực. Vui lòng kiểm tra email.",
+                var m when m?.Contains("khóa", StringComparison.OrdinalIgnoreCase) == true => m,
+                _ => result.Message ?? "Email hoặc mật khẩu không đúng."
+            };
+        }
+        catch
+        {
+            _errorMessage = "Có lỗi xảy ra, vui lòng thử lại.";
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+}

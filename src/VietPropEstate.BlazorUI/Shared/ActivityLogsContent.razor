@@ -1,0 +1,146 @@
+@inject IAdminApiClient AdminClient
+
+<div class="ap-page">
+    <div class="ap-page-header">
+        <div>
+            <h1 class="ap-page-title">Nhật ký hoạt động</h1>
+            <p class="ap-page-subtitle">@Subtitle</p>
+        </div>
+        <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Refresh"
+                   OnClick="@LoadLogs" Style="border-radius:10px; border-color:#E2E8F0;">
+            Làm mới
+        </MudButton>
+    </div>
+
+    <div class="ap-stat-grid">
+        @foreach (var (level, label, color, bg, icon, _) in _levelSummary)
+        {
+            <div class="ap-stat-card" style="@($"cursor:pointer; border-width:2px; border-color:{(_selectedLevel == level ? color : "#E2E8F0")};")"
+                 @onclick="@(() => SetLevelFilter(level))">
+                <div class="d-flex align-items-center" style="gap:12px; text-align:left;">
+                    <div style="@($"width:40px;height:40px;background:{bg};border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;")">
+                        <MudIcon Icon="@icon" Style="@($"color:{color}; font-size:20px;")" />
+                    </div>
+                    <div>
+                        <div class="ap-stat-value" style="@($"font-size:1.35rem; color:{color};")">@CountByLevel(level)</div>
+                        <div class="ap-stat-label">@label</div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="ap-filter-bar">
+        <MudTextField @bind-Value="_search" Placeholder="Tìm theo nội dung, tên người dùng, IP..."
+                      Variant="Variant.Outlined" Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" />
+    </div>
+
+    <div class="ap-data-panel">
+        @if (_loading)
+        {
+            @for (int i = 0; i < 6; i++)
+            {
+                <div style="padding:16px 24px; border-bottom:1px solid #F1F5F9;">
+                    <MudSkeleton Width="80%" Height="14px" />
+                </div>
+            }
+        }
+        else if (!FilteredLogs.Any())
+        {
+            <div class="ap-data-panel__empty">
+                <MudText Style="color:#64748B;">Không có nhật ký phù hợp</MudText>
+            </div>
+        }
+        else
+        {
+            @foreach (var log in FilteredLogs)
+            {
+                <div class="ap-log-row">
+                    <div class="ap-log-row__icon" style="@($"background:{GetLevelBg(log.Level)};")">
+                        <MudIcon Icon="@GetLevelIcon(log.Level)" Style="@($"color:{GetLevelColor(log.Level)}; font-size:18px;")" />
+                    </div>
+                    <div>
+                        <div class="ap-log-row__title">@log.Description</div>
+                        <div class="ap-log-row__meta">
+                            @(log.UserName ?? "Hệ thống") · @log.Action · @FormatTimestamp(log.Timestamp)
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Subtitle { get; set; } = "Theo dõi hoạt động trên hệ thống";
+
+    private List<AdminActivityLogDto> _logs = [];
+    private bool _loading = true;
+    private string _search = "";
+    private ActivityLogLevel? _selectedLevel;
+
+    private readonly (ActivityLogLevel? Level, string Label, string Color, string Bg, string Icon, int _)[] _levelSummary =
+    [
+        (null, "Tất cả", "#2563EB", "#EFF6FF", Icons.Material.Filled.FormatListBulleted, 0),
+        (ActivityLogLevel.Success, "Thành công", "#16A34A", "#DCFCE7", Icons.Material.Filled.CheckCircle, 0),
+        (ActivityLogLevel.Warning, "Cảnh báo", "#D97706", "#FEF3C7", Icons.Material.Filled.Warning, 0),
+        (ActivityLogLevel.Error, "Lỗi", "#B91C1C", "#FEE2E2", Icons.Material.Filled.Error, 0),
+    ];
+
+    private IEnumerable<AdminActivityLogDto> FilteredLogs => _logs.Where(log =>
+    {
+        var matchSearch = string.IsNullOrEmpty(_search) ||
+            (log.Description?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false) ||
+            (log.UserName?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false);
+        var matchLevel = _selectedLevel == null || log.Level == _selectedLevel;
+        return matchSearch && matchLevel;
+    });
+
+    protected override async Task OnInitializedAsync() => await LoadLogs();
+
+    private async Task LoadLogs()
+    {
+        _loading = true;
+        _logs = await AdminClient.GetActivityLogsAsync();
+        _loading = false;
+    }
+
+    private int CountByLevel(ActivityLogLevel? level) =>
+        level == null ? _logs.Count : _logs.Count(l => l.Level == level);
+
+    private void SetLevelFilter(ActivityLogLevel? level) =>
+        _selectedLevel = _selectedLevel == level ? null : level;
+
+    private static string FormatTimestamp(DateTime dt)
+    {
+        var diff = DateTime.UtcNow - dt;
+        if (diff.TotalMinutes < 60) return $"{Math.Max(1, (int)diff.TotalMinutes)} phút trước";
+        if (diff.TotalHours < 24) return $"{(int)diff.TotalHours} giờ trước";
+        return dt.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
+    }
+
+    private static string GetLevelIcon(ActivityLogLevel l) => l switch
+    {
+        ActivityLogLevel.Success => Icons.Material.Filled.CheckCircle,
+        ActivityLogLevel.Warning => Icons.Material.Filled.Warning,
+        ActivityLogLevel.Error => Icons.Material.Filled.Error,
+        _ => Icons.Material.Filled.Info
+    };
+
+    private static string GetLevelColor(ActivityLogLevel l) => l switch
+    {
+        ActivityLogLevel.Success => "#16A34A",
+        ActivityLogLevel.Warning => "#D97706",
+        ActivityLogLevel.Error => "#B91C1C",
+        _ => "#2563EB"
+    };
+
+    private static string GetLevelBg(ActivityLogLevel l) => l switch
+    {
+        ActivityLogLevel.Success => "#DCFCE7",
+        ActivityLogLevel.Warning => "#FEF3C7",
+        ActivityLogLevel.Error => "#FEE2E2",
+        _ => "#EFF6FF"
+    };
+}

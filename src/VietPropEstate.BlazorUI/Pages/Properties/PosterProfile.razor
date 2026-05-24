@@ -1,0 +1,239 @@
+@page "/nguoi-dang/{UserId}"
+@layout PublicLayout
+@inject IPropertyApiService PropertyService
+@inject NavigationManager Nav
+
+<PageTitle>@(_profile?.DisplayName ?? "Trang cá nhân") - VietPropEstate</PageTitle>
+
+@if (_loading)
+{
+    <div style="max-width:960px; margin:0 auto; padding:32px 24px;">
+        <LoadingSkeleton Count="4" Type="list" />
+    </div>
+    return;
+}
+
+@if (_profile == null)
+{
+    <div style="max-width:960px; margin:0 auto; padding:32px 24px;">
+        <EmptyState Icon="@Icons.Material.Outlined.PersonOff"
+                    Title="Không tìm thấy người dùng"
+                    Subtitle="Trang cá nhân này không tồn tại hoặc đã bị vô hiệu hóa"
+                    ActionText="Xem danh sách BĐS" ActionHref="/bat-dong-san" />
+    </div>
+    return;
+}
+
+<div style="max-width:960px; margin:0 auto; padding:24px 24px 80px;">
+    <MudBreadcrumbs Items="@_breadcrumbs" Class="mb-4 pa-0" />
+
+    <!-- Profile header -->
+    <MudPaper Elevation="0" Style="border:1px solid #E2E8F0; border-radius:20px; padding:28px; margin-bottom:28px;">
+        <div class="d-flex flex-wrap align-items-center" style="gap:20px;">
+            @if (!string.IsNullOrEmpty(_profile.AvatarUrl))
+            {
+                <MudAvatar Style="width:88px; height:88px;">
+                    <MudImage Src="@_profile.AvatarUrl" Alt="@_profile.DisplayName" />
+                </MudAvatar>
+            }
+            else
+            {
+                <MudAvatar Style="background:linear-gradient(135deg,#B91C1C,#D97706); color:#fff; width:88px; height:88px; font-size:32px; font-weight:700;">
+                    @GetInitials(_profile.DisplayName)
+                </MudAvatar>
+            }
+
+            <div style="flex:1; min-width:200px;">
+                <MudText Typo="Typo.h5" Style="font-weight:700; margin-bottom:4px;">@_profile.DisplayName</MudText>
+                @if (!string.IsNullOrEmpty(_profile.AgencyName))
+                {
+                    <MudText Typo="Typo.body2" Style="color:#64748B; margin-bottom:8px;">@_profile.AgencyName</MudText>
+                }
+                @if (!string.IsNullOrEmpty(_profile.Bio))
+                {
+                    <MudText Typo="Typo.body2" Style="color:#374151; line-height:1.6; margin-bottom:8px;">@_profile.Bio</MudText>
+                }
+                <div class="d-flex flex-wrap" style="gap:16px;">
+                    <MudText Typo="Typo.caption" Style="color:#94A3B8;">
+                        <MudIcon Icon="@Icons.Material.Outlined.CalendarToday" Size="Size.Small" Style="vertical-align:middle; margin-right:4px;" />
+                        Tham gia @_profile.MemberSince.ToLocalTime().ToString("dd/MM/yyyy")
+                    </MudText>
+                    <MudText Typo="Typo.caption" Style="color:#94A3B8;">
+                        <MudIcon Icon="@Icons.Material.Outlined.Apartment" Size="Size.Small" Style="vertical-align:middle; margin-right:4px;" />
+                        @_profile.TotalListings tin đã đăng
+                    </MudText>
+                </div>
+            </div>
+        </div>
+    </MudPaper>
+
+    <!-- Listings -->
+    <MudText Typo="Typo.h6" Style="font-weight:700; margin-bottom:16px;">Tin đăng của @_profile.DisplayName</MudText>
+
+    @if (_profile.Listings.Items.Count == 0)
+    {
+        <EmptyState Icon="@Icons.Material.Outlined.HomeWork"
+                    Title="Chưa có tin đăng công khai"
+                    Subtitle="Người dùng này chưa có tin bất động sản nào đang hiển thị" />
+    }
+    else
+    {
+        <div class="d-flex flex-column" style="gap:12px;">
+            @foreach (var listing in _profile.Listings.Items)
+            {
+                var postedAt = listing.PublishedAt ?? listing.CreatedAt;
+                <MudPaper Elevation="0" Style="border:1px solid #E2E8F0; border-radius:16px; overflow:hidden; cursor:pointer;"
+                          @onclick="@(() => NavigateToListing(listing))">
+                    <div class="d-flex" style="min-height:120px;">
+                        <div style="width:160px; flex-shrink:0; background:#F1F5F9; min-height:120px;">
+                            <PropertyImage Url="@listing.PrimaryImageUrl" Alt="@listing.Title"
+                                           Style="width:100%; height:100%; min-height:120px; object-fit:cover;" />
+                        </div>
+                        <div style="flex:1; padding:16px 20px; display:flex; flex-direction:column; justify-content:center;">
+                            <div class="d-flex flex-wrap align-items-center" style="gap:8px; margin-bottom:6px;">
+                                <MudChip T="string" Size="Size.Small" Style="@GetListingTypeBadgeStyle(listing.ListingType)">
+                                    @GetListingTypeLabel(listing.ListingType)
+                                </MudChip>
+                                <MudChip T="string" Size="Size.Small" Style="@GetStatusStyle(listing.Status)">
+                                    @GetStatusLabel(listing.Status)
+                                </MudChip>
+                            </div>
+                            <MudText Typo="Typo.subtitle1" Style="font-weight:700; line-height:1.4;" Class="line-clamp-2">
+                                @listing.Title
+                            </MudText>
+                            <MudText Typo="Typo.body2" Style="color:#B91C1C; font-weight:700; margin-top:4px;">
+                                @FormatPrice(listing.PriceAmount, listing.PriceCurrency)
+                                @if (listing.Area > 0)
+                                {
+                                    <span style="color:#64748B; font-weight:500; font-size:13px;"> · @listing.Area m²</span>
+                                }
+                            </MudText>
+                            @if (!string.IsNullOrEmpty(listing.FullAddress) || !string.IsNullOrEmpty(listing.ProvinceName))
+                            {
+                                <MudText Typo="Typo.caption" Style="color:#64748B; margin-top:4px;" Class="line-clamp-1">
+                                    @(listing.FullAddress ?? $"{listing.WardName}, {listing.ProvinceName}")
+                                </MudText>
+                            }
+                        </div>
+                        <div style="padding:16px 20px; text-align:right; flex-shrink:0; display:flex; flex-direction:column; justify-content:center; min-width:140px;">
+                            <MudText Typo="Typo.caption" Style="color:#94A3B8; margin-bottom:2px;">Ngày đăng</MudText>
+                            <MudText Typo="Typo.body2" Style="font-weight:600; color:#0F172A;">
+                                @postedAt.ToLocalTime().ToString("dd/MM/yyyy")
+                            </MudText>
+                            <MudText Typo="Typo.caption" Style="color:#64748B;">
+                                @postedAt.ToLocalTime().ToString("HH:mm")
+                            </MudText>
+                        </div>
+                    </div>
+                </MudPaper>
+            }
+        </div>
+
+        @if (_profile.Listings.TotalPages > 1)
+        {
+            <div class="d-flex justify-content-center mt-6">
+                <MudPagination Count="@_profile.Listings.TotalPages"
+                               Selected="@_pageNumber"
+                               SelectedChanged="@OnPageChanged"
+                               BoundaryCount="1" MiddleCount="3" />
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public string UserId { get; set; } = default!;
+
+    private PosterProfileDto? _profile;
+    private bool _loading = true;
+    private int _pageNumber = 1;
+
+    private List<BreadcrumbItem> _breadcrumbs = [];
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _pageNumber = 1;
+        await LoadProfileAsync();
+    }
+
+    private async Task LoadProfileAsync()
+    {
+        _profile = await PropertyService.GetPosterProfileAsync(UserId, _pageNumber, 12);
+        _breadcrumbs =
+        [
+            new BreadcrumbItem("Trang chủ", href: "/"),
+            new BreadcrumbItem("Bất động sản", href: "/bat-dong-san"),
+            new BreadcrumbItem(_profile?.DisplayName ?? "Trang cá nhân", href: null, disabled: true)
+        ];
+        _loading = false;
+    }
+
+    private async Task OnPageChanged(int page)
+    {
+        _pageNumber = page;
+        _loading = true;
+        StateHasChanged();
+        _profile = await PropertyService.GetPosterProfileAsync(UserId, _pageNumber, 12);
+        _loading = false;
+    }
+
+    private void NavigateToListing(PropertyDto listing)
+    {
+        if (!string.IsNullOrEmpty(listing.Slug))
+            Nav.NavigateTo($"/bat-dong-san/{listing.Slug}");
+        else
+            Nav.NavigateTo($"/bat-dong-san/{listing.Id}");
+    }
+
+    private static string GetInitials(string name)
+    {
+        if (string.IsNullOrEmpty(name)) return "?";
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length >= 2 ? $"{parts[0][0]}{parts[^1][0]}" : name[..1].ToUpper();
+    }
+
+    private static string FormatPrice(decimal amount, string currency)
+    {
+        if (currency == "VND")
+        {
+            if (amount >= 1_000_000_000) return $"{amount / 1_000_000_000:N1} tỷ";
+            if (amount >= 1_000_000) return $"{amount / 1_000_000:N0} triệu";
+            return $"{amount:N0} đ";
+        }
+        return $"{amount:N0} {currency}";
+    }
+
+    private static string GetListingTypeLabel(ListingType type) => type switch
+    {
+        ListingType.ForSale => "Bán",
+        ListingType.ForRent => "Cho thuê",
+        ListingType.ForLease => "Thuê dài hạn",
+        _ => "BĐS"
+    };
+
+    private static string GetListingTypeBadgeStyle(ListingType type) => type switch
+    {
+        ListingType.ForSale => "background:#B91C1C; color:#fff;",
+        ListingType.ForRent => "background:#2563EB; color:#fff;",
+        _ => "background:#16A34A; color:#fff;"
+    };
+
+    private static string GetStatusLabel(PropertyStatus status) => status switch
+    {
+        PropertyStatus.Active => "Đang hiển thị",
+        PropertyStatus.UnderOffer => "Đang thương lượng",
+        PropertyStatus.Sold => "Đã bán",
+        PropertyStatus.Rented => "Đã cho thuê",
+        _ => status.ToString()
+    };
+
+    private static string GetStatusStyle(PropertyStatus status) => status switch
+    {
+        PropertyStatus.Active => "background:#DCFCE7; color:#16A34A;",
+        PropertyStatus.UnderOffer => "background:#FEF3C7; color:#D97706;",
+        PropertyStatus.Sold => "background:#F1F5F9; color:#64748B;",
+        PropertyStatus.Rented => "background:#F1F5F9; color:#64748B;",
+        _ => "background:#F1F5F9; color:#64748B;"
+    };
+}

@@ -1,0 +1,268 @@
+@page "/admin/goi-vip"
+@layout AdminLayout
+@inject IAdminApiClient AdminClient
+@inject IPaymentApiClient PaymentClient
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<PageTitle>Quản lý gói VIP - Admin</PageTitle>
+
+<div class="d-flex justify-content-between align-items-start mb-6">
+    <div>
+        <MudText Typo="Typo.h5" Style="font-weight:800; color:#0F172A;">Quản lý gói VIP</MudText>
+        <MudText Typo="Typo.body2" Style="color:#64748B;">Cấu hình gói và theo dõi đăng ký của người dùng</MudText>
+    </div>
+    <MudButton Variant="Variant.Filled" Color="Color.Warning" StartIcon="@Icons.Material.Filled.Add"
+               Style="border-radius:10px; font-weight:600; color:#fff;" OnClick="@OpenCreateDialog">
+        Tạo gói mới
+    </MudButton>
+</div>
+
+<!-- Package stat cards -->
+<MudGrid Class="mb-6">
+    @foreach (var stat in _packageStats)
+    {
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Elevation="0" Style="background:#fff; border:1px solid #E2E8F0; border-radius:16px; padding:20px; position:relative; overflow:hidden;">
+                <div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#D97706,#F59E0B);"></div>
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <MudText Style="font-weight:700; color:#0F172A; font-size:15px;">@stat.PackageName</MudText>
+                    <MudChip T="string" Size="Size.Small" Style="background:#FEF3C7; color:#D97706; font-weight:600;">
+                        @stat.ActiveCount đang dùng
+                    </MudChip>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <MudText Style="font-size:22px; font-weight:800; color:#0F172A;">@stat.SubscriberCount</MudText>
+                        <MudText Typo="Typo.caption" Style="color:#94A3B8;">Tổng đăng ký</MudText>
+                    </div>
+                    <div style="text-align:right;">
+                        <MudText Style="font-size:16px; font-weight:700; color:#16A34A;">@FormatMoney(stat.TotalRevenue)</MudText>
+                        <MudText Typo="Typo.caption" Style="color:#94A3B8;">Tổng doanh thu</MudText>
+                    </div>
+                </div>
+                <MudProgressLinear Value="@GetPackagePopularity(stat.SubscriberCount)"
+                                   Color="Color.Warning" Rounded="true" Class="mt-3" />
+            </MudPaper>
+        </MudItem>
+    }
+</MudGrid>
+
+<!-- Revenue per package chart -->
+<MudGrid Class="mb-6">
+    <MudItem xs="12" md="7">
+        <MudPaper Elevation="0" Style="background:#fff; border:1px solid #E2E8F0; border-radius:20px; padding:24px;">
+            <MudText Typo="Typo.subtitle1" Style="font-weight:700; color:#0F172A; margin-bottom:4px;">Doanh thu theo gói</MudText>
+            <MudText Typo="Typo.caption" Style="color:#94A3B8; margin-bottom:20px;">Đơn vị: triệu đồng</MudText>
+            <MudChart T="double" ChartType="ChartType.Bar"
+                      ChartSeries="@_revenueSeries"
+                      ChartLabels="@_packageNames"
+                      Width="100%" Height="240px"
+                      ChartOptions="@_barOptions" />
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" md="5">
+        <MudPaper Elevation="0" Style="background:#fff; border:1px solid #E2E8F0; border-radius:20px; padding:24px;">
+            <MudText Typo="Typo.subtitle1" Style="font-weight:700; color:#0F172A; margin-bottom:4px;">Phân bố đăng ký</MudText>
+            <MudText Typo="Typo.caption" Style="color:#94A3B8; margin-bottom:16px;">Số lượng thuê bao</MudText>
+            <MudChart T="double" ChartType="ChartType.Donut"
+                      ChartSeries="@_subscriberSeries"
+                      ChartLabels="@_packageNames"
+                      Width="100%" Height="200px"
+                      ChartOptions="@_donutOptions" />
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+<!-- Package config cards -->
+<MudText Typo="Typo.h6" Style="font-weight:700; color:#0F172A; margin-bottom:16px;">Cấu hình gói</MudText>
+<MudGrid Class="mb-6">
+    @foreach (var pkg in _packages)
+    {
+        <MudItem xs="12" sm="6" lg="3">
+            <MudPaper Elevation="0" Style="background:#fff; border:2px solid #E2E8F0; border-radius:20px; padding:24px; position:relative;">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <div style="width:44px;height:44px;background:linear-gradient(135deg,#D97706,#F59E0B);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                        <MudIcon Icon="@Icons.Material.Filled.Star" Style="color:#fff;" Size="Size.Small" />
+                    </div>
+                    <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small">
+                        <MudMenuItem Icon="@Icons.Material.Outlined.Edit">Chỉnh sửa</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Outlined.Visibility">Xem chi tiết</MudMenuItem>
+                        <MudDivider />
+                        <MudMenuItem Icon="@Icons.Material.Outlined.Block" Style="color:#B91C1C;">Tắt gói</MudMenuItem>
+                    </MudMenu>
+                </div>
+                <MudText Style="font-weight:700; font-size:16px; color:#0F172A; margin-bottom:4px;">@pkg.Name</MudText>
+                <MudText Style="font-size:22px; font-weight:800; color:#D97706; margin-bottom:12px;">
+                    @($"{pkg.Price:N0}đ")
+                </MudText>
+                <div class="d-flex flex-column" style="gap:8px;">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <MudText Typo="Typo.caption" Style="color:#64748B;">Thời hạn</MudText>
+                        <MudText Typo="Typo.caption" Style="font-weight:600;">@pkg.DurationDays ngày</MudText>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <MudText Typo="Typo.caption" Style="color:#64748B;">Số tin đăng</MudText>
+                        <MudText Typo="Typo.caption" Style="font-weight:600;">@(pkg.MaxListings >= 99 ? "Không giới hạn" : $"Tối đa {pkg.MaxListings}")</MudText>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <MudText Typo="Typo.caption" Style="color:#64748B;">Trạng thái</MudText>
+                        <MudChip T="string" Size="Size.Small" Style="background:#DCFCE7; color:#16A34A; font-size:11px; height:20px;">Hoạt động</MudChip>
+                    </div>
+                </div>
+                <MudButton Variant="Variant.Outlined" FullWidth="true" Class="mt-4"
+                           Style="border-radius:10px; font-weight:600; border-color:#E2E8F0; color:#64748B;">
+                    Chỉnh sửa gói
+                </MudButton>
+            </MudPaper>
+        </MudItem>
+    }
+</MudGrid>
+
+<!-- Active subscriptions table -->
+<MudPaper Elevation="0" Style="background:#fff; border:1px solid #E2E8F0; border-radius:20px; overflow:hidden;">
+    <div style="padding:20px 24px; border-bottom:1px solid #F1F5F9;">
+        <MudText Typo="Typo.subtitle1" Style="font-weight:700;">Đăng ký đang hoạt động</MudText>
+        <MudText Typo="Typo.caption" Style="color:#94A3B8;">Danh sách người dùng đang sử dụng gói VIP</MudText>
+    </div>
+    <MudTable Items="@_subscriptions" Elevation="0" Hover="true">
+        <HeaderContent>
+            <MudTh>Người dùng</MudTh>
+            <MudTh>Gói</MudTh>
+            <MudTh>Ngày kích hoạt</MudTh>
+            <MudTh>Hết hạn</MudTh>
+            <MudTh>Tin còn lại</MudTh>
+            <MudTh>Trạng thái</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>
+                <div class="d-flex align-items-center" style="gap:10px;">
+                    <MudAvatar Style="background:linear-gradient(135deg,#2563EB,#3B82F6); color:#fff; width:32px; height:32px; font-size:12px; font-weight:700;">
+                        @context.UserName?[..1]
+                    </MudAvatar>
+                    <div>
+                        <MudText Style="font-weight:600; font-size:13px;">@context.UserName</MudText>
+                        <MudText Style="font-size:11px; color:#94A3B8;">@context.UserEmail</MudText>
+                    </div>
+                </div>
+            </MudTd>
+            <MudTd>
+                <MudChip T="string" Size="Size.Small" Style="background:#FEF3C7; color:#D97706; font-weight:600;">
+                    @context.PackageName
+                </MudChip>
+            </MudTd>
+            <MudTd><MudText Typo="Typo.caption">@context.StartDate.ToString("dd/MM/yyyy")</MudText></MudTd>
+            <MudTd>
+                <div>
+                    <MudText Typo="Typo.caption" Style="@(context.DaysRemaining <= 7 ? "color:#B91C1C; font-weight:700;" : "")">
+                        @context.EndDate.ToString("dd/MM/yyyy")
+                    </MudText>
+                    @if (context.DaysRemaining <= 7 && context.DaysRemaining > 0)
+                    {
+                        <MudText Style="font-size:10px; color:#B91C1C;">⚠ Còn @context.DaysRemaining ngày</MudText>
+                    }
+                </div>
+            </MudTd>
+            <MudTd>
+                <MudText Style="@(context.RemainingListings <= 3 ? "font-weight:700; color:#B91C1C;" : "font-weight:700; color:#0F172A;")">
+                    @context.RemainingListings
+                </MudText>
+            </MudTd>
+            <MudTd>
+                @if (!context.IsActive || context.DaysRemaining <= 0)
+                {
+                    <MudChip T="string" Size="Size.Small" Style="background:#FEE2E2; color:#B91C1C;">Hết hạn</MudChip>
+                }
+                else
+                {
+                    <MudChip T="string" Size="Size.Small" Style="background:#DCFCE7; color:#16A34A;">Hoạt động</MudChip>
+                }
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudPaper>
+
+<!-- Create package dialog -->
+<MudDialog @bind-Visible="_createDialogOpen" Options="@(new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true })">
+    <TitleContent>
+        <MudText Typo="Typo.h6" Style="font-weight:700;">Tạo gói VIP mới</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudGrid Spacing="2">
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_newPkg.Name" Label="Tên gói *" Variant="Variant.Outlined" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_newPkg.Description" Label="Mô tả" Variant="Variant.Outlined" Lines="3" />
+            </MudItem>
+            <MudItem xs="6">
+                <MudNumericField T="decimal" @bind-Value="_newPkg.Price" Label="Giá (VND) *" Variant="Variant.Outlined" Min="0" Format="N0" />
+            </MudItem>
+            <MudItem xs="6">
+                <MudNumericField T="int" @bind-Value="_newPkg.DurationDays" Label="Số ngày *" Variant="Variant.Outlined" Min="1" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudNumericField T="int" @bind-Value="_newPkg.MaxListings" Label="Số tin đăng tối đa *" Variant="Variant.Outlined" Min="1" Max="99" HelperText="Nhập 99 cho không giới hạn" />
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" OnClick="@(() => _createDialogOpen = false)" Style="color:#64748B;">Hủy</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="@SaveNewPackage"
+                   Style="border-radius:10px; color:#fff;">Tạo gói</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private List<VipPackageStats> _packageStats = [];
+    private List<AdminVipSubscriptionDto> _subscriptions = [];
+    private List<VietPropEstate.Application.Features.Payments.DTOs.VIPPackageDto> _packages = [];
+    private bool _createDialogOpen;
+
+    private List<ChartSeries<double>> _revenueSeries = [];
+    private List<ChartSeries<double>> _subscriberSeries = [];
+    private string[] _packageNames = [];
+
+    private readonly ChartOptions _barOptions = new() { ChartPalette = ["#D97706", "#F59E0B", "#B91C1C", "#2563EB"] };
+    private readonly ChartOptions _donutOptions = new() { ChartPalette = ["#D97706", "#2563EB", "#B91C1C", "#16A34A"] };
+
+    private NewPackageForm _newPkg = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _packageStats = await AdminClient.GetVipPackageStatsAsync();
+        _subscriptions = await AdminClient.GetVipSubscriptionsAsync();
+        _packages = await PaymentClient.GetVipPackagesAsync();
+
+        _packageNames = _packageStats.Select(s => s.PackageName).ToArray();
+        _revenueSeries = [new ChartSeries<double> { Name = "Doanh thu (tr.đ)", Data = _packageStats.Select(s => (double)(s.TotalRevenue / 1_000_000)).ToArray() }];
+        _subscriberSeries = [new ChartSeries<double> { Name = "Đăng ký", Data = _packageStats.Select(s => (double)s.SubscriberCount).ToArray() }];
+    }
+
+    private int GetPackagePopularity(int count)
+    {
+        var max = _packageStats.Any() ? _packageStats.Max(s => s.SubscriberCount) : 1;
+        return max > 0 ? (int)((double)count / max * 100) : 0;
+    }
+
+    private void OpenCreateDialog() { _newPkg = new(); _createDialogOpen = true; }
+
+    private void SaveNewPackage()
+    {
+        _createDialogOpen = false;
+        Snackbar.Add($"Gói '{_newPkg.Name}' đã được tạo thành công!", Severity.Success);
+    }
+
+    private static string FormatMoney(decimal amount) =>
+        amount >= 1_000_000_000 ? $"{amount / 1_000_000_000:N1} tỷ" :
+        amount >= 1_000_000 ? $"{amount / 1_000_000:N0} tr" : $"{amount:N0}đ";
+
+    private sealed class NewPackageForm
+    {
+        public string Name { get; set; } = "";
+        public string? Description { get; set; }
+        public decimal Price { get; set; } = 500_000;
+        public int DurationDays { get; set; } = 30;
+        public int MaxListings { get; set; } = 10;
+    }
+}

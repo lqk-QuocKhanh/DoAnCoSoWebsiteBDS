@@ -1,0 +1,407 @@
+@page "/admin"
+@layout AdminLayout
+@inject IAdminApiClient AdminClient
+@inject IPropertyApiService PropertyService
+@inject AdminState AdminState
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+
+<PageTitle>Tổng quan - Admin VietPropEstate</PageTitle>
+
+<!-- Page header -->
+<div class="d-flex justify-content-between align-items-start mb-6">
+    <div>
+        <MudText Typo="Typo.h5" Style="font-weight:800; color:#0F172A;">Tổng quan hệ thống</MudText>
+        <MudText Typo="Typo.body2" Style="color:#64748B;">@DateTime.Now.ToString("dddd, dd/MM/yyyy HH:mm")</MudText>
+    </div>
+    <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Refresh"
+               OnClick="@LoadData" Style="border-radius:10px; border-color:#E2E8F0;">
+        Làm mới
+    </MudButton>
+</div>
+
+@if (_loading)
+{
+    <MudGrid>
+        @for (int i = 0; i < 4; i++) {
+            <MudItem xs="12" sm="6" lg="3">
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="120px" Style="border-radius:16px;" />
+            </MudItem>
+        }
+    </MudGrid>
+}
+else if (_stats != null)
+{
+    <!-- KPI Cards -->
+    <MudGrid Class="mb-6">
+        <MudItem xs="12" sm="6" lg="3">
+            <MudPaper Elevation="0" Style="background:linear-gradient(135deg,#1E3A8A,#2563EB); border-radius:16px; padding:24px; position:relative; overflow:hidden;">
+                <div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.08);"></div>
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <MudText Style="color:rgba(255,255,255,0.8); font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">Tổng người dùng</MudText>
+                    <div style="background:rgba(255,255,255,0.15); border-radius:10px; padding:8px;">
+                        <MudIcon Icon="@Icons.Material.Filled.People" Style="color:#fff; font-size:20px;" />
+                    </div>
+                </div>
+                <MudText Style="color:#fff; font-size:32px; font-weight:800; line-height:1;">@_stats.TotalUsers.ToString("N0")</MudText>
+                <div class="d-flex align-items-center mt-2" style="gap:6px;">
+                    <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Style="color:#86EFAC; font-size:16px;" />
+                    <MudText Style="color:rgba(255,255,255,0.7); font-size:12px;">+@_stats.NewUsersThisMonth tháng này</MudText>
+                </div>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="6" lg="3">
+            <MudPaper Elevation="0" Style="background:linear-gradient(135deg,#166534,#16A34A); border-radius:16px; padding:24px; position:relative; overflow:hidden;">
+                <div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.08);"></div>
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <MudText Style="color:rgba(255,255,255,0.8); font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">Tin đăng hoạt động</MudText>
+                    <div style="background:rgba(255,255,255,0.15); border-radius:10px; padding:8px;">
+                        <MudIcon Icon="@Icons.Material.Filled.Apartment" Style="color:#fff; font-size:20px;" />
+                    </div>
+                </div>
+                <MudText Style="color:#fff; font-size:32px; font-weight:800; line-height:1;">@_stats.ActiveListings.ToString("N0")</MudText>
+                <div class="d-flex align-items-center mt-2" style="gap:6px;">
+                    <MudIcon Icon="@Icons.Material.Filled.Circle" Style="color:#FCD34D; font-size:12px;" />
+                    <MudText Style="color:rgba(255,255,255,0.7); font-size:12px;">@_stats.PendingApprovals chờ duyệt</MudText>
+                </div>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="6" lg="3">
+            <MudPaper Elevation="0" Style="background:linear-gradient(135deg,#92400E,#D97706); border-radius:16px; padding:24px; position:relative; overflow:hidden;">
+                <div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.08);"></div>
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <MudText Style="color:rgba(255,255,255,0.8); font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">Doanh thu tháng</MudText>
+                    <div style="background:rgba(255,255,255,0.15); border-radius:10px; padding:8px;">
+                        <MudIcon Icon="@Icons.Material.Filled.AttachMoney" Style="color:#fff; font-size:20px;" />
+                    </div>
+                </div>
+                <MudText Style="color:#fff; font-size:32px; font-weight:800; line-height:1;">@FormatMoney(_stats.MonthRevenue)</MudText>
+                <div class="d-flex align-items-center mt-2" style="gap:6px;">
+                    <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Style="color:#86EFAC; font-size:16px;" />
+                    <MudText Style="color:rgba(255,255,255,0.7); font-size:12px;">+18% so với tháng trước</MudText>
+                </div>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="6" lg="3">
+            <MudPaper Elevation="0" Style="background:linear-gradient(135deg,#7F1D1D,#B91C1C); border-radius:16px; padding:24px; position:relative; overflow:hidden;">
+                <div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.08);"></div>
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <MudText Style="color:rgba(255,255,255,0.8); font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">Đang online</MudText>
+                    <div style="background:rgba(255,255,255,0.15); border-radius:10px; padding:8px;">
+                        <MudIcon Icon="@Icons.Material.Filled.Wifi" Style="color:#fff; font-size:20px;" />
+                    </div>
+                </div>
+                <MudText Style="color:#fff; font-size:32px; font-weight:800; line-height:1;">@_stats.OnlineUsers</MudText>
+                <div class="d-flex align-items-center mt-2" style="gap:6px;">
+                    <div style="width:8px;height:8px;background:#34D399;border-radius:50%;animation:pulse 2s infinite;"></div>
+                    <MudText Style="color:rgba(255,255,255,0.7); font-size:12px;">Người dùng trực tuyến</MudText>
+                </div>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+    <!-- Charts row -->
+    <MudGrid Class="mb-6">
+        <!-- Revenue chart -->
+        <MudItem xs="12" md="8">
+            <MudPaper Elevation="0" Style="background:#fff; border:1px solid #E2E8F0; border-radius:20px; padding:24px;">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <div>
+                        <MudText Typo="Typo.subtitle1" Style="font-weight:700; color:#0F172A;">Doanh thu theo tháng</MudText>
+                        <MudText Typo="Typo.caption" Style="color:#94A3B8;">Đơn vị: triệu đồng</MudText>
+                    </div>
+                    <MudChip T="string" Size="Size.Small" Style="background:#FEE2E2; color:#B91C1C; font-weight:600;">2024</MudChip>
+                </div>
+                <MudChart T="double" ChartType="ChartType.Line"
+                          ChartSeries="@_revenueSeries"
+                          ChartLabels="@_stats.ChartLabels"
+                          Width="100%" Height="260px"
+                          ChartOptions="@_lineChartOptions" />
+            </MudPaper>
+        </MudItem>
+
+        <!-- Property type pie chart -->
+        <MudItem xs="12" md="4">
+            <MudPaper Elevation="0" Style="background:#fff; border:1px solid #E2E8F0; border-radius:20px; padding:24px;">
+                <MudText Typo="Typo.subtitle1" Style="font-weight:700; color:#0F172A; margin-bottom:4px;">Phân loại BĐS</MudText>
+                <MudText Typo="Typo.caption" Style="color:#94A3B8; margin-bottom:16px;">Theo số lượng tin đăng</MudText>
+                <MudChart T="double" ChartType="ChartType.Donut"
+                          ChartSeries="@_propertyTypeSeries"
+                          ChartLabels="@_stats.PropertyTypeLabels"
+                          Width="100%" Height="220px"
+                          ChartOptions="@_donutChartOptions" />
+                <div class="d-flex flex-column mt-3" style="gap:6px;">
+                    @for (int i = 0; i < Math.Min(_stats.PropertyTypeLabels.Length, 4); i++)
+                    {
+                        var idx = i;
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center" style="gap:8px;">
+                                <div style="width:10px;height:10px;border-radius:3px;background:@_donutColors[idx % _donutColors.Length];"></div>
+                                <MudText Typo="Typo.caption" Style="color:#64748B;">@_stats.PropertyTypeLabels[idx]</MudText>
+                            </div>
+                            <MudText Typo="Typo.caption" Style="font-weight:700; color:#0F172A;">@_stats.PropertyTypeDistribution[idx]%</MudText>
+                        </div>
+                    }
+                </div>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+    <!-- Second charts row -->
+    <MudGrid Class="mb-6">
+        <!-- New users bar chart -->
+        <MudItem xs="12" md="6">
+            <MudPaper Elevation="0" Style="background:#fff; border:1px solid #E2E8F0; border-radius:20px; padding:24px;">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <div>
+                        <MudText Typo="Typo.subtitle1" Style="font-weight:700; color:#0F172A;">Người dùng mới</MudText>
+                        <MudText Typo="Typo.caption" Style="color:#94A3B8;">6 tháng gần nhất</MudText>
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Filled.People" Style="color:#2563EB;" />
+                </div>
+                <MudChart T="double" ChartType="ChartType.Bar"
+                          ChartSeries="@_userSeries"
+                          ChartLabels="@_stats.ChartLabels"
+                          Width="100%" Height="200px"
+                          ChartOptions="@_barChartOptions" />
+            </MudPaper>
+        </MudItem>
+
+        <!-- Quick stats grid -->
+        <MudItem xs="12" md="6">
+            <MudPaper Elevation="0" Style="background:#fff; border:1px solid #E2E8F0; border-radius:20px; padding:24px;">
+                <MudText Typo="Typo.subtitle1" Style="font-weight:700; color:#0F172A; margin-bottom:20px;">Thống kê nhanh</MudText>
+                <MudGrid Spacing="3">
+                    @foreach (var qs in _quickStats)
+                    {
+                        var valueStyle = $"color:{qs.Color}; font-size:24px; font-weight:800; line-height:1;";
+                        var labelStyle = $"color:{qs.Color}; opacity:0.7; font-size:12px; margin-top:4px; font-weight:500;";
+                        <MudItem xs="6">
+                            <div style="background:@qs.Bg; border-radius:12px; padding:16px;">
+                                <MudText Style="@valueStyle">@qs.Value</MudText>
+                                <MudText Style="@labelStyle">@qs.Label</MudText>
+                            </div>
+                        </MudItem>
+                    }
+                </MudGrid>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+    <!-- Pending approvals + Recent activity -->
+    <MudGrid>
+        <!-- Pending approvals -->
+        <MudItem xs="12" md="7">
+            <MudPaper Elevation="0" Style="background:#fff; border:1px solid #E2E8F0; border-radius:20px; overflow:hidden;">
+                <div class="d-flex align-items-center justify-content-between" style="padding:20px 24px; border-bottom:1px solid #F1F5F9;">
+                    <div class="d-flex align-items-center" style="gap:12px;">
+                        <div style="background:#FEF3C7;border-radius:10px;padding:8px;">
+                            <MudIcon Icon="@Icons.Material.Filled.Pending" Style="color:#D97706;" Size="Size.Small" />
+                        </div>
+                        <div>
+                            <MudText Typo="Typo.subtitle1" Style="font-weight:700;">Chờ duyệt</MudText>
+                            <MudText Typo="Typo.caption" Style="color:#94A3B8;">Tin đăng cần xem xét</MudText>
+                        </div>
+                    </div>
+                    <MudButton Href="/admin/bat-dong-san" Variant="Variant.Text" Color="Color.Primary"
+                               EndIcon="@Icons.Material.Filled.ArrowForward" Size="Size.Small">
+                        Xem tất cả
+                    </MudButton>
+                </div>
+                @foreach (var p in _pendingProperties)
+                {
+                    <div class="d-flex align-items-center" style="padding:16px 24px; border-bottom:1px solid #F8FAFC; gap:12px;">
+                        <img src="@(p.PrimaryImageUrl ?? "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=120&q=70")"
+                             style="width:60px;height:45px;object-fit:cover;border-radius:8px;flex-shrink:0;" alt="" />
+                        <div style="flex:1; min-width:0;">
+                            <MudText Typo="Typo.body2" Style="font-weight:600; font-size:13px;" Class="line-clamp-1">@p.Title</MudText>
+                            <MudText Typo="Typo.caption" Style="color:#94A3B8;">@p.ProvinceName · @p.AgentName</MudText>
+                        </div>
+                        <MudText Style="font-weight:700; color:#B91C1C; font-size:12px; white-space:nowrap; flex-shrink:0;">@FormatMoney(p.PriceAmount)</MudText>
+                        <div class="d-flex" style="gap:4px; flex-shrink:0;">
+                            <MudIconButton Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small"
+                                           Style="color:#16A34A; background:#DCFCE7; border-radius:8px;"
+                                           OnClick="@(() => ApproveProperty(p.Id))" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Cancel" Size="Size.Small"
+                                           Style="color:#B91C1C; background:#FEE2E2; border-radius:8px;"
+                                           OnClick="@(() => RejectProperty(p.Id))" />
+                        </div>
+                    </div>
+                }
+                @if (_pendingProperties.Count == 0)
+                {
+                    <MudText Class="pa-4" Style="color:#94A3B8; text-align:center;">Không có tin chờ duyệt</MudText>
+                }
+            </MudPaper>
+        </MudItem>
+
+        <!-- Recent activity -->
+        <MudItem xs="12" md="5">
+            <MudPaper Elevation="0" Style="background:#fff; border:1px solid #E2E8F0; border-radius:20px; overflow:hidden;">
+                <div class="d-flex align-items-center justify-content-between" style="padding:20px 24px; border-bottom:1px solid #F1F5F9;">
+                    <div class="d-flex align-items-center" style="gap:12px;">
+                        <div style="background:#F3E8FF;border-radius:10px;padding:8px;">
+                            <MudIcon Icon="@Icons.Material.Filled.History" Style="color:#9333EA;" Size="Size.Small" />
+                        </div>
+                        <div>
+                            <MudText Typo="Typo.subtitle1" Style="font-weight:700;">Hoạt động gần đây</MudText>
+                            <MudText Typo="Typo.caption" Style="color:#94A3B8;">Thời gian thực</MudText>
+                        </div>
+                    </div>
+                    <MudButton Href="/admin/nhat-ky" Variant="Variant.Text" Color="Color.Primary"
+                               Size="Size.Small" EndIcon="@Icons.Material.Filled.ArrowForward">
+                        Xem tất cả
+                    </MudButton>
+                </div>
+                <div style="max-height:320px; overflow-y:auto;">
+                    @foreach (var log in _activityLogs.Take(6))
+                    {
+                        <div style="padding:14px 24px; border-bottom:1px solid #F8FAFC; display:flex; gap:12px; align-items:flex-start;">
+                            <div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:@GetLogBg(log.Level);">
+                                <MudIcon Icon="@GetLogIcon(log.Level)" Style="@($"color:{GetLogColor(log.Level)}; font-size:16px;")" />
+                            </div>
+                            <div style="flex:1; min-width:0;">
+                                <MudText Style="font-size:12px; font-weight:600; color:#0F172A;" Class="line-clamp-1">@log.Description</MudText>
+                                <div class="d-flex align-items-center mt-1" style="gap:8px;">
+                                    <MudText Style="font-size:11px; color:#94A3B8;">@log.UserName</MudText>
+                                    <span style="color:#CBD5E1;">·</span>
+                                    <MudText Style="font-size:11px; color:#94A3B8;">@FormatTimeAgo(log.Timestamp)</MudText>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+}
+
+<style>
+    @@keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+</style>
+
+@code {
+    private AdminDashboardStats? _stats;
+    private bool _loading = true;
+    private List<PropertyDto> _pendingProperties = [];
+    private List<AdminActivityLogDto> _activityLogs = [];
+    private List<ChartSeries<double>> _revenueSeries = [];
+    private List<ChartSeries<double>> _userSeries = [];
+    private List<ChartSeries<double>> _propertyTypeSeries = [];
+
+    private readonly string[] _donutColors = ["#B91C1C", "#2563EB", "#16A34A", "#D97706", "#9333EA", "#0891B2"];
+
+    private readonly ChartOptions _lineChartOptions = new()
+    {
+        ChartPalette = ["#B91C1C", "#2563EB"],
+    };
+
+    private readonly ChartOptions _barChartOptions = new()
+    {
+        ChartPalette = ["#2563EB"],
+    };
+
+    private readonly ChartOptions _donutChartOptions = new()
+    {
+        ChartPalette = ["#B91C1C", "#2563EB", "#16A34A", "#D97706", "#9333EA", "#0891B2"],
+    };
+
+    private (string Label, string Value, string Bg, string Color)[] _quickStats = [];
+
+    protected override async Task OnInitializedAsync() => await LoadData();
+
+    private async Task LoadData()
+    {
+        _loading = true;
+        _stats = await AdminClient.GetDashboardStatsAsync();
+        _activityLogs = await AdminClient.GetActivityLogsAsync();
+
+        var pending = await AdminClient.GetAdminPropertiesAsync(pageSize: 4, status: PropertyStatus.PendingApproval);
+        _pendingProperties = pending?.Items.ToList() ?? [];
+
+        _loading = false;
+
+        _revenueSeries =
+        [
+            new ChartSeries<double> { Name = "Doanh thu (tr.đ)", Data = _stats.RevenueChart }
+        ];
+        _userSeries =
+        [
+            new ChartSeries<double> { Name = "Người dùng mới", Data = _stats.UsersChart }
+        ];
+        _propertyTypeSeries =
+        [
+            new ChartSeries<double> { Name = "Phân loại BĐS", Data = _stats.PropertyTypeDistribution }
+        ];
+
+        _quickStats =
+        [
+            ("Môi giới", _stats.TotalUsers.ToString("N0"), "#DBEAFE", "#2563EB"),
+            ("Tin hoạt động", _stats.ActiveListings.ToString("N0"), "#DCFCE7", "#16A34A"),
+            ("Chờ duyệt", _stats.PendingApprovals.ToString("N0"), "#FEF3C7", "#D97706"),
+            ("Doanh thu tháng", FormatMoney(_stats.MonthRevenue), "#FEE2E2", "#B91C1C"),
+        ];
+
+        AdminState.SetPendingApprovals(_stats.PendingApprovals);
+    }
+
+    private async Task ApproveProperty(Guid propertyId)
+    {
+        if (await AdminClient.ApprovePropertyAsync(propertyId))
+        {
+            Snackbar.Add("Đã duyệt tin đăng", Severity.Success);
+            await LoadData();
+        }
+        else Snackbar.Add("Không thể duyệt tin", Severity.Error);
+    }
+
+    private async Task RejectProperty(Guid propertyId)
+    {
+        if (await AdminClient.RejectPropertyAsync(propertyId, "Không đạt yêu cầu"))
+        {
+            Snackbar.Add("Đã từ chối tin đăng", Severity.Info);
+            await LoadData();
+        }
+        else Snackbar.Add("Không thể từ chối tin", Severity.Error);
+    }
+
+    private static string FormatMoney(decimal amount) =>
+        amount >= 1_000_000_000 ? $"{amount / 1_000_000_000:N1} tỷ" :
+        amount >= 1_000_000 ? $"{amount / 1_000_000:N0} tr" : $"{amount:N0}đ";
+
+    private static string FormatTimeAgo(DateTime dt)
+    {
+        var diff = DateTime.UtcNow - dt;
+        if (diff.TotalMinutes < 1) return "Vừa xong";
+        if (diff.TotalHours < 1) return $"{(int)diff.TotalMinutes} phút trước";
+        if (diff.TotalDays < 1) return $"{(int)diff.TotalHours} giờ trước";
+        return dt.ToString("dd/MM HH:mm");
+    }
+
+    private static string GetLogIcon(ActivityLogLevel level) => level switch
+    {
+        ActivityLogLevel.Success => Icons.Material.Filled.CheckCircle,
+        ActivityLogLevel.Warning => Icons.Material.Filled.Warning,
+        ActivityLogLevel.Error   => Icons.Material.Filled.Error,
+        _                        => Icons.Material.Filled.Info
+    };
+
+    private static string GetLogColor(ActivityLogLevel level) => level switch
+    {
+        ActivityLogLevel.Success => "#16A34A",
+        ActivityLogLevel.Warning => "#D97706",
+        ActivityLogLevel.Error   => "#B91C1C",
+        _                        => "#2563EB"
+    };
+
+    private static string GetLogBg(ActivityLogLevel level) => level switch
+    {
+        ActivityLogLevel.Success => "#DCFCE7",
+        ActivityLogLevel.Warning => "#FEF3C7",
+        ActivityLogLevel.Error   => "#FEE2E2",
+        _                        => "#DBEAFE"
+    };
+}
