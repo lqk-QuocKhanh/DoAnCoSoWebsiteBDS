@@ -60,7 +60,7 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         });
 
         builder.Property(p => p.RowVersion)
-            .IsRowVersion();
+            .ConfigurePostgresRowVersion();
 
         builder.Property(p => p.VIPPackageId);
 

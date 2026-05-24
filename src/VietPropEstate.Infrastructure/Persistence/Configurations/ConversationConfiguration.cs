@@ -31,7 +31,7 @@ public class ConversationConfiguration : IEntityTypeConfiguration<Conversation>
         builder.Property(c => c.SellerUnreadCount).HasDefaultValue(0);
 
         builder.Property(c => c.RowVersion)
-            .IsRowVersion();
+            .ConfigurePostgresRowVersion();
 
         builder.HasOne(c => c.Property)
             .WithMany()

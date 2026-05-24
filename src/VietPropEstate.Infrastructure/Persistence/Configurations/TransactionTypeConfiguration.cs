@@ -25,7 +25,7 @@ public class TransactionTypeConfiguration : IEntityTypeConfiguration<Transaction
             .HasMaxLength(1000);
 
         builder.Property(tt => tt.RowVersion)
-            .IsRowVersion();
+            .ConfigurePostgresRowVersion();
 
         builder.HasIndex(tt => tt.Name).IsUnique();
 

@@ -152,7 +152,7 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.Property(p => p.RowVersion)
-            .IsRowVersion();
+            .ConfigurePostgresRowVersion();
 
         builder.HasQueryFilter(p => !p.IsDeleted);
 

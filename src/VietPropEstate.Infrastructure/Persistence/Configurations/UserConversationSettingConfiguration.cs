@@ -17,7 +17,7 @@ public class UserConversationSettingConfiguration : IEntityTypeConfiguration<Use
             .HasMaxLength(450);
 
         builder.Property(s => s.RowVersion)
-            .IsRowVersion();
+            .ConfigurePostgresRowVersion();
 
         builder.HasOne(s => s.Conversation)
             .WithMany()

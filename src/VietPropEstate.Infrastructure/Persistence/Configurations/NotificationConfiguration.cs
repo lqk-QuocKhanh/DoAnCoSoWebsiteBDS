@@ -34,7 +34,7 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
             .HasMaxLength(2000);
 
         builder.Property(n => n.RowVersion)
-            .IsRowVersion();
+            .ConfigurePostgresRowVersion();
 
         builder.HasIndex(n => n.UserId);
         builder.HasIndex(n => new { n.UserId, n.IsRead });

@@ -37,7 +37,7 @@ public class AgentConfiguration : IEntityTypeConfiguration<Agent>
             .HasMaxLength(3000);
 
         builder.Property(a => a.RowVersion)
-            .IsRowVersion();
+            .ConfigurePostgresRowVersion();
 
         builder.HasQueryFilter(a => !a.IsDeleted);
 

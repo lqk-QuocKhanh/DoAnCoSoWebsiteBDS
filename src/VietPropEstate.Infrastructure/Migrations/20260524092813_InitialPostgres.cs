@@ -35,7 +35,7 @@ namespace VietPropEstate.Infrastructure.Migrations
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     DeletedBy = table.Column<string>(type: "text", nullable: true),
-                    RowVersion = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    RowVersion = table.Column<byte[]>(type: "bytea", nullable: false, defaultValue: new byte[0])
                 },
                 constraints: table =>
                 {
@@ -132,7 +132,7 @@ namespace VietPropEstate.Infrastructure.Migrations
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     DeletedBy = table.Column<string>(type: "text", nullable: true),
-                    RowVersion = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    RowVersion = table.Column<byte[]>(type: "bytea", nullable: false, defaultValue: new byte[0])
                 },
                 constraints: table =>
                 {
@@ -159,7 +159,7 @@ namespace VietPropEstate.Infrastructure.Migrations
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     DeletedBy = table.Column<string>(type: "text", nullable: true),
-                    RowVersion = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    RowVersion = table.Column<byte[]>(type: "bytea", nullable: false, defaultValue: new byte[0])
                 },
                 constraints: table =>
                 {
@@ -181,7 +181,7 @@ namespace VietPropEstate.Infrastructure.Migrations
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     DeletedBy = table.Column<string>(type: "text", nullable: true),
-                    RowVersion = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    RowVersion = table.Column<byte[]>(type: "bytea", nullable: false, defaultValue: new byte[0])
                 },
                 constraints: table =>
                 {
@@ -245,7 +245,7 @@ namespace VietPropEstate.Infrastructure.Migrations
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     DeletedBy = table.Column<string>(type: "text", nullable: true),
-                    RowVersion = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    RowVersion = table.Column<byte[]>(type: "bytea", nullable: false, defaultValue: new byte[0])
                 },
                 constraints: table =>
                 {
@@ -266,7 +266,7 @@ namespace VietPropEstate.Infrastructure.Migrations
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     DeletedBy = table.Column<string>(type: "text", nullable: true),
-                    RowVersion = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    RowVersion = table.Column<byte[]>(type: "bytea", nullable: false, defaultValue: new byte[0])
                 },
                 constraints: table =>
                 {
@@ -292,7 +292,7 @@ namespace VietPropEstate.Infrastructure.Migrations
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     DeletedBy = table.Column<string>(type: "text", nullable: true),
-                    RowVersion = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    RowVersion = table.Column<byte[]>(type: "bytea", nullable: false, defaultValue: new byte[0])
                 },
                 constraints: table =>
                 {
@@ -451,7 +451,7 @@ namespace VietPropEstate.Infrastructure.Migrations
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     DeletedBy = table.Column<string>(type: "text", nullable: true),
-                    RowVersion = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    RowVersion = table.Column<byte[]>(type: "bytea", nullable: false, defaultValue: new byte[0])
                 },
                 constraints: table =>
                 {
@@ -510,7 +510,7 @@ namespace VietPropEstate.Infrastructure.Migrations
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     DeletedBy = table.Column<string>(type: "text", nullable: true),
-                    RowVersion = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    RowVersion = table.Column<byte[]>(type: "bytea", nullable: false, defaultValue: new byte[0])
                 },
                 constraints: table =>
                 {
@@ -575,7 +575,7 @@ namespace VietPropEstate.Infrastructure.Migrations
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     DeletedBy = table.Column<string>(type: "text", nullable: true),
-                    RowVersion = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    RowVersion = table.Column<byte[]>(type: "bytea", nullable: false, defaultValue: new byte[0])
                 },
                 constraints: table =>
                 {
@@ -610,7 +610,7 @@ namespace VietPropEstate.Infrastructure.Migrations
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     DeletedBy = table.Column<string>(type: "text", nullable: true),
-                    RowVersion = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    RowVersion = table.Column<byte[]>(type: "bytea", nullable: false, defaultValue: new byte[0])
                 },
                 constraints: table =>
                 {
@@ -638,7 +638,7 @@ namespace VietPropEstate.Infrastructure.Migrations
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     DeletedBy = table.Column<string>(type: "text", nullable: true),
-                    RowVersion = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    RowVersion = table.Column<byte[]>(type: "bytea", nullable: false, defaultValue: new byte[0])
                 },
                 constraints: table =>
                 {
@@ -668,7 +668,7 @@ namespace VietPropEstate.Infrastructure.Migrations
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     DeletedBy = table.Column<string>(type: "text", nullable: true),
-                    RowVersion = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    RowVersion = table.Column<byte[]>(type: "bytea", nullable: false, defaultValue: new byte[0])
                 },
                 constraints: table =>
                 {
@@ -728,7 +728,7 @@ namespace VietPropEstate.Infrastructure.Migrations
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     DeletedBy = table.Column<string>(type: "text", nullable: true),
-                    RowVersion = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    RowVersion = table.Column<byte[]>(type: "bytea", nullable: false, defaultValue: new byte[0])
                 },
                 constraints: table =>
                 {
@@ -771,7 +771,7 @@ namespace VietPropEstate.Infrastructure.Migrations
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     DeletedBy = table.Column<string>(type: "text", nullable: true),
-                    RowVersion = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    RowVersion = table.Column<byte[]>(type: "bytea", nullable: false, defaultValue: new byte[0])
                 },
                 constraints: table =>
                 {
@@ -801,7 +801,7 @@ namespace VietPropEstate.Infrastructure.Migrations
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     DeletedBy = table.Column<string>(type: "text", nullable: true),
-                    RowVersion = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false)
+                    RowVersion = table.Column<byte[]>(type: "bytea", nullable: false, defaultValue: new byte[0])
                 },
                 constraints: table =>
                 {
@@ -816,35 +816,35 @@ namespace VietPropEstate.Infrastructure.Migrations
 
             migrationBuilder.InsertData(
                 table: "PropertyTypes",
-                columns: new[] { "Id", "CreatedAt", "CreatedBy", "DeletedAt", "DeletedBy", "Description", "IsActive", "IsDeleted", "LastModifiedAt", "LastModifiedBy", "Name" },
+                columns: new[] { "Id", "CreatedAt", "CreatedBy", "DeletedAt", "DeletedBy", "Description", "IsActive", "IsDeleted", "LastModifiedAt", "LastModifiedBy", "Name", "RowVersion" },
                 values: new object[,]
                 {
-                    { new Guid("11111111-1111-1111-1111-111111111111"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, "Detached or semi-detached house", true, false, null, null, "House" },
-                    { new Guid("22222222-2222-2222-2222-222222222222"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, "Commercial office space", true, false, null, null, "Office" },
-                    { new Guid("33333333-3333-3333-3333-333333333333"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, "Motel / mini-hotel / boarding house", true, false, null, null, "Motel" },
-                    { new Guid("a1b2c3d4-e5f6-7890-abcd-ef1234567890"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, "Condominium / Apartment unit", true, false, null, null, "Apartment" },
-                    { new Guid("b2c3d4e5-f6a7-8901-bcde-f12345678901"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, "Standalone villa with garden", true, false, null, null, "Villa" },
-                    { new Guid("d4e5f6a7-b8c9-0123-def0-234567890123"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, "Land plot / undeveloped lot", true, false, null, null, "Land" }
+                    { new Guid("11111111-1111-1111-1111-111111111111"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, "Detached or semi-detached house", true, false, null, null, "House", new byte[0] },
+                    { new Guid("22222222-2222-2222-2222-222222222222"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, "Commercial office space", true, false, null, null, "Office", new byte[0] },
+                    { new Guid("33333333-3333-3333-3333-333333333333"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, "Motel / mini-hotel / boarding house", true, false, null, null, "Motel", new byte[0] },
+                    { new Guid("a1b2c3d4-e5f6-7890-abcd-ef1234567890"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, "Condominium / Apartment unit", true, false, null, null, "Apartment", new byte[0] },
+                    { new Guid("b2c3d4e5-f6a7-8901-bcde-f12345678901"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, "Standalone villa with garden", true, false, null, null, "Villa", new byte[0] },
+                    { new Guid("d4e5f6a7-b8c9-0123-def0-234567890123"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, "Land plot / undeveloped lot", true, false, null, null, "Land", new byte[0] }
                 });
 
             migrationBuilder.InsertData(
                 table: "TransactionTypes",
-                columns: new[] { "Id", "CreatedAt", "CreatedBy", "DeletedAt", "DeletedBy", "Description", "IsActive", "IsDeleted", "LastModifiedAt", "LastModifiedBy", "Name" },
+                columns: new[] { "Id", "CreatedAt", "CreatedBy", "DeletedAt", "DeletedBy", "Description", "IsActive", "IsDeleted", "LastModifiedAt", "LastModifiedBy", "Name", "RowVersion" },
                 values: new object[,]
                 {
-                    { new Guid("44444444-4444-4444-4444-444444444444"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, "Property is listed for sale", true, false, null, null, "Sell" },
-                    { new Guid("55555555-5555-5555-5555-555555555555"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, "Property is listed for rent", true, false, null, null, "Rent" }
+                    { new Guid("44444444-4444-4444-4444-444444444444"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, "Property is listed for sale", true, false, null, null, "Sell", new byte[0] },
+                    { new Guid("55555555-5555-5555-5555-555555555555"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, "Property is listed for rent", true, false, null, null, "Rent", new byte[0] }
                 });
 
             migrationBuilder.InsertData(
                 table: "VIPPackages",
-                columns: new[] { "Id", "CreatedAt", "CreatedBy", "DeletedAt", "DeletedBy", "Description", "DurationDays", "IsActive", "IsDeleted", "LastModifiedAt", "LastModifiedBy", "MaxListings", "Name", "PriceAmount", "PriceCurrency" },
+                columns: new[] { "Id", "CreatedAt", "CreatedBy", "DeletedAt", "DeletedBy", "Description", "DurationDays", "IsActive", "IsDeleted", "LastModifiedAt", "LastModifiedBy", "MaxListings", "Name", "RowVersion", "PriceAmount", "PriceCurrency" },
                 values: new object[,]
                 {
-                    { new Guid("60000000-0000-0000-0000-000000000001"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, "Đăng tối đa 3 tin rao trong 30 ngày. Phù hợp cho cá nhân.", 30, true, false, null, null, 3, "Cơ Bản", 500000m, "VND" },
-                    { new Guid("60000000-0000-0000-0000-000000000002"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, "Đăng tối đa 10 tin rao trong 30 ngày. Phù hợp cho môi giới cá nhân.", 30, true, false, null, null, 10, "Tiêu Chuẩn", 1000000m, "VND" },
-                    { new Guid("60000000-0000-0000-0000-000000000003"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, "Đăng tối đa 30 tin rao trong 90 ngày. Ưu tiên hiển thị trên trang chủ.", 90, true, false, null, null, 30, "Cao Cấp", 2500000m, "VND" },
-                    { new Guid("60000000-0000-0000-0000-000000000004"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, "Không giới hạn tin rao trong 180 ngày. Được gắn nhãn VIP nổi bật.", 180, true, false, null, null, 99, "Gold", 5000000m, "VND" }
+                    { new Guid("60000000-0000-0000-0000-000000000001"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, "Đăng tối đa 3 tin rao trong 30 ngày. Phù hợp cho cá nhân.", 30, true, false, null, null, 3, "Cơ Bản", new byte[0], 500000m, "VND" },
+                    { new Guid("60000000-0000-0000-0000-000000000002"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, "Đăng tối đa 10 tin rao trong 30 ngày. Phù hợp cho môi giới cá nhân.", 30, true, false, null, null, 10, "Tiêu Chuẩn", new byte[0], 1000000m, "VND" },
+                    { new Guid("60000000-0000-0000-0000-000000000003"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, "Đăng tối đa 30 tin rao trong 90 ngày. Ưu tiên hiển thị trên trang chủ.", 90, true, false, null, null, 30, "Cao Cấp", new byte[0], 2500000m, "VND" },
+                    { new Guid("60000000-0000-0000-0000-000000000004"), new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, "Không giới hạn tin rao trong 180 ngày. Được gắn nhãn VIP nổi bật.", 180, true, false, null, null, 99, "Gold", new byte[0], 5000000m, "VND" }
                 });
 
             migrationBuilder.CreateIndex(

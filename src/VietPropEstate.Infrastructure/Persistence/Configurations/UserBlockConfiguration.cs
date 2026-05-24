@@ -21,7 +21,7 @@ public class UserBlockConfiguration : IEntityTypeConfiguration<UserBlock>
             .HasMaxLength(450);
 
         builder.Property(b => b.RowVersion)
-            .IsRowVersion();
+            .ConfigurePostgresRowVersion();
 
         builder.HasIndex(b => new { b.BlockerId, b.BlockedUserId })
             .IsUnique()

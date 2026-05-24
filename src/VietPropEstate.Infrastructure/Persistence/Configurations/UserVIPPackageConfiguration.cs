@@ -26,7 +26,7 @@ public class UserVIPPackageConfiguration : IEntityTypeConfiguration<UserVIPPacka
             .IsRequired();
 
         builder.Property(u => u.RowVersion)
-            .IsRowVersion();
+            .ConfigurePostgresRowVersion();
 
         builder.HasOne(u => u.VIPPackage)
             .WithMany(v => v.UserPackages)

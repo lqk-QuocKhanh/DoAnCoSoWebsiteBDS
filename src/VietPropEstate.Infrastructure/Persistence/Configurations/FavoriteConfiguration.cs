@@ -20,7 +20,7 @@ public class FavoriteConfiguration : IEntityTypeConfiguration<Favorite>
             .HasMaxLength(1000);
 
         builder.Property(f => f.RowVersion)
-            .IsRowVersion();
+            .ConfigurePostgresRowVersion();
 
         // A user can only favorite a property once
         builder.HasIndex(f => new { f.UserId, f.PropertyId }).IsUnique();

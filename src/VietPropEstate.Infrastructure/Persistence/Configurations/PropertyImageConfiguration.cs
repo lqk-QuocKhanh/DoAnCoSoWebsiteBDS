@@ -26,7 +26,7 @@ public class PropertyImageConfiguration : IEntityTypeConfiguration<PropertyImage
             .HasDefaultValue(false);
 
         builder.Property(pi => pi.RowVersion)
-            .IsRowVersion();
+            .ConfigurePostgresRowVersion();
 
         builder.HasQueryFilter(pi => !pi.IsDeleted);
 

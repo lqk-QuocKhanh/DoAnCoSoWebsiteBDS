@@ -28,7 +28,7 @@ public class CustomerConfiguration : IEntityTypeConfiguration<Customer>
             .HasMaxLength(3000);
 
         builder.Property(c => c.RowVersion)
-            .IsRowVersion();
+            .ConfigurePostgresRowVersion();
 
         builder.HasQueryFilter(c => !c.IsDeleted);
 

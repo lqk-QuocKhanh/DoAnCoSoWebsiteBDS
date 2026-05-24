@@ -30,7 +30,7 @@ public class PropertyTypeConfiguration : IEntityTypeConfiguration<PropertyType>
             .HasMaxLength(1000);
 
         builder.Property(pt => pt.RowVersion)
-            .IsRowVersion();
+            .ConfigurePostgresRowVersion();
 
         builder.HasIndex(pt => pt.Name).IsUnique();
 

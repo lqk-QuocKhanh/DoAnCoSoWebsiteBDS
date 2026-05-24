@@ -58,7 +58,7 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.Property(t => t.RowVersion)
-            .IsRowVersion();
+            .ConfigurePostgresRowVersion();
 
         builder.HasQueryFilter(t => !t.IsDeleted);
 

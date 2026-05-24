@@ -27,7 +27,7 @@ public class MessageConfiguration : IEntityTypeConfiguration<Message>
             .IsRequired();
 
         builder.Property(m => m.RowVersion)
-            .IsRowVersion();
+            .ConfigurePostgresRowVersion();
 
         builder.HasIndex(m => m.ConversationId);
         builder.HasIndex(m => m.SenderId);

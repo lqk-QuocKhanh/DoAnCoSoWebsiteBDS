@@ -47,7 +47,7 @@ public class VIPPackageConfiguration : IEntityTypeConfiguration<VIPPackage>
         });
 
         builder.Property(v => v.RowVersion)
-            .IsRowVersion();
+            .ConfigurePostgresRowVersion();
 
         builder.HasIndex(v => v.Name).IsUnique();
         builder.HasIndex(v => v.IsActive);
