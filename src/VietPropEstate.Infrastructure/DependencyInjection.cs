@@ -35,7 +35,9 @@ public static class DependencyInjection
             var connectionString = DatabaseConnectionResolver.Resolve(configuration);
             if (string.IsNullOrWhiteSpace(connectionString))
                 throw new InvalidOperationException(
-                    "PostgreSQL connection string is missing. Set ConnectionStrings__DefaultConnection or DATABASE_URL.");
+                    "PostgreSQL connection string is missing. On Render set ConnectionStrings__DefaultConnection " +
+                    "to your Render Postgres URL (postgresql://...) or Npgsql format (Host=...;Database=...). " +
+                    "Alternatively link DATABASE_URL from your Render PostgreSQL instance.");
 
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(

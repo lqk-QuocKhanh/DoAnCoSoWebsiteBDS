@@ -15,6 +15,8 @@ services:
         value: "true"
       - key: ConnectionStrings__DefaultConnection
         sync: false
+      - key: DATABASE_URL
+        sync: false
       - key: ConnectionStrings__Redis
         sync: false
       - key: JwtSettings__Secret

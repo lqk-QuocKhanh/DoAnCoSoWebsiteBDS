@@ -1,0 +1,19 @@
+# Build
+**/[Bb]in/
+**/[Oo]bj/
+**/logs/
+**/TestResults/
+artifacts/
+**/.vs/
+**/*.user
+**/*.suo
+
+# Environment / secrets
+.env
+.env.*
+
+# IDE / tooling
+**/.idea/
+**/.vscode/
+agent-tools/
+agent-transcripts/

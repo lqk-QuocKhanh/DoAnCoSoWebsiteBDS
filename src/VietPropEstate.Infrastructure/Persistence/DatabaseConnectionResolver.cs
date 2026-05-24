@@ -32,17 +32,27 @@ internal static class DatabaseConnectionResolver
 
         var trimmed = value.Trim().Trim('"', '\'');
 
+        if (IsLegacySqlServerConnectionString(trimmed))
+            return null;
+
         if (IsPostgresUri(trimmed))
             return ParseDatabaseUrl(trimmed);
 
         return trimmed;
     }
 
-    private static bool IsPostgresUri(string value) =>
-        value.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
-        value.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase);
+    private static bool IsLegacySqlServerConnectionString(string value) =>
+        value.Contains("localdb", StringComparison.OrdinalIgnoreCase)
+        || value.Contains("(localdb)", StringComparison.OrdinalIgnoreCase)
+        || value.Contains("Initial Catalog=", StringComparison.OrdinalIgnoreCase)
+        || value.Contains("Trusted_Connection=", StringComparison.OrdinalIgnoreCase)
+        || (value.Contains("Server=", StringComparison.OrdinalIgnoreCase)
+            && !value.Contains("Host=", StringComparison.OrdinalIgnoreCase));
 
-    /// <summary>Render/Heroku-style postgres:// or postgresql:// URI.</summary>
+    private static bool IsPostgresUri(string value) =>
+        value.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase)
+        || value.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase);
+
     private static string ParseDatabaseUrl(string databaseUrl)
     {
         if (!Uri.TryCreate(databaseUrl, UriKind.Absolute, out var uri))

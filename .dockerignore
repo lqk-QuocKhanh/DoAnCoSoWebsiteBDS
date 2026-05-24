@@ -18,4 +18,3 @@
 !README.md
 docker-compose*.yml
 scripts/
-tests/

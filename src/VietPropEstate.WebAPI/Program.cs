@@ -150,7 +150,8 @@ try
 
     app.UseResponseCompression();
 
-    app.UseHttpsRedirection();
+    if (app.Environment.IsDevelopment())
+        app.UseHttpsRedirection();
 
     app.UseStaticFiles();
 
@@ -174,48 +175,62 @@ try
 
     app.MapHub<ChatHub>("/hubs/chat");
 
-
-
-    using (var scope = app.Services.CreateScope())
-
+    if (app.Environment.IsEnvironment("Testing"))
     {
-
+        using var scope = app.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-        if (app.Environment.IsEnvironment("Testing"))
-            await db.Database.EnsureCreatedAsync();
-        else
-            await db.Database.MigrateAsync();
-
+        await db.Database.EnsureCreatedAsync();
     }
-
-
-
-    var roleSeeder = app.Services.GetRequiredService<RoleSeeder>();
-
-    await roleSeeder.SeedAsync();
-
-
-
-    if (!app.Environment.IsEnvironment("Testing"))
-
+    else
     {
+        try
+        {
+            using var scope = app.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            await db.Database.MigrateAsync();
+            Console.WriteLine("Migration completed");
+            Log.Information("Database migration completed");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+            Log.Error(ex, "Database migration failed — application will continue");
+        }
 
-        var addressSeeder = app.Services.GetRequiredService<AddressDataSeeder>();
+        try
+        {
+            var roleSeeder = app.Services.GetRequiredService<RoleSeeder>();
+            await roleSeeder.SeedAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+            Log.Error(ex, "Role seeding failed — application will continue");
+        }
 
-        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
+        try
+        {
+            var addressSeeder = app.Services.GetRequiredService<AddressDataSeeder>();
+            using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
+            await addressSeeder.SeedAsync(cts.Token);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+            Log.Error(ex, "Address seeding failed — application will continue");
+        }
 
-        await addressSeeder.SeedAsync(cts.Token);
-
-
-
-        var testSeeder = app.Services.GetRequiredService<TestDataSeeder>();
-
-        await testSeeder.SeedAsync();
-
+        try
+        {
+            var testSeeder = app.Services.GetRequiredService<TestDataSeeder>();
+            await testSeeder.SeedAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+            Log.Error(ex, "Test data seeding failed — application will continue");
+        }
     }
-
-
 
     app.Run();
 
