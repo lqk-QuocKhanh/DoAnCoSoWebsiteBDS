@@ -1,12 +1,21 @@
-# ── Stage 1: Build Web API ─────────────────────────────────────────────────────
+# VietPropEstate Web API — PostgreSQL, EF migrations (Program.cs MigrateAsync)
+# Does NOT include BlazorUI.
+
+# ── Stage 1: Build Web API only ────────────────────────────────────────────────
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-COPY VietPropEstate.sln ./
-COPY src/ src/
-COPY tests/ tests/
+COPY src/VietPropEstate.Domain/VietPropEstate.Domain.csproj                         src/VietPropEstate.Domain/
+COPY src/VietPropEstate.Application/VietPropEstate.Application.csproj               src/VietPropEstate.Application/
+COPY src/VietPropEstate.Infrastructure/VietPropEstate.Infrastructure.csproj         src/VietPropEstate.Infrastructure/
+COPY src/VietPropEstate.WebAPI/VietPropEstate.WebAPI.csproj                         src/VietPropEstate.WebAPI/
 
-RUN dotnet restore VietPropEstate.sln
+RUN dotnet restore src/VietPropEstate.WebAPI/VietPropEstate.WebAPI.csproj
+
+COPY src/VietPropEstate.Domain/         src/VietPropEstate.Domain/
+COPY src/VietPropEstate.Application/    src/VietPropEstate.Application/
+COPY src/VietPropEstate.Infrastructure/ src/VietPropEstate.Infrastructure/
+COPY src/VietPropEstate.WebAPI/         src/VietPropEstate.WebAPI/
 
 RUN dotnet publish src/VietPropEstate.WebAPI/VietPropEstate.WebAPI.csproj \
     -c Release \
@@ -23,16 +32,12 @@ RUN mkdir -p logs && \
     chown -R appuser:appuser /app
 
 COPY --from=build --chown=appuser:appuser /app/publish .
-COPY --chown=appuser:appuser docker/entrypoint-api.sh /app/entrypoint.sh
-
-RUN chmod +x /app/entrypoint.sh
 
 USER appuser
 
 ENV ASPNETCORE_ENVIRONMENT=Production
-ENV PORT=10000
 ENV ASPNETCORE_URLS=http://0.0.0.0:10000
 
 EXPOSE 10000
 
-ENTRYPOINT ["/app/entrypoint.sh"]
+ENTRYPOINT ["dotnet", "VietPropEstate.WebAPI.dll"]
