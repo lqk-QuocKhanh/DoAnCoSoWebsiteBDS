@@ -128,6 +128,49 @@ Build the API image only:
 docker build -t vietpropestate-api .
 ```
 
+Build the Blazor UI image:
+
+```bash
+docker build -f Dockerfile.blazorui -t vietpropestate-ui .
+docker run -p 8081:8080 -e API_BASE_URL=http://localhost:8080 vietpropestate-ui
+```
+
+## Deploy to Render
+
+### Web API (`vietpropestate-api`)
+
+| Setting | Value |
+|---------|-------|
+| Runtime | Docker |
+| Dockerfile | `./Dockerfile` |
+| Branch | `deploy` |
+
+Environment variables:
+
+| Key | Example |
+|-----|---------|
+| `ConnectionStrings__DefaultConnection` | `postgresql://user:pass@host/db` |
+| `DATABASE_URL` | (link from Render Postgres) |
+| `Cors__AllowedOrigins__0` | `https://vietpropestate-ui.onrender.com` |
+| `JwtSettings__Secret` | auto-generated (32+ chars) |
+
+### Blazor UI (`vietpropestate-ui`)
+
+| Setting | Value |
+|---------|-------|
+| Runtime | Docker |
+| Dockerfile | `./Dockerfile.blazorui` |
+| Branch | `deploy` |
+| Health check | `/` |
+
+Environment variables:
+
+| Key | Example |
+|-----|---------|
+| `API_BASE_URL` | `https://vietpropestate-api.onrender.com` |
+
+After both services are live, set **API → CORS** to the UI URL and redeploy the API if needed.
+
 Environment variables (see `docker-compose.yml`):
 
 - `ConnectionStrings__DefaultConnection`
