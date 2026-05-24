@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Dev\\VietPropEstate\\src\\VietPropEstate.Domain\\VietPropEstate.Domain.csproj": {}
+    "c:\\Dev\\VietPropEstate\\src\\VietPropEstate.Domain\\VietPropEstate.Domain.csproj": {}
   },
   "projects": {
-    "C:\\Dev\\VietPropEstate\\src\\VietPropEstate.Domain\\VietPropEstate.Domain.csproj": {
+    "c:\\Dev\\VietPropEstate\\src\\VietPropEstate.Domain\\VietPropEstate.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Dev\\VietPropEstate\\src\\VietPropEstate.Domain\\VietPropEstate.Domain.csproj",
+        "projectUniqueName": "c:\\Dev\\VietPropEstate\\src\\VietPropEstate.Domain\\VietPropEstate.Domain.csproj",
         "projectName": "VietPropEstate.Domain",
-        "projectPath": "C:\\Dev\\VietPropEstate\\src\\VietPropEstate.Domain\\VietPropEstate.Domain.csproj",
+        "projectPath": "c:\\Dev\\VietPropEstate\\src\\VietPropEstate.Domain\\VietPropEstate.Domain.csproj",
         "packagesPath": "C:\\Users\\Le Quoc Khanh\\.nuget\\packages\\",
-        "outputPath": "C:\\Dev\\VietPropEstate\\src\\VietPropEstate.Domain\\obj\\",
+        "outputPath": "c:\\Dev\\VietPropEstate\\src\\VietPropEstate.Domain\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

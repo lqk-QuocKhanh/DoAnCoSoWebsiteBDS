@@ -17,3 +17,4 @@ c:\Dev\VietPropEstate\src\VietPropEstate.Infrastructure\obj\Debug\net9.0\refint\
 c:\Dev\VietPropEstate\src\VietPropEstate.Infrastructure\obj\Debug\net9.0\VietPropEstate.Infrastructure.pdb
 c:\Dev\VietPropEstate\src\VietPropEstate.Infrastructure\obj\Debug\net9.0\VietPropEstate.Infrastructure.genruntimeconfig.cache
 c:\Dev\VietPropEstate\src\VietPropEstate.Infrastructure\obj\Debug\net9.0\ref\VietPropEstate.Infrastructure.dll
+c:\Dev\VietPropEstate\src\VietPropEstate.Infrastructure\obj\Debug\net9.0\VietPropEstate.Infrastructure.sourcelink.json

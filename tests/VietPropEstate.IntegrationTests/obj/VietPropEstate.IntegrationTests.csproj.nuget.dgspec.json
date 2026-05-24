@@ -240,10 +240,6 @@
               "target": "Package",
               "version": "[9.*, )"
             },
-            "Microsoft.EntityFrameworkCore.SqlServer": {
-              "target": "Package",
-              "version": "[9.*, )"
-            },
             "Microsoft.Extensions.Caching.StackExchangeRedis": {
               "target": "Package",
               "version": "[9.*, )"
@@ -252,9 +248,17 @@
               "target": "Package",
               "version": "[9.*, )"
             },
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
+              "target": "Package",
+              "version": "[9.*, )"
+            },
             "Serilog.Extensions.Logging": {
               "target": "Package",
               "version": "[9.*, )"
+            },
+            "System.IdentityModel.Tokens.Jwt": {
+              "target": "Package",
+              "version": "[8.*, )"
             }
           },
           "imports": [

@@ -13,3 +13,4 @@ c:\Dev\VietPropEstate\src\VietPropEstate.Application\obj\Debug\net9.0\VietPropEs
 c:\Dev\VietPropEstate\src\VietPropEstate.Application\obj\Debug\net9.0\refint\VietPropEstate.Application.dll
 c:\Dev\VietPropEstate\src\VietPropEstate.Application\obj\Debug\net9.0\VietPropEstate.Application.pdb
 c:\Dev\VietPropEstate\src\VietPropEstate.Application\obj\Debug\net9.0\ref\VietPropEstate.Application.dll
+c:\Dev\VietPropEstate\src\VietPropEstate.Application\obj\Debug\net9.0\VietPropEstate.Application.sourcelink.json

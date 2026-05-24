@@ -222,3 +222,6 @@ c:\Dev\VietPropEstate\src\VietPropEstate.WebAPI\obj\Debug\net9.0\VietPropEstate.
 c:\Dev\VietPropEstate\src\VietPropEstate.WebAPI\obj\Debug\net9.0\VietPropEstate.WebAPI.genruntimeconfig.cache
 c:\Dev\VietPropEstate\src\VietPropEstate.WebAPI\obj\Debug\net9.0\ref\VietPropEstate.WebAPI.dll
 c:\Dev\VietPropEstate\src\VietPropEstate.WebAPI\bin\Debug\net9.0\Microsoft.EntityFrameworkCore.InMemory.dll
+c:\Dev\VietPropEstate\src\VietPropEstate.WebAPI\bin\Debug\net9.0\Npgsql.dll
+c:\Dev\VietPropEstate\src\VietPropEstate.WebAPI\bin\Debug\net9.0\Npgsql.EntityFrameworkCore.PostgreSQL.dll
+c:\Dev\VietPropEstate\src\VietPropEstate.WebAPI\obj\Debug\net9.0\VietPropEstate.WebAPI.sourcelink.json

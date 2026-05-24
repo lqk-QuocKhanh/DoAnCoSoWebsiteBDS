@@ -9,3 +9,4 @@ c:\Dev\VietPropEstate\src\VietPropEstate.Domain\obj\Debug\net9.0\VietPropEstate.
 c:\Dev\VietPropEstate\src\VietPropEstate.Domain\obj\Debug\net9.0\refint\VietPropEstate.Domain.dll
 c:\Dev\VietPropEstate\src\VietPropEstate.Domain\obj\Debug\net9.0\VietPropEstate.Domain.pdb
 c:\Dev\VietPropEstate\src\VietPropEstate.Domain\obj\Debug\net9.0\ref\VietPropEstate.Domain.dll
+c:\Dev\VietPropEstate\src\VietPropEstate.Domain\obj\Debug\net9.0\VietPropEstate.Domain.sourcelink.json
