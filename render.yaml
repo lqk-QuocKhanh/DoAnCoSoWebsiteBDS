@@ -10,7 +10,9 @@ services:
     healthCheckPath: /
     envVars:
       - key: API_BASE_URL
-        sync: false
+        value: https://doancosowebsitebds-api.onrender.com
+      - key: ApiBaseUrl
+        value: https://doancosowebsitebds-api.onrender.com/
 
   - type: web
     name: vietpropestate-api
@@ -37,4 +39,4 @@ services:
       - key: JwtSettings__Audience
         value: VietPropEstate.BlazorUI
       - key: Cors__AllowedOrigins__0
-        sync: false
+        value: https://doancosowebsitebds-ui.onrender.com

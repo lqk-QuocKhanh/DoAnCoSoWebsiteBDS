@@ -76,7 +76,7 @@ public sealed class AuthApiClient : IAuthApiClient
         {
             _logger.LogInformation("Login attempt for {Email}.", request.Email);
 
-            var resp = await _http.PostAsJsonAsync("api/auth/login", request);
+            var resp = await _http.PostAsJsonAsync("api/Auth/login", request);
             var body = await resp.Content.ReadAsStringAsync();
 
             if (!resp.IsSuccessStatusCode)
@@ -124,7 +124,7 @@ public sealed class AuthApiClient : IAuthApiClient
     {
         try
         {
-            var resp = await _http.PostAsJsonAsync("api/auth/register", request);
+            var resp = await _http.PostAsJsonAsync("api/Auth/register", request);
             var body = await resp.Content.ReadAsStringAsync();
 
             if (!resp.IsSuccessStatusCode)
@@ -157,7 +157,7 @@ public sealed class AuthApiClient : IAuthApiClient
         try
         {
             if (_authState.IsAuthenticated)
-                await _http.PostAsync("api/auth/logout", null);
+                await _http.PostAsync("api/Auth/logout", null);
         }
         catch (Exception ex)
         {
@@ -175,7 +175,7 @@ public sealed class AuthApiClient : IAuthApiClient
     {
         try
         {
-            var resp = await _http.PostAsJsonAsync("api/auth/forgot-password", new { Email = email });
+            var resp = await _http.PostAsJsonAsync("api/Auth/forgot-password", new { Email = email });
             return resp.IsSuccessStatusCode;
         }
         catch { return false; }
@@ -185,7 +185,7 @@ public sealed class AuthApiClient : IAuthApiClient
     {
         try
         {
-            var resp = await _http.PostAsJsonAsync("api/auth/reset-password",
+            var resp = await _http.PostAsJsonAsync("api/Auth/reset-password",
                 new { Email = email, Token = token, NewPassword = newPassword, ConfirmNewPassword = confirmPassword });
             return resp.IsSuccessStatusCode;
         }
@@ -197,7 +197,7 @@ public sealed class AuthApiClient : IAuthApiClient
         try
         {
             var resp = await _http.GetAsync(
-                $"api/auth/verify-email?userId={Uri.EscapeDataString(userId)}&token={Uri.EscapeDataString(token)}");
+                $"api/Auth/verify-email?userId={Uri.EscapeDataString(userId)}&token={Uri.EscapeDataString(token)}");
             return resp.IsSuccessStatusCode;
         }
         catch { return false; }
@@ -207,7 +207,7 @@ public sealed class AuthApiClient : IAuthApiClient
     {
         try
         {
-            var profile = await _http.GetFromJsonAsync<UserProfile>("api/auth/me", JsonOptions);
+            var profile = await _http.GetFromJsonAsync<UserProfile>("api/Auth/me", JsonOptions);
             return NormalizeProfile(profile);
         }
         catch (Exception ex)
@@ -222,7 +222,7 @@ public sealed class AuthApiClient : IAuthApiClient
     {
         try
         {
-            var resp = await _http.PutAsJsonAsync("api/auth/me", request);
+            var resp = await _http.PutAsJsonAsync("api/Auth/me", request);
             var body = await resp.Content.ReadAsStringAsync();
 
             if (!resp.IsSuccessStatusCode)
@@ -250,7 +250,7 @@ public sealed class AuthApiClient : IAuthApiClient
             using var form = new MultipartFormDataContent();
             form.Add(new StreamContent(content), "file", fileName);
 
-            var resp = await _http.PostAsync("api/auth/me/avatar", form);
+            var resp = await _http.PostAsync("api/Auth/me/avatar", form);
             var body = await resp.Content.ReadAsStringAsync();
 
             if (!resp.IsSuccessStatusCode)
@@ -274,7 +274,7 @@ public sealed class AuthApiClient : IAuthApiClient
     {
         try
         {
-            var resp = await _http.PostAsJsonAsync("api/auth/change-password", request);
+            var resp = await _http.PostAsJsonAsync("api/Auth/change-password", request);
             var body = await resp.Content.ReadAsStringAsync();
 
             if (!resp.IsSuccessStatusCode)
@@ -296,7 +296,7 @@ public sealed class AuthApiClient : IAuthApiClient
     {
         try
         {
-            var resp = await _http.PostAsJsonAsync("api/auth/phone/send-code", new { PhoneNumber = phoneNumber });
+            var resp = await _http.PostAsJsonAsync("api/Auth/phone/send-code", new { PhoneNumber = phoneNumber });
             var body = await resp.Content.ReadAsStringAsync();
 
             if (!resp.IsSuccessStatusCode)
@@ -317,7 +317,7 @@ public sealed class AuthApiClient : IAuthApiClient
     {
         try
         {
-            var resp = await _http.PostAsJsonAsync("api/auth/phone/verify",
+            var resp = await _http.PostAsJsonAsync("api/Auth/phone/verify",
                 new { PhoneNumber = phoneNumber, Code = code });
             var body = await resp.Content.ReadAsStringAsync();
 

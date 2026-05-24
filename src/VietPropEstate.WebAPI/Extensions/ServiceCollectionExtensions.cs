@@ -116,9 +116,22 @@ public static class ServiceCollectionExtensions
                     .GetSection("Cors:AllowedOrigins")
                     .Get<string[]>() ?? [];
 
-                policy.WithOrigins(allowedOrigins)
+                var origins = new HashSet<string>(allowedOrigins, StringComparer.OrdinalIgnoreCase)
+                {
+                    "https://doancosowebsitebds-ui.onrender.com"
+                };
+
+                policy.WithOrigins(origins.ToArray())
                       .AllowAnyMethod()
                       .AllowAnyHeader()
+                      .AllowCredentials();
+            });
+
+            options.AddPolicy("RenderCors", policy =>
+            {
+                policy.WithOrigins("https://doancosowebsitebds-ui.onrender.com")
+                      .AllowAnyHeader()
+                      .AllowAnyMethod()
                       .AllowCredentials();
             });
         });

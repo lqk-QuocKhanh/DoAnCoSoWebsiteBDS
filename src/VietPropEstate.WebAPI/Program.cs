@@ -158,7 +158,7 @@ try
     var webRoot = app.Environment.WebRootPath ?? Path.Combine(app.Environment.ContentRootPath, "wwwroot");
     Directory.CreateDirectory(Path.Combine(webRoot, "uploads", "properties"));
 
-    app.UseCors("BlazorUI");
+    app.UseCors("RenderCors");
 
     app.UseSession();
 
