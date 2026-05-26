@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -28,7 +29,8 @@ public static class DependencyInjection
         {
             var databaseName = configuration["InMemoryDatabaseName"] ?? "VietPropEstateTests";
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseInMemoryDatabase(databaseName));
+                options.UseInMemoryDatabase(databaseName)
+                    .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning)));
         }
         else
         {

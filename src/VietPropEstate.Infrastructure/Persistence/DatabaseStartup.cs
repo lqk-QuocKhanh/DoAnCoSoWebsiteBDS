@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -24,6 +25,18 @@ public static class DatabaseStartup
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             await db.Database.EnsureCreatedAsync(cancellationToken);
             logger.LogInformation("Testing database ensured.");
+            return;
+        }
+
+        var configuration = services.GetRequiredService<IConfiguration>();
+        if (configuration.GetValue("UseInMemoryDatabase", false))
+        {
+            await using var scope = services.CreateAsyncScope();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            await db.Database.EnsureCreatedAsync(cancellationToken);
+            logger.LogInformation("In-memory development database ensured.");
+            await RunSeedersAsync(services, logger, cancellationToken);
+            logger.LogInformation("Startup completed");
             return;
         }
 

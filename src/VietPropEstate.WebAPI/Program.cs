@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using VietPropEstate.Application;
@@ -23,6 +24,13 @@ try
         builder.Host.UseSerilog((context, _, configuration) =>
             configuration.ReadFrom.Configuration(context.Configuration));
     }
+
+    builder.Services.Configure<ForwardedHeadersOptions>(options =>
+    {
+        options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        options.KnownNetworks.Clear();
+        options.KnownProxies.Clear();
+    });
 
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
@@ -60,6 +68,7 @@ try
     await DatabaseStartup.InitializeAsync(app.Services, app.Environment);
 
     app.UseMiddleware<ExceptionHandlingMiddleware>();
+    app.UseForwardedHeaders();
 
     var enableSwagger = builder.Configuration.GetValue("EnableSwagger", app.Environment.IsDevelopment());
 
@@ -90,7 +99,7 @@ try
     var webRoot = app.Environment.WebRootPath ?? Path.Combine(app.Environment.ContentRootPath, "wwwroot");
     Directory.CreateDirectory(Path.Combine(webRoot, "uploads", "properties"));
 
-    app.UseCors("RenderCors");
+    app.UseCors("AllowFrontend");
     app.UseSession();
 
     if (!app.Environment.IsEnvironment("Testing"))
@@ -99,6 +108,10 @@ try
     app.UseRateLimiter();
     app.UseAuthentication();
     app.UseAuthorization();
+
+    app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }))
+        .AllowAnonymous()
+        .ExcludeFromDescription();
 
     app.MapControllers();
     app.MapHub<ChatHub>("/hubs/chat");

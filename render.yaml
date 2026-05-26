@@ -2,25 +2,27 @@
 # Docs: https://render.com/docs/blueprint-spec
 services:
   - type: web
-    name: vietpropestate-ui
+    name: doancosowebsitebds-ui
     runtime: docker
     dockerfilePath: ./Dockerfile
     dockerContext: .
     plan: free
     healthCheckPath: /
     envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
       - key: API_BASE_URL
         value: https://doancosowebsitebds-api.onrender.com
-      - key: ApiBaseUrl
-        value: https://doancosowebsitebds-api.onrender.com/
+      - key: ApiSettings__BaseUrl
+        value: https://doancosowebsitebds-api.onrender.com
 
   - type: web
-    name: vietpropestate-api
+    name: doancosowebsitebds-api
     runtime: docker
     dockerfilePath: ./Dockerfile.api
     dockerContext: .
     plan: free
-    healthCheckPath: /swagger/index.html
+    healthCheckPath: /health
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
@@ -40,3 +42,5 @@ services:
         value: VietPropEstate.BlazorUI
       - key: Cors__AllowedOrigins__0
         value: https://doancosowebsitebds-ui.onrender.com
+      - key: Cors__AllowedOrigins__1
+        value: http://localhost:5126

@@ -110,28 +110,22 @@ public static class ServiceCollectionExtensions
     {
         services.AddCors(options =>
         {
-            options.AddPolicy("BlazorUI", policy =>
+            options.AddPolicy("AllowFrontend", policy =>
             {
                 var allowedOrigins = configuration
                     .GetSection("Cors:AllowedOrigins")
                     .Get<string[]>() ?? [];
 
-                var origins = new HashSet<string>(allowedOrigins, StringComparer.OrdinalIgnoreCase)
+                if (allowedOrigins.Length == 0)
                 {
-                    "https://doancosowebsitebds-ui.onrender.com"
-                };
+                    throw new InvalidOperationException(
+                        "CORS is not configured. Set Cors:AllowedOrigins in appsettings " +
+                        "or Cors__AllowedOrigins__0 on Render.");
+                }
 
-                policy.WithOrigins(origins.ToArray())
+                policy.WithOrigins(allowedOrigins)
                       .AllowAnyMethod()
                       .AllowAnyHeader()
-                      .AllowCredentials();
-            });
-
-            options.AddPolicy("RenderCors", policy =>
-            {
-                policy.WithOrigins("https://doancosowebsitebds-ui.onrender.com")
-                      .AllowAnyHeader()
-                      .AllowAnyMethod()
                       .AllowCredentials();
             });
         });

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "Vh2DIJvn7Vc=",
+  "dgSpecHash": "tlafjkYWl8o=",
   "success": true,
-  "projectFilePath": "c:\\Dev\\VietPropEstate\\tests\\VietPropEstate.IntegrationTests\\VietPropEstate.IntegrationTests.csproj",
+  "projectFilePath": "C:\\Dev\\VietPropEstate\\tests\\VietPropEstate.IntegrationTests\\VietPropEstate.IntegrationTests.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Le Quoc Khanh\\.nuget\\packages\\automapper\\15.1.3\\automapper.15.1.3.nupkg.sha512",
     "C:\\Users\\Le Quoc Khanh\\.nuget\\packages\\coverlet.collector\\6.0.2\\coverlet.collector.6.0.2.nupkg.sha512",

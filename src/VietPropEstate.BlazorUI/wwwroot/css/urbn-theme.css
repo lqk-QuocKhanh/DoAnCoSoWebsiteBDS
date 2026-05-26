@@ -91,14 +91,7 @@
     z-index: 1;
     color: #fff;
     max-width: 420px;
-}
-
-.auth-layout-visual-content h1 {
-    font-size: 2.5rem;
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    line-height: 1.1;
-    margin: 0 0 16px;
+    text-align: center;
 }
 
 .auth-layout-visual-content p {

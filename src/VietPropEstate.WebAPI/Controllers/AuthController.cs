@@ -340,11 +340,13 @@ public class AuthController : BaseApiController
 
     private void SetRefreshTokenCookie(string refreshToken)
     {
+        var crossSite = !_environment.IsDevelopment();
+
         Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
         {
             HttpOnly = true,
-            Secure = Request.IsHttps,
-            SameSite = SameSiteMode.Lax,
+            Secure = crossSite || Request.IsHttps,
+            SameSite = crossSite ? SameSiteMode.None : SameSiteMode.Lax,
             Expires = DateTimeOffset.UtcNow.AddDays(7)
         });
     }

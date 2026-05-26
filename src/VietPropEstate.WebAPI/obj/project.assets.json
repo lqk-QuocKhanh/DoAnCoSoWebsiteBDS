@@ -5753,11 +5753,11 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "c:\\Dev\\VietPropEstate\\src\\VietPropEstate.Application\\VietPropEstate.Application.csproj": {
-              "projectPath": "c:\\Dev\\VietPropEstate\\src\\VietPropEstate.Application\\VietPropEstate.Application.csproj"
+            "C:\\Dev\\VietPropEstate\\src\\VietPropEstate.Application\\VietPropEstate.Application.csproj": {
+              "projectPath": "C:\\Dev\\VietPropEstate\\src\\VietPropEstate.Application\\VietPropEstate.Application.csproj"
             },
-            "c:\\Dev\\VietPropEstate\\src\\VietPropEstate.Infrastructure\\VietPropEstate.Infrastructure.csproj": {
-              "projectPath": "c:\\Dev\\VietPropEstate\\src\\VietPropEstate.Infrastructure\\VietPropEstate.Infrastructure.csproj"
+            "C:\\Dev\\VietPropEstate\\src\\VietPropEstate.Infrastructure\\VietPropEstate.Infrastructure.csproj": {
+              "projectPath": "C:\\Dev\\VietPropEstate\\src\\VietPropEstate.Infrastructure\\VietPropEstate.Infrastructure.csproj"
             }
           }
         }
