@@ -103,6 +103,7 @@ public static class DependencyInjection
         // ── Role seeder ─────────────────────────────────────────────────────────
         services.AddSingleton<RoleSeeder>();
         services.AddSingleton<TestDataSeeder>();
+        services.AddSingleton<ProductionDataSeeder>();
 
         // ── Auth services ───────────────────────────────────────────────────────
         services.AddHttpContextAccessor();

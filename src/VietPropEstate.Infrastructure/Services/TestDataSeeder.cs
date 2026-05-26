@@ -93,7 +93,7 @@ public sealed class TestDataSeeder
         var customer = await EnsureUserAsync(userManager, "customer@test.vietpropestate.vn", "Khách", "Hàng", "Customer", password);
         await EnsureUserAsync(userManager, "staff@test.vietpropestate.vn", "Nhân", "Viên", "Staff", password);
 
-        var admin = await userManager.FindByEmailAsync(_configuration["AdminSeed:Email"] ?? "admin@vietpropestate.vn");
+        var admin = await userManager.FindByEmailAsync(_configuration["AdminSeed:Email"] ?? "admin@vietpropestate.com");
         var brokerAgent = await EnsureAgentAsync(db, broker, "Công ty BĐS VietProp Broker", cancellationToken);
         var adminAgent = admin is not null
             ? await EnsureAgentAsync(db, admin, "VietPropEstate Admin", cancellationToken)

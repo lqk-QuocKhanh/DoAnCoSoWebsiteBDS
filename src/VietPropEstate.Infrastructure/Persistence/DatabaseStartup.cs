@@ -188,6 +188,18 @@ public static class DatabaseStartup
 
         try
         {
+            var productionSeeder = services.GetRequiredService<ProductionDataSeeder>();
+            await productionSeeder.SeedAsync(cancellationToken);
+            logger.LogInformation("Production data seeding completed");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Production data seeding failed");
+            Console.WriteLine(ex.ToString());
+        }
+
+        try
+        {
             var testSeeder = services.GetRequiredService<TestDataSeeder>();
             await testSeeder.SeedAsync(cancellationToken);
             logger.LogInformation("Test data seeding completed");

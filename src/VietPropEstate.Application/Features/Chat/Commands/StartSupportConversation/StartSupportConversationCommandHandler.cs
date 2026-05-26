@@ -12,7 +12,7 @@ namespace VietPropEstate.Application.Features.Chat.Commands.StartSupportConversa
 public sealed class StartSupportConversationCommandHandler
     : IRequestHandler<StartSupportConversationCommand, ConversationDto>
 {
-    private const string DefaultAdminEmail = "admin@vietpropestate.vn";
+    private const string DefaultAdminEmail = "admin@vietpropestate.com";
 
     private readonly IApplicationDbContext _db;
     private readonly IIdentityUserLookup _userLookup;
