@@ -223,6 +223,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXEhvbWVHYWxsZXJ5VGlsZS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Dev/VietPropEstate/src/VietPropEstate.BlazorUI/Shared/LanguageToggle.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXExhbmd1YWdlVG9nZ2xlLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Dev/VietPropEstate/src/VietPropEstate.BlazorUI/Shared/LoadingSkeleton.razor]
 build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXExvYWRpbmdTa2VsZXRvbi5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using VietPropEstate.Application.Common.Interfaces;
 using VietPropEstate.Application.Features.Chat.Commands.BlockUser;
 using VietPropEstate.Application.Features.Chat.Commands.CloseConversation;
@@ -8,6 +9,7 @@ using VietPropEstate.Application.Features.Chat.Commands.MarkMessagesAsRead;
 using VietPropEstate.Application.Features.Chat.Commands.ReopenConversation;
 using VietPropEstate.Application.Features.Chat.Commands.SendMessage;
 using VietPropEstate.Application.Features.Chat.Commands.StartConversation;
+using VietPropEstate.Application.Features.Chat.Commands.StartSupportConversation;
 using VietPropEstate.Application.Features.Chat.Commands.UnblockUser;
 using VietPropEstate.Application.Features.Chat.Commands.UpdateConversationSettings;
 using VietPropEstate.Application.Features.Chat.Queries.GetConversationById;
@@ -22,7 +24,13 @@ namespace VietPropEstate.WebAPI.Controllers;
 public class ConversationsController : BaseApiController
 {
     private readonly ICurrentUserService _currentUser;
-    public ConversationsController(ICurrentUserService currentUser) => _currentUser = currentUser;
+    private readonly IConfiguration _configuration;
+
+    public ConversationsController(ICurrentUserService currentUser, IConfiguration configuration)
+    {
+        _currentUser = currentUser;
+        _configuration = configuration;
+    }
 
     // ── GET /api/conversations ────────────────────────────────────────────────
 
@@ -80,6 +88,17 @@ public class ConversationsController : BaseApiController
 
         return Ok(result);
     }
+
+    /// <summary>Start (or resume) a support conversation with the platform admin.</summary>
+    [HttpPost("support")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> StartSupport(CancellationToken cancellationToken)
+        => Ok(await Mediator.Send(new StartSupportConversationCommand
+        {
+            UserId = _currentUser.UserId!,
+            AdminEmail = _configuration["AdminSeed:Email"]
+        }, cancellationToken));
 
     // ── GET /api/conversations/{id:guid}/messages ─────────────────────────────
 

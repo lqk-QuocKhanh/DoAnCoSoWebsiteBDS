@@ -164,11 +164,21 @@ public static class DatabaseStartup
 
         try
         {
-            var addressSeeder = services.GetRequiredService<AddressDataSeeder>();
-            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            cts.CancelAfter(TimeSpan.FromMinutes(10));
-            await addressSeeder.SeedAsync(cts.Token);
-            logger.LogInformation("Address seeding completed");
+            var configuration = services.GetRequiredService<IConfiguration>();
+            var addressSeedEnabled = configuration.GetValue("AddressSeed:Enabled", true);
+
+            if (addressSeedEnabled)
+            {
+                var addressSeeder = services.GetRequiredService<AddressDataSeeder>();
+                using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                cts.CancelAfter(TimeSpan.FromMinutes(10));
+                await addressSeeder.SeedAsync(cts.Token);
+                logger.LogInformation("Address seeding completed");
+            }
+            else
+            {
+                logger.LogInformation("Address seeding disabled (AddressSeed:Enabled=false).");
+            }
         }
         catch (Exception ex)
         {

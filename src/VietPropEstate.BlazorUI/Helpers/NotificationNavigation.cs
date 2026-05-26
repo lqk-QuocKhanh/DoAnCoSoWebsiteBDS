@@ -8,6 +8,12 @@ public static partial class NotificationNavigation
 {
     private static readonly Regex LegacyConversationPath = ConversationPathRegex();
 
+    private static readonly Dictionary<string, string> LegacyRoutes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["/account/subscriptions"] = "/dashboard/goi-vip",
+        ["/account/payments"] = "/dashboard/thanh-toan"
+    };
+
     public static string? GetUrl(NotificationDto notification)
     {
         if (notification.Type == NotificationType.MessageReceived)
@@ -17,7 +23,19 @@ public static partial class NotificationNavigation
                 return $"/dashboard/tin-nhan?conversation={conversationId.Value}";
         }
 
-        return notification.ActionUrl;
+        if (notification.Type is NotificationType.VIPPackageActivated or NotificationType.PaymentConfirmation)
+            return "/dashboard/goi-vip";
+
+        return NormalizeActionUrl(notification.ActionUrl);
+    }
+
+    private static string? NormalizeActionUrl(string? actionUrl)
+    {
+        if (string.IsNullOrWhiteSpace(actionUrl))
+            return null;
+
+        var trimmed = actionUrl.Trim();
+        return LegacyRoutes.TryGetValue(trimmed, out var mapped) ? mapped : trimmed;
     }
 
     private static Guid? TryGetConversationId(NotificationDto notification)

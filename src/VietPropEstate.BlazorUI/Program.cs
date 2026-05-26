@@ -56,8 +56,11 @@ builder.Services.AddScoped<SearchState>();
 builder.Services.AddScoped<NotificationState>();
 builder.Services.AddScoped<ChatState>();
 builder.Services.AddScoped<AdminState>();
+builder.Services.AddScoped<LocaleState>();
 
 var host = builder.Build();
+
+await host.Services.GetRequiredService<LocaleState>().InitializeAsync();
 
 var authClient = host.Services.GetRequiredService<IAuthApiClient>();
 await authClient.InitializeAsync();

@@ -125,7 +125,7 @@ public sealed class ProcessVnPayIpnCommandHandler
                         $"Gói VIP {package.Name} đã được kích hoạt. Hiệu lực đến {subscription.EndDate:dd/MM/yyyy}.",
                         NotificationType.VIPPackageActivated,
                         referenceId: subscription.Id.ToString(),
-                        actionUrl: "/account/subscriptions",
+                        actionUrl: "/dashboard/goi-vip",
                         cancellationToken: cancellationToken);
                 }
                 catch (Exception ex)

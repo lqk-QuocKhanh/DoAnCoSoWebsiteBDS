@@ -76,6 +76,9 @@
         <member name="M:VietPropEstate.WebAPI.Controllers.ConversationsController.Start(VietPropEstate.WebAPI.Controllers.StartConversationRequest,System.Threading.CancellationToken)">
             <summary>Start (or resume) a conversation between buyer and seller about a property.</summary>
         </member>
+        <member name="M:VietPropEstate.WebAPI.Controllers.ConversationsController.StartSupport(System.Threading.CancellationToken)">
+            <summary>Start (or resume) a support conversation with the platform admin.</summary>
+        </member>
         <member name="M:VietPropEstate.WebAPI.Controllers.ConversationsController.GetMessages(System.Guid,System.Int32,System.Int32,System.Nullable{System.DateTime},System.Threading.CancellationToken)">
             <summary>Returns paginated message history. Marks delivered messages as delivered.</summary>
         </member>

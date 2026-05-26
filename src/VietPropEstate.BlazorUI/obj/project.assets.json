@@ -2868,11 +2868,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "c:\\Dev\\VietPropEstate\\src\\VietPropEstate.BlazorUI\\VietPropEstate.BlazorUI.csproj",
+      "projectUniqueName": "C:\\Dev\\VietPropEstate\\src\\VietPropEstate.BlazorUI\\VietPropEstate.BlazorUI.csproj",
       "projectName": "VietPropEstate.BlazorUI",
-      "projectPath": "c:\\Dev\\VietPropEstate\\src\\VietPropEstate.BlazorUI\\VietPropEstate.BlazorUI.csproj",
+      "projectPath": "C:\\Dev\\VietPropEstate\\src\\VietPropEstate.BlazorUI\\VietPropEstate.BlazorUI.csproj",
       "packagesPath": "C:\\Users\\Le Quoc Khanh\\.nuget\\packages\\",
-      "outputPath": "c:\\Dev\\VietPropEstate\\src\\VietPropEstate.BlazorUI\\obj\\",
+      "outputPath": "C:\\Dev\\VietPropEstate\\src\\VietPropEstate.BlazorUI\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

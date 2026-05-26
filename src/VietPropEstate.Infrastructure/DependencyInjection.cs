@@ -22,8 +22,10 @@ public static class DependencyInjection
         IHostEnvironment? environment = null)
     {
         // ── Database ────────────────────────────────────────────────────────────
+        var connectionString = DatabaseConnectionResolver.Resolve(configuration);
         var useInMemoryDatabase = environment?.IsEnvironment("Testing") == true
-            || configuration.GetValue("UseInMemoryDatabase", false);
+            || configuration.GetValue("UseInMemoryDatabase", false)
+            || (environment?.IsDevelopment() == true && string.IsNullOrWhiteSpace(connectionString));
 
         if (useInMemoryDatabase)
         {
@@ -34,7 +36,6 @@ public static class DependencyInjection
         }
         else
         {
-            var connectionString = DatabaseConnectionResolver.Resolve(configuration);
             if (string.IsNullOrWhiteSpace(connectionString))
                 throw new InvalidOperationException(
                     "PostgreSQL connection string is missing. On Render set ConnectionStrings__DefaultConnection " +
@@ -114,6 +115,7 @@ public static class DependencyInjection
         services.AddScoped<IUserAvatarService, UserAvatarService>();
         services.AddScoped<IUserPublicProfileService, UserPublicProfileService>();
         services.AddScoped<IUserPhoneVerificationService, UserPhoneVerificationService>();
+        services.AddScoped<IIdentityUserLookup, IdentityUserLookup>();
 
         // ── Chat / real-time services ───────────────────────────────────────────
         services.AddSingleton<IOnlineUserTracker, InMemoryOnlineUserTracker>();

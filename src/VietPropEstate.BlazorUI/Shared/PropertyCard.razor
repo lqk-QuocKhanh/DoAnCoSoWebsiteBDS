@@ -2,6 +2,8 @@
 @inject ISnackbar Snackbar
 @inject AuthState AuthState
 @inject IFavoritesApiClient FavoritesClient
+@inject LocaleState Locale
+@implements IDisposable
 
 @if (Layout == "urbn")
 {
@@ -64,7 +66,7 @@ else
         @if (!string.IsNullOrEmpty(Property.PropertyTypeName))
         {
             <MudText Typo="Typo.caption" Style="color:#B91C1C; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; font-size:11px;">
-                @Property.PropertyTypeName
+                @DisplayLabels.PropertyType(Property.PropertyTypeName, Locale.Language)
             </MudText>
         }
 
@@ -133,6 +135,8 @@ else
 
     protected override void OnParametersSet() => _isFavorited = IsFavorited;
 
+    protected override void OnInitialized() => Locale.OnChange += StateHasChanged;
+
     private void NavigateToDetails()
     {
         if (!string.IsNullOrEmpty(Property.Slug))
@@ -167,13 +171,7 @@ else
         _ => "background:#16A34A; color:#fff;"
     };
 
-    private string GetListingTypeLabel() => Property.ListingType switch
-    {
-        ListingType.ForSale => "Bán",
-        ListingType.ForRent => "Cho thuê",
-        ListingType.ForLease => "Thuê dài hạn",
-        _ => "BĐS"
-    };
+    private string GetListingTypeLabel() => DisplayLabels.GetListingType(Property.ListingType, Locale.Language);
 
     private static string FormatPrice(decimal amount, string currency)
     {
@@ -214,4 +212,6 @@ else
         if (Property.Area > 0) parts.Add($"{Property.Area} m²");
         return parts.Count > 0 ? string.Join(" · ", parts) : Property.ProvinceName ?? "";
     }
+
+    public void Dispose() => Locale.OnChange -= StateHasChanged;
 }

@@ -1,0 +1,59 @@
+@inject LocaleState Locale
+@implements IDisposable
+
+<div class="lang-toggle" role="group" aria-label="Chọn ngôn ngữ">
+    <button type="button"
+            class="lang-toggle-btn @(Locale.IsVietnamese ? "active" : "")"
+            title="Tiếng Việt"
+            @onclick="@(() => SetLanguage(AppLanguage.Vietnamese))">
+        VI
+    </button>
+    <button type="button"
+            class="lang-toggle-btn @(!Locale.IsVietnamese ? "active" : "")"
+            title="English"
+            @onclick="@(() => SetLanguage(AppLanguage.English))">
+        EN
+    </button>
+</div>
+
+<style>
+    .lang-toggle {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid #E2E8F0;
+        border-radius: 999px;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    .lang-toggle-btn {
+        border: none;
+        background: transparent;
+        color: #64748B;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 6px 10px;
+        cursor: pointer;
+        line-height: 1;
+    }
+
+    .lang-toggle-btn.active {
+        background: #0F172A;
+        color: #fff;
+    }
+</style>
+
+@code {
+    protected override void OnInitialized() => Locale.OnChange += StateHasChanged;
+
+    private async Task SetLanguage(AppLanguage language)
+    {
+        if (Locale.Language == language)
+            return;
+
+        await Locale.SetLanguageAsync(language);
+    }
+
+    public void Dispose() => Locale.OnChange -= StateHasChanged;
+}

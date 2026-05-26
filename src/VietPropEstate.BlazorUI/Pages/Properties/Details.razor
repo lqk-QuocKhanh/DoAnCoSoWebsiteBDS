@@ -7,6 +7,8 @@
 @inject ISnackbar Snackbar
 @inject NavigationManager Nav
 @inject IDialogService DialogService
+@inject LocaleState Locale
+@implements IDisposable
 
 <PageTitle>@(_property?.Title ?? "Đang tải...") - VietPropEstate</PageTitle>
 
@@ -107,21 +109,21 @@
                 {
                     <div class="urbn-detail-spec">
                         <span class="urbn-detail-spec-value">@_property.NumberOfFloors</span>
-                        <span class="urbn-detail-spec-label">Tầng</span>
+                        <span class="urbn-detail-spec-label">@Locale.T("Tầng", "Floors")</span>
                     </div>
                 }
                 @if (_property.NumberOfBedrooms.HasValue)
                 {
                     <div class="urbn-detail-spec">
                         <span class="urbn-detail-spec-value">@_property.NumberOfBedrooms</span>
-                        <span class="urbn-detail-spec-label">Phòng ngủ</span>
+                        <span class="urbn-detail-spec-label">@Locale.T("Phòng ngủ", "Bedrooms")</span>
                     </div>
                 }
                 @if (_property.NumberOfBathrooms.HasValue)
                 {
                     <div class="urbn-detail-spec">
                         <span class="urbn-detail-spec-value">@_property.NumberOfBathrooms</span>
-                        <span class="urbn-detail-spec-label">Phòng tắm</span>
+                        <span class="urbn-detail-spec-label">@Locale.T("Phòng tắm", "Bathrooms")</span>
                     </div>
                 }
             </div>
@@ -132,7 +134,7 @@
                 <p class="urbn-detail-desc mb-6">@_property.Description</p>
             }
 
-            <h3 class="urbn-detail-section-title">Thông tin chi tiết</h3>
+            <h3 class="urbn-detail-section-title">@Locale.T("Thông tin chi tiết", "Property details")</h3>
             <MudGrid>
                 @foreach (var detail in GetDetails())
                 {
@@ -246,6 +248,8 @@
         new BreadcrumbItem("Bất động sản", href: "/bat-dong-san"),
         new BreadcrumbItem("Chi tiết", href: null, disabled: true)
     ];
+
+    protected override void OnInitialized() => Locale.OnChange += StateHasChanged;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -372,41 +376,28 @@
     private IEnumerable<(string Label, string Value)> GetDetails()
     {
         if (_property == null) yield break;
-        if (!string.IsNullOrEmpty(_property.PropertyTypeName)) yield return ("Loại BĐS", _property.PropertyTypeName);
-        if (!string.IsNullOrEmpty(_property.TransactionTypeName)) yield return ("Hình thức", _property.TransactionTypeName);
-        if (_property.Area > 0) yield return ("Diện tích", $"{_property.Area} m²");
-        if (_property.NumberOfBedrooms.HasValue) yield return ("Phòng ngủ", _property.NumberOfBedrooms.ToString()!);
-        if (_property.NumberOfBathrooms.HasValue) yield return ("Phòng tắm", _property.NumberOfBathrooms.ToString()!);
-        if (_property.NumberOfFloors.HasValue) yield return ("Số tầng", _property.NumberOfFloors.ToString()!);
-        if (_property.Direction.HasValue) yield return ("Hướng nhà", GetDirectionLabel(_property.Direction.Value));
-        if (_property.PublishedAt.HasValue) yield return ("Ngày đăng", _property.PublishedAt.Value.ToString("dd/MM/yyyy"));
+        if (!string.IsNullOrEmpty(_property.PropertyTypeName))
+            yield return (Locale.T("Loại BĐS", "Property type"), DisplayLabels.PropertyType(_property.PropertyTypeName, Locale.Language));
+        yield return (Locale.T("Hình thức", "Listing type"), DisplayLabels.GetListingType(_property.ListingType, Locale.Language));
+        if (_property.Area > 0) yield return (Locale.T("Diện tích", "Area"), $"{_property.Area} m²");
+        if (_property.NumberOfBedrooms.HasValue) yield return (Locale.T("Phòng ngủ", "Bedrooms"), _property.NumberOfBedrooms.ToString()!);
+        if (_property.NumberOfBathrooms.HasValue) yield return (Locale.T("Phòng tắm", "Bathrooms"), _property.NumberOfBathrooms.ToString()!);
+        if (_property.NumberOfFloors.HasValue) yield return (Locale.T("Số tầng", "Floors"), _property.NumberOfFloors.ToString()!);
+        if (_property.Direction.HasValue) yield return (Locale.T("Hướng nhà", "Orientation"), DisplayLabels.Direction(_property.Direction.Value, Locale.Language));
+        if (_property.PublishedAt.HasValue)
+        {
+            var format = Locale.IsVietnamese ? "dd/MM/yyyy" : "MM/dd/yyyy";
+            yield return (Locale.T("Ngày đăng", "Posted on"), _property.PublishedAt.Value.ToString(format));
+        }
     }
 
-    private static string GetDirectionLabel(PropertyDirection d) => d switch
-    {
-        PropertyDirection.North => "Bắc",
-        PropertyDirection.South => "Nam",
-        PropertyDirection.East => "Đông",
-        PropertyDirection.West => "Tây",
-        PropertyDirection.NorthEast => "Đông Bắc",
-        PropertyDirection.NorthWest => "Tây Bắc",
-        PropertyDirection.SouthEast => "Đông Nam",
-        PropertyDirection.SouthWest => "Tây Nam",
-        _ => d.ToString()
-    };
+    private string GetListingTypeLabel() => DisplayLabels.GetListingType(_property!.ListingType, Locale.Language);
 
     private string GetListingTypeBadgeStyle() => _property?.ListingType switch
     {
         Domain.Enums.ListingType.ForSale => "background:#B91C1C; color:#fff;",
         Domain.Enums.ListingType.ForRent => "background:#2563EB; color:#fff;",
         _ => "background:#16A34A; color:#fff;"
-    };
-
-    private string GetListingTypeLabel() => _property?.ListingType switch
-    {
-        Domain.Enums.ListingType.ForSale => "Bán",
-        Domain.Enums.ListingType.ForRent => "Cho thuê",
-        _ => "BĐS"
     };
 
     private string GetStatusStyle() => _property?.Status switch
@@ -453,4 +444,6 @@
         if (diff.TotalDays < 7) return $"{(int)diff.TotalDays} ngày trước";
         return date.ToString("dd/MM/yyyy");
     }
+
+    public void Dispose() => Locale.OnChange -= StateHasChanged;
 }

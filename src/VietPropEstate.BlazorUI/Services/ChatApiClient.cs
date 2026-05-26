@@ -11,6 +11,7 @@ public interface IChatApiClient
     Task<MessageDto?> SendMessageAsync(Guid conversationId, string content);
     Task MarkAsReadAsync(Guid conversationId);
     Task<ConversationDto?> StartConversationAsync(Guid propertyId, string sellerId, string? message = null);
+    Task<ConversationDto?> StartSupportConversationAsync();
     Task<ConversationDto?> UpdateSettingsAsync(Guid conversationId, bool? isPinned = null, bool? isMuted = null);
     Task BlockUserAsync(Guid conversationId);
     Task UnblockUserAsync(Guid conversationId);
@@ -58,6 +59,17 @@ public sealed class ChatApiClient : IChatApiClient
         {
             var resp = await _http.PostAsJsonAsync("api/conversations",
                 new { PropertyId = propertyId, SellerId = sellerId, InitialMessage = message });
+            if (!resp.IsSuccessStatusCode) return null;
+            return await resp.Content.ReadFromJsonAsync<ConversationDto>();
+        }
+        catch { return null; }
+    }
+
+    public async Task<ConversationDto?> StartSupportConversationAsync()
+    {
+        try
+        {
+            var resp = await _http.PostAsync("api/conversations/support", null);
             if (!resp.IsSuccessStatusCode) return null;
             return await resp.Content.ReadFromJsonAsync<ConversationDto>();
         }

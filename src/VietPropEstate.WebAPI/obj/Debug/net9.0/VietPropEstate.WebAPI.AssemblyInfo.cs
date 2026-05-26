@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("VietPropEstate.WebAPI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+709cf1d832be84c87f0834b352b5ef018b4c3ec7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+773f5644f8d0fad9a67c8ff290a2b1431db1937c")]
 [assembly: System.Reflection.AssemblyProductAttribute("VietPropEstate.WebAPI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("VietPropEstate.WebAPI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

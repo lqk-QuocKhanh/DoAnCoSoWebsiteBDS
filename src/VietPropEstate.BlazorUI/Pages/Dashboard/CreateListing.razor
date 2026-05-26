@@ -9,6 +9,7 @@
 @inject IPropertyApiService PropertyService
 @inject IAuthApiClient AuthClient
 @inject AuthState AuthState
+@inject LocaleState Locale
 
 <PageTitle>Đăng tin mới - VietPropEstate</PageTitle>
 
@@ -83,7 +84,7 @@ else
                 <MudSelect T="Guid" @bind-Value="_form.PropertyTypeId" Label="Loại bất động sản *" Variant="Variant.Outlined">
                     @foreach (var type in _propertyTypes)
                     {
-                        <MudSelectItem Value="@type.Id">@GetPropertyTypeLabel(type.Name)</MudSelectItem>
+                        <MudSelectItem Value="@type.Id">@DisplayLabels.PropertyType(type.Name, Locale.Language)</MudSelectItem>
                     }
                 </MudSelect>
             </MudItem>
@@ -412,17 +413,6 @@ else
         "Tây Bắc" => PropertyDirection.NorthWest,
         "Tây Nam" => PropertyDirection.SouthWest,
         _ => null
-    };
-
-    private static string GetPropertyTypeLabel(string name) => name switch
-    {
-        "Apartment" => "Căn hộ",
-        "House" => "Nhà phố",
-        "Villa" => "Biệt thự",
-        "Land" => "Đất nền",
-        "Office" => "Văn phòng",
-        "Motel" => "Phòng trọ",
-        _ => name
     };
 
     private sealed class ListingForm

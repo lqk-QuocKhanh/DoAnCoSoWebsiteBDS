@@ -30,3 +30,21 @@ foreach ($name in $devProcesses) {
         Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue
     }
 }
+
+# dotnet run sometimes keeps a dotnet.exe host holding WebAPI DLLs on the dev port.
+foreach ($port in $Ports) {
+    $connections = Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue
+    foreach ($processId in ($connections | Select-Object -ExpandProperty OwningProcess -Unique)) {
+        if ($processId -le 0) { continue }
+        try {
+            $proc = Get-Process -Id $processId -ErrorAction Stop
+            if ($proc.ProcessName -eq 'dotnet') {
+                Write-Host "Stopping dotnet host PID $processId on port $port..."
+                Stop-Process -Id $processId -Force -ErrorAction Stop
+            }
+        }
+        catch {
+            Write-Warning "Could not stop dotnet host PID ${processId}: $_"
+        }
+    }
+}

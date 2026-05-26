@@ -1,5 +1,7 @@
 @inject NavigationManager Nav
 @inject AuthState AuthState
+@inject IChatApiClient ChatClient
+@inject ISnackbar Snackbar
 @implements IDisposable
 
 @if (AuthState.IsAuthenticated)
@@ -162,9 +164,18 @@
 
     private void ClosePanel() => _panelOpen = false;
 
-    private void OpenWebsiteSupport()
+    private async Task OpenWebsiteSupport()
     {
         _panelOpen = false;
+
+        var conversation = await ChatClient.StartSupportConversationAsync();
+        if (conversation is not null)
+        {
+            Nav.NavigateTo($"/dashboard/tin-nhan?conversation={conversation.Id}");
+            return;
+        }
+
+        Snackbar.Add("Không thể mở tin nhắn hỗ trợ. Vui lòng thử lại hoặc liên hệ qua Zalo/Facebook.", Severity.Warning);
         Nav.NavigateTo("/dashboard/tin-nhan");
     }
 

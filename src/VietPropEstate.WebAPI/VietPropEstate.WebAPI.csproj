@@ -25,7 +25,21 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
+    <StopStaleWebApiScript>$(MSBuildThisFileDirectory)..\..\scripts\stop-dev-ports.ps1</StopStaleWebApiScript>
   </PropertyGroup>
+
+  <!-- Avoid MSB3027 DLL lock when running `dotnet run` while a stale instance still holds port 5198. -->
+  <Target Name="StopStaleWebApiBeforeBuild"
+          BeforeTargets="BeforeBuild"
+          Condition="'$(Configuration)' == 'Debug'
+                     AND '$(DOTNET_WATCH)' != '1'
+                     AND '$(DesignTimeBuild)' != 'true'
+                     AND Exists('$(StopStaleWebApiScript)')">
+    <Message Importance="high" Text="Ensuring port 5198 is free before build..." />
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(StopStaleWebApiScript)&quot; -Ports 5198"
+          IgnoreExitCode="true"
+          StandardOutputImportance="low" />
+  </Target>
 
   <ItemGroup>
     <Content Update="Data\vietnam-addresses-v2.json">

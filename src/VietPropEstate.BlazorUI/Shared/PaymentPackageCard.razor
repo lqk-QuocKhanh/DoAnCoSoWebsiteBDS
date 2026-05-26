@@ -80,6 +80,5 @@
         ? "Không giới hạn tin"
         : $"Tối đa {Package.MaxListings} tin đăng";
 
-    private static string FormatPrice(decimal price) =>
-        price >= 1_000_000 ? $"{price / 1_000_000:N0}đ/gói" : $"{price:N0}đ";
+    private static string FormatPrice(decimal price) => PriceFormatHelper.FormatVnd(price);
 }
