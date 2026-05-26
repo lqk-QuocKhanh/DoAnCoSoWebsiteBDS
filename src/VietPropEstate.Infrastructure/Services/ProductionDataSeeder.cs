@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using VietPropEstate.Application.Common.Authorization;
 using VietPropEstate.Domain.Common;
 using VietPropEstate.Domain.Entities;
 using VietPropEstate.Domain.Enums;
@@ -121,23 +122,130 @@ public sealed class ProductionDataSeeder
             return;
         }
 
-        var adminEmail = _configuration["AdminSeed:Email"] ?? "admin@vietpropestate.com";
-        var admin = await userManager.FindByEmailAsync(adminEmail);
+        var admin = await ResolveSeedAdminAsync(userManager, cancellationToken);
         if (admin is null)
         {
-            _logger.LogWarning("Admin user {Email} not found — skipping production property seed.", adminEmail);
+            _logger.LogWarning("No admin/broker user found — skipping production property seed.");
             return;
         }
 
+        await EnsureMinimalAddressForSeedAsync(db, cancellationToken);
+
         var agent = await EnsureAgentAsync(db, admin, "VietPropEstate Official", cancellationToken);
-        var properties = BuildProductionProperties(agent.Id);
+        var useAddressForeignKeys = await db.Provinces.AnyAsync(cancellationToken)
+            && await db.Wards.AnyAsync(cancellationToken);
+        var properties = BuildProductionProperties(agent.Id, useAddressForeignKeys);
 
-        await db.Properties.AddRangeAsync(properties, cancellationToken);
-        await db.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await db.Properties.AddRangeAsync(properties, cancellationToken);
+            await db.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation(
-            "Production seed completed: {Apartments} apartments, {Houses} houses, {Rentals} rentals.",
-            20, 20, 20);
+            _logger.LogInformation(
+                "Production seed completed: {Apartments} apartments, {Houses} houses, {Rentals} rentals.",
+                20, 20, 20);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Production property seed failed. Provinces={Provinces}, Wards={Wards}, UseAddressFk={UseFk}",
+                status.ProvincesCount,
+                status.WardsCount,
+                useAddressForeignKeys);
+            throw;
+        }
+    }
+
+    private async Task<ApplicationUser?> ResolveSeedAdminAsync(
+        UserManager<ApplicationUser> userManager,
+        CancellationToken cancellationToken)
+    {
+        var candidates = new[]
+        {
+            _configuration["AdminSeed:Email"],
+            "admin@vietpropestate.com",
+            "admin@vietpropestate.vn"
+        }.Where(e => !string.IsNullOrWhiteSpace(e)).Distinct(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var email in candidates)
+        {
+            var user = await userManager.FindByEmailAsync(email!);
+            if (user is not null)
+                return user;
+        }
+
+        foreach (var role in new[] { AppRoles.SysAdmin, AppRoles.Admin, AppRoles.Broker })
+        {
+            var users = await userManager.GetUsersInRoleAsync(role);
+            if (users.Count > 0)
+                return users[0];
+        }
+
+        return await userManager.Users.FirstOrDefaultAsync(cancellationToken);
+    }
+
+    private async Task EnsureMinimalAddressForSeedAsync(
+        ApplicationDbContext db,
+        CancellationToken cancellationToken)
+    {
+        var provinceMeta = new Dictionary<int, (string Name, string Codename, int PhoneCode)>
+        {
+            [79] = ("Thành phố Hồ Chí Minh", "thanh-pho-ho-chi-minh", 28),
+            [1] = ("Thành phố Hà Nội", "ha-noi", 24),
+            [48] = ("Thành phố Đà Nẵng", "da-nang", 236),
+            [31] = ("Thành phố Hải Phòng", "hai-phong", 225),
+            [92] = ("Thành phố Cần Thơ", "can-tho", 292),
+            [56] = ("Tỉnh Khánh Hòa", "khanh-hoa", 258)
+        };
+
+        var provincesAdded = false;
+        foreach (var (code, meta) in provinceMeta)
+        {
+            if (await db.Provinces.AnyAsync(p => p.Code == code, cancellationToken))
+                continue;
+
+            await db.Provinces.AddAsync(
+                Province.Create(code, meta.Name, meta.Codename, "tỉnh", meta.PhoneCode),
+                cancellationToken);
+            provincesAdded = true;
+        }
+
+        if (provincesAdded)
+        {
+            await db.SaveChangesAsync(cancellationToken);
+            _logger.LogInformation("Minimal province reference data inserted for production seed.");
+        }
+
+        var provinceIds = await db.Provinces
+            .AsNoTracking()
+            .ToDictionaryAsync(p => p.Code, p => p.Id, cancellationToken);
+
+        var wardsAdded = false;
+        foreach (var loc in Locations)
+        {
+            if (await db.Wards.AnyAsync(w => w.Code == loc.WardCode, cancellationToken))
+                continue;
+
+            if (!provinceIds.TryGetValue(loc.ProvinceCode, out var provinceId))
+                continue;
+
+            await db.Wards.AddAsync(
+                Ward.Create(
+                    loc.WardCode,
+                    loc.WardName,
+                    $"ward-{loc.WardCode}",
+                    "phường",
+                    loc.ProvinceCode,
+                    provinceId),
+                cancellationToken);
+            wardsAdded = true;
+        }
+
+        if (wardsAdded)
+        {
+            await db.SaveChangesAsync(cancellationToken);
+            _logger.LogInformation("Minimal ward reference data inserted for production seed.");
+        }
     }
 
     private async Task<DatabaseSeedStatus> GetDatabaseStatusAsync(
@@ -186,7 +294,7 @@ public sealed class ProductionDataSeeder
         }
     }
 
-    private List<Property> BuildProductionProperties(Guid agentId)
+    private List<Property> BuildProductionProperties(Guid agentId, bool useAddressForeignKeys)
     {
         var items = new List<Property>(60);
 
@@ -209,6 +317,7 @@ public sealed class ProductionDataSeeder
                 Math.Max(1, bedrooms - 1),
                 15 + (i % 20),
                 PropertyDirection.SouthEast,
+                useAddressForeignKeys,
                 featured: i % 5 == 0,
                 views: 20 + i);
             AttachImages(property, ImageSets[i % ImageSets.Length]);
@@ -234,6 +343,7 @@ public sealed class ProductionDataSeeder
                 2 + (i % 2),
                 floors,
                 PropertyDirection.East,
+                useAddressForeignKeys,
                 featured: i % 6 == 0,
                 views: 30 + i);
             AttachImages(property, ImageSets[(i + 1) % ImageSets.Length]);
@@ -263,6 +373,7 @@ public sealed class ProductionDataSeeder
                 isApartment ? 1 : 2 + (i % 2),
                 isApartment ? 12 + (i % 10) : 2 + (i % 3),
                 PropertyDirection.North,
+                useAddressForeignKeys,
                 featured: i % 7 == 0,
                 views: 10 + i);
             AttachImages(property, ImageSets[(i + 2) % ImageSets.Length]);
@@ -287,6 +398,7 @@ public sealed class ProductionDataSeeder
         int? bathrooms,
         int? floors,
         PropertyDirection? direction,
+        bool useAddressForeignKeys,
         bool featured = false,
         int views = 0)
     {
@@ -312,9 +424,9 @@ public sealed class ProductionDataSeeder
             floors,
             direction,
             transactionTypeId,
-            location.ProvinceCode,
+            useAddressForeignKeys ? location.ProvinceCode : null,
             location.ProvinceName,
-            location.WardCode,
+            useAddressForeignKeys ? location.WardCode : null,
             location.WardName,
             location.Lat,
             location.Lng);

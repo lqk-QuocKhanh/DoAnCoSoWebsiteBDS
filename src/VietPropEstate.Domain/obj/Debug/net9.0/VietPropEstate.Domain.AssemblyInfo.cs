@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("VietPropEstate.Domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c3094503d4b971eb17e19256ddbe2b3b4a2b530e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bcfc88214816c5f7e14723662ca461533d87fa4e")]
 [assembly: System.Reflection.AssemblyProductAttribute("VietPropEstate.Domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("VietPropEstate.Domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

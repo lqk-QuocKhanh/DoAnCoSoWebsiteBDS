@@ -44,3 +44,11 @@ services:
         value: https://doancosowebsitebds-ui.onrender.com
       - key: Cors__AllowedOrigins__1
         value: http://localhost:5126
+      - key: ProductionSeed__Enabled
+        value: "true"
+      - key: AddressSeed__Enabled
+        value: "true"
+      - key: AdminSeed__Email
+        value: admin@vietpropestate.com
+      - key: AdminSeed__Password
+        value: Admin@123
