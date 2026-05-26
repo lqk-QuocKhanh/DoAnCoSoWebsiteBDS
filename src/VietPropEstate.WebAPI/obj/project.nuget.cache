@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "J+9oVKETUdg=",
+  "dgSpecHash": "h4m0lwRJmn4=",
   "success": true,
-  "projectFilePath": "C:\\Dev\\VietPropEstate\\src\\VietPropEstate.WebAPI\\VietPropEstate.WebAPI.csproj",
+  "projectFilePath": "c:\\Dev\\VietPropEstate\\src\\VietPropEstate.WebAPI\\VietPropEstate.WebAPI.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Le Quoc Khanh\\.nuget\\packages\\automapper\\15.1.3\\automapper.15.1.3.nupkg.sha512",
     "C:\\Users\\Le Quoc Khanh\\.nuget\\packages\\fluentvalidation\\11.12.0\\fluentvalidation.11.12.0.nupkg.sha512",

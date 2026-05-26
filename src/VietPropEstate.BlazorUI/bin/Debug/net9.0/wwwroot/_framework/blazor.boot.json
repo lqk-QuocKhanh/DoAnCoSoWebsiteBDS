@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "VietPropEstate.BlazorUI",
   "resources": {
-    "hash": "sha256-XN2rcj9TcoawJkrg3EBYnrAXK65WKrZa4PiUd+cau4Y=",
+    "hash": "sha256-PNsYiH+dIUFjqedxyG5e+/Up9oJgJF7I0zqtzvnwnBA=",
     "fingerprinting": {
       "AutoMapper.woxrtxm9j6.wasm": "AutoMapper.wasm",
       "FluentValidation.96gbynjvvz.wasm": "FluentValidation.wasm",
@@ -219,12 +219,12 @@
       "icudt_CJK.tjcz0u77k5.dat": "icudt_CJK.dat",
       "icudt_EFIGS.tptq2av103.dat": "icudt_EFIGS.dat",
       "icudt_no_CJK.lfu7j35m59.dat": "icudt_no_CJK.dat",
-      "VietPropEstate.Application.zteas3vbsj.wasm": "VietPropEstate.Application.wasm",
-      "VietPropEstate.Domain.zqga35mdlf.wasm": "VietPropEstate.Domain.wasm",
-      "VietPropEstate.Application.aqqjq27js7.pdb": "VietPropEstate.Application.pdb",
-      "VietPropEstate.Domain.pqxwpnre23.pdb": "VietPropEstate.Domain.pdb",
-      "VietPropEstate.BlazorUI.6bof09uhdz.wasm": "VietPropEstate.BlazorUI.wasm",
-      "VietPropEstate.BlazorUI.ey3z8v0lh6.pdb": "VietPropEstate.BlazorUI.pdb"
+      "VietPropEstate.Application.0o9wzbs7ob.wasm": "VietPropEstate.Application.wasm",
+      "VietPropEstate.Domain.4tsukc3tnq.wasm": "VietPropEstate.Domain.wasm",
+      "VietPropEstate.Application.kp894mh1du.pdb": "VietPropEstate.Application.pdb",
+      "VietPropEstate.Domain.kd8c7cluvy.pdb": "VietPropEstate.Domain.pdb",
+      "VietPropEstate.BlazorUI.0c6os2s720.wasm": "VietPropEstate.BlazorUI.wasm",
+      "VietPropEstate.BlazorUI.exx3u6butx.pdb": "VietPropEstate.BlazorUI.pdb"
     },
     "jsModuleNative": {
       "dotnet.native.noby4tlk4d.js": "sha256-p9eEzXhQIsI0a5bBJhfzW15iRafgplTxT8XrO5FiH9o="
@@ -452,14 +452,14 @@
       "WindowsBase.i7qip04bb5.wasm": "sha256-Lg5W8BM50Cpl1dgTrG9RQOrBRKOJq6H1t5sH3yf4KDU=",
       "mscorlib.ijjuvl21w4.wasm": "sha256-ku4DyQX7IfTdwPwDlrz9odvCs4mrgsJl0fNaqY56KOI=",
       "netstandard.jgp13znru0.wasm": "sha256-I7arRnyxWh5PItslQKjzLIG7EpohJACm7p/7K8eD0YA=",
-      "VietPropEstate.Application.zteas3vbsj.wasm": "sha256-l6GMwDHCVDNFuDnZb1qYVPu1yMRkMH9d78KNkDBW/zw=",
-      "VietPropEstate.Domain.zqga35mdlf.wasm": "sha256-SypPXPrBCvYdBYpUvSlBeykKhuU9+5VGZ4MhrHwZPNE=",
-      "VietPropEstate.BlazorUI.6bof09uhdz.wasm": "sha256-LvOF8RMYHyWLYxRwWkZqCg7FRt+RvDNxJkteRxUUJDw="
+      "VietPropEstate.Application.0o9wzbs7ob.wasm": "sha256-EHi11s0QuE6IVg2aJJtU6NbpBdMxIhoevTCX03uVPI4=",
+      "VietPropEstate.Domain.4tsukc3tnq.wasm": "sha256-qF6wtR2HQKTk8nBeJ/cUdcNhoAEeacapzwj04jZRRRg=",
+      "VietPropEstate.BlazorUI.0c6os2s720.wasm": "sha256-EJovK0AkQmsxeHjlPaFkgJHfUCkMTcOa6xQAskgwfeE="
     },
     "pdb": {
-      "VietPropEstate.Application.aqqjq27js7.pdb": "sha256-EuBNYa4U6oYiKh3xgndBLyrd7sQQ7vDZzLixpGPp+QY=",
-      "VietPropEstate.Domain.pqxwpnre23.pdb": "sha256-L+jmDG8yzsGDzbh3CSQRzsJqJUNTDACKC8Q4Sat3pWY=",
-      "VietPropEstate.BlazorUI.ey3z8v0lh6.pdb": "sha256-Ot1LDnFQWcmTPUKWqrwMYmRTEuEL2X26Gm9LCIZcako="
+      "VietPropEstate.Application.kp894mh1du.pdb": "sha256-WID6FJvnA5VkAi/yzF71wSW4hJCI4dcdH3uu1NDOPNs=",
+      "VietPropEstate.Domain.kd8c7cluvy.pdb": "sha256-mGOV5cEM4Ur5dn2z3GfjFNzajacyzVXd01c3SKob8AE=",
+      "VietPropEstate.BlazorUI.exx3u6butx.pdb": "sha256-grQVdwtFkhVhTxcfEiza4DTWPfw2OVEB5THL3XR+mCc="
     }
   },
   "cacheBootResources": true,

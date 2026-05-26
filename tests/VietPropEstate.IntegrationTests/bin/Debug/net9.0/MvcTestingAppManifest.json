@@ -1,6 +1,6 @@
 {
-  "VietPropEstate.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "C:\\Dev\\VietPropEstate\\src\\VietPropEstate.Application",
-  "VietPropEstate.Domain, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "C:\\Dev\\VietPropEstate\\src\\VietPropEstate.Domain",
-  "VietPropEstate.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "C:\\Dev\\VietPropEstate\\src\\VietPropEstate.Infrastructure",
-  "VietPropEstate.WebAPI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "C:\\Dev\\VietPropEstate\\src\\VietPropEstate.WebAPI"
+  "VietPropEstate.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "c:\\Dev\\VietPropEstate\\src\\VietPropEstate.Application",
+  "VietPropEstate.Domain, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "c:\\Dev\\VietPropEstate\\src\\VietPropEstate.Domain",
+  "VietPropEstate.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "c:\\Dev\\VietPropEstate\\src\\VietPropEstate.Infrastructure",
+  "VietPropEstate.WebAPI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "c:\\Dev\\VietPropEstate\\src\\VietPropEstate.WebAPI"
 }
